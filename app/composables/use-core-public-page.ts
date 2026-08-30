@@ -34,16 +34,18 @@ function publicRouteError(error: unknown): ReturnType<typeof createError> {
   const statusCode = responseStatus(error);
   const statusMessage = statusCode === 400
     ? "Invalid public page request"
+    : statusCode === 500
+      ? "Public page content is invalid"
     : statusCode === 503
       ? "Public content service unavailable"
       : "Invalid public content response";
   return createError({ statusCode, statusMessage, fatal: true });
 }
 
-function responseStatus(error: unknown): 400 | 502 | 503 {
+function responseStatus(error: unknown): 400 | 500 | 502 | 503 {
   if (!isRecord(error)) return 502;
   const status = error.statusCode ?? error.status;
-  return status === 400 || status === 502 || status === 503 ? status : 502;
+  return status === 400 || status === 500 || status === 502 || status === 503 ? status : 502;
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

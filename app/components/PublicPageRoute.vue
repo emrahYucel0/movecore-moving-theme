@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import PublicPageFoundation from "./PublicPageFoundation.vue";
+import SitePageRenderer from "./content/SitePageRenderer.vue";
 
 const page = await useCorePublicPage();
 if (page !== undefined) usePublicPageSeo(page);
 </script>
 
 <template>
-  <PublicPageFoundation v-if="page" :page="page" />
+  <SitePageRenderer v-if="page" :page="page.content" />
 </template>

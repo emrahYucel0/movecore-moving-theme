@@ -2,7 +2,7 @@
 
 MoveCore Nuxt Starter is the independent Nuxt 4 SSR frontend foundation for applications that consume Core CMS through its versioned Public HTTP API.
 
-The current milestone is **R1.4 — public site composition**. Root and catch-all pages resolve through Core CMS, while the SSR shell composes configured public Navigation, Setting, and Media projections. Core page SEO drives document metadata, and `/sitemap.xml` renders Core's paginated public sitemap.
+The current milestone is **R1.5B — starter-owned structured page rendering**. Root and catch-all pages resolve through Core CMS, while the starter validates and renders its own `site.page` content contract. Core page SEO still drives document metadata, and `/sitemap.xml` still renders Core's paginated public sitemap.
 
 ## Requirements
 
@@ -64,7 +64,35 @@ The timeout is optional and bounded by the client. All selectors are optional; b
 
 Both `/` and the catch-all Nuxt page call one fixed-purpose internal server endpoint. That endpoint resolves the pathname with Core's page resolver; its projection already includes published content, so normal page rendering never performs a second content request. Core redirects become Nuxt `301`/`302` responses, missing pages become real `404` responses, and invalid or unavailable upstream states remain distinct `400`, `502`, or `503` failures.
 
-The current renderer is a neutral SSR foundation view that safely displays the public content identity and escaped JSON payload. It does not interpret arbitrary HTML or assume a permanent content schema.
+The public renderer supports the starter-owned `site.page` contract. The fixed-purpose page endpoint validates the published payload, resolves deduplicated media references server-side, and sends a narrow render-facing view model to semantic SSR. Unsupported content types, malformed application content, missing media, and non-image assets used in image slots fail locally without exposing raw payloads.
+
+## Application-owned Editor Profile
+
+The versioned Admin Editor Profile manifest is committed at
+`application/editor-profiles.json`. A Core deployment may load it with an
+absolute path outside Core's repository:
+
+```text
+CORE_CMS_EDITOR_PROFILES_FILE=<absolute-path-to-starter>\application\editor-profiles.json
+```
+
+The starter owns the `site.page` meaning and payload interpretation. Core only
+validates the generic profile structure and exposes it to Admin; Core remains
+unaware of the profile's application semantics. Core must be restarted after a
+manifest change.
+
+The authoring flow is deliberately small:
+
+1. Core loads the starter manifest and exposes the structured Site Page editor.
+2. An editor creates and publishes content with type `site.page`.
+3. URL/SEO associates that content resource with a canonical path.
+4. Nuxt resolves the path through Core Public HTTP.
+5. The starter validates the `site.page` payload and ignores unknown fields.
+6. Referenced public images are resolved once per distinct asset ID.
+7. Nuxt renders semantic SSR HTML while Core SEO remains independent metadata.
+
+Sector-neutral payloads under `application/examples` are documentation and test
+fixtures only. They are not database seeds and are never written to Core.
 
 ## Public site composition
 
@@ -76,4 +104,4 @@ Absolute canonical and sitemap URLs require the validated public origin:
 NUXT_PUBLIC_SITE_URL=https://example.com
 ```
 
-Missing or invalid site-origin configuration fails page SEO and sitemap requests with a sanitized `503`; the production build itself does not require it. Core-provided title, description, index/follow choices, and canonical path drive page metadata. `/sitemap.xml` follows every Core `nextAfter` cursor, escapes XML, and rejects repeating pagination cursors. R1.5 will replace the neutral content/setting/media proof with typed Editor Profiles and meaningful structured rendering.
+Missing or invalid site-origin configuration fails page SEO and sitemap requests with a sanitized `503`; the production build itself does not require it. Core-provided title, description, index/follow choices, and canonical path drive page metadata independently from the visible `site.page` title. `/sitemap.xml` follows every Core `nextAfter` cursor, escapes XML, and rejects repeating pagination cursors. The optional R1.4 setting and foundation-media proof remains intact for later R1.6 onboarding cleanup.

@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { parsePublicContent, type PublicPageProjection } from "../server/core/contracts";
 import { CoreClientError } from "../server/core/errors";
 import {
+  PublicApplicationContentError,
+} from "../server/public-page/application-content";
+import {
   publicPageHttpFailure,
   resolvePublicPageRoute,
 } from "../server/public-page/route";
@@ -11,7 +14,7 @@ const page = {
   resource: { type: "page", id: "home" },
   content: {
     contentId: "content-home",
-    type: "foundation.page",
+    type: "site.page",
     revisionId: "revision-1",
     revisionNumber: 1,
     payload: { title: "Core SSR Proof" },
@@ -26,16 +29,19 @@ const page = {
 } satisfies PublicPageProjection;
 
 describe("public page application route", () => {
-  it("returns the embedded page content without a second content request", async () => {
+  it("returns composed site.page content without an unnecessary media request", async () => {
     const resolvePage = vi.fn(async () => ({ kind: "page", page } as const));
-    const getContent = vi.fn();
+    const getMedia = vi.fn();
 
-    const result = await resolvePublicPageRoute("/a/b/c", { resolvePage, getContent });
+    const result = await resolvePublicPageRoute("/a/b/c", { resolvePage, getMedia });
 
     expect(resolvePage).toHaveBeenCalledOnce();
     expect(resolvePage).toHaveBeenCalledWith("/a/b/c");
-    expect(getContent).not.toHaveBeenCalled();
-    expect(result).toEqual({ kind: "page", page });
+    expect(getMedia).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      kind: "page",
+      page: { seo: page.seo, content: { title: "Core SSR Proof", sections: [] } },
+    });
   });
 
   it.each([
@@ -43,6 +49,7 @@ describe("public page application route", () => {
     [302, "/temporary-target"],
   ] as const)("preserves a %i redirect", async (status, to) => {
     const result = await resolvePublicPageRoute("/old", {
+      getMedia: async () => null,
       resolvePage: async () => ({
         kind: "redirect",
         from: "/old",
@@ -57,6 +64,7 @@ describe("public page application route", () => {
 
   it("keeps not-found distinct", async () => {
     await expect(resolvePublicPageRoute("/missing", {
+      getMedia: async () => null,
       resolvePage: async () => ({ kind: "not-found" }),
     })).resolves.toEqual({ kind: "not-found" });
   });
@@ -68,6 +76,7 @@ describe("public page application route", () => {
     [new CoreClientError("network"), 503],
     [new CoreClientError("timeout"), 503],
     [new CoreClientError("invalid-request", { code: "invalid_configuration" }), 503],
+    [new PublicApplicationContentError(), 500],
   ] as const)("maps Core failures to sanitized HTTP status %i", (error, statusCode) => {
     const failure = publicPageHttpFailure(error);
     expect(failure.statusCode).toBe(statusCode);

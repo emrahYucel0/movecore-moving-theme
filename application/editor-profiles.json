@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "id": "site.page",
+      "version": 1,
+      "contentType": "site.page",
+      "label": "Site Page",
+      "description": "Structured fields for a public site page.",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Eyebrow",
+          "kind": "text",
+          "required": false,
+          "maxLength": 80
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "kind": "text",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "kind": "textarea",
+          "required": false,
+          "maxLength": 600
+        },
+        {
+          "key": "heroMedia",
+          "label": "Hero media",
+          "kind": "group",
+          "required": false,
+          "fields": [
+            {
+              "key": "assetId",
+              "label": "Asset",
+              "kind": "media",
+              "required": true
+            },
+            {
+              "key": "alt",
+              "label": "Alternative text",
+              "kind": "text",
+              "required": true,
+              "maxLength": 200
+            }
+          ]
+        },
+        {
+          "key": "sections",
+          "label": "Sections",
+          "kind": "repeater",
+          "required": false,
+          "fields": [
+            {
+              "key": "heading",
+              "label": "Heading",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "body",
+              "label": "Body",
+              "kind": "textarea",
+              "required": false,
+              "maxLength": 2000
+            },
+            {
+              "key": "media",
+              "label": "Media",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                {
+                  "key": "assetId",
+                  "label": "Asset",
+                  "kind": "media",
+                  "required": true
+                },
+                {
+                  "key": "alt",
+                  "label": "Alternative text",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 200
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

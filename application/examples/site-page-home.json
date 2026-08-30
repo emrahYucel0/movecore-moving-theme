@@ -1,0 +1,23 @@
+{
+  "eyebrow": "Structured publishing",
+  "title": "Build public sites on Core CMS",
+  "intro": "A framework-owned presentation layer backed by structured Core content.",
+  "heroMedia": {
+    "assetId": "asset:example-hero",
+    "alt": "Example structured publishing overview"
+  },
+  "sections": [
+    {
+      "heading": "Typed content",
+      "body": "Application-owned contracts turn published JSON into predictable semantic pages."
+    },
+    {
+      "heading": "Public media",
+      "body": "Referenced assets are resolved through the Core Public HTTP boundary.",
+      "media": {
+        "assetId": "asset:example-section",
+        "alt": "Example public media composition"
+      }
+    }
+  ]
+}

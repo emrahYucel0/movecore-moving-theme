@@ -12,6 +12,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
+    "smoke:production": "node scripts/production-smoke.mjs",
     "test": "vitest run",
     "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare"

@@ -1,0 +1,10 @@
+{
+  "title": "Structured content page",
+  "intro": "One content contract can serve multiple canonical routes.",
+  "sections": [
+    {
+      "heading": "Explicit application ownership",
+      "body": "Core manages content lifecycle while the starter owns interpretation and presentation."
+    }
+  ]
+}
