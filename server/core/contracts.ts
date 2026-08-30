@@ -245,9 +245,9 @@ function parseJsonValue(value: unknown, depth = 0): JsonValue {
   }
   if (Array.isArray(value)) return value.map((entry) => parseJsonValue(entry, depth + 1));
   if (!isRecord(value)) throw protocolError();
-  const result: Record<string, JsonValue> = {};
-  for (const [key, entry] of Object.entries(value)) result[key] = parseJsonValue(entry, depth + 1);
-  return result;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [key, parseJsonValue(entry, depth + 1)]),
+  );
 }
 
 function parseArray<T>(value: unknown, parser: (entry: unknown) => T): readonly T[] {
