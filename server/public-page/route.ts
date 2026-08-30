@@ -1,13 +1,8 @@
 import type { CorePublicClient } from "../core/client";
-import { isCoreClientError } from "../core/errors";
+import { corePublicHttpFailure } from "../core/http-failure";
 import type { PageRouteResult } from "../../shared/page-route";
 
 export type PublicPageResolver = Pick<CorePublicClient, "resolvePage">;
-
-export interface PublicPageHttpFailure {
-  readonly statusCode: 400 | 502 | 503;
-  readonly statusMessage: string;
-}
 
 export async function resolvePublicPageRoute(
   path: string,
@@ -21,21 +16,9 @@ export async function resolvePublicPageRoute(
   return { kind: "not-found" };
 }
 
-export function publicPageHttpFailure(error: unknown): PublicPageHttpFailure {
-  if (!isCoreClientError(error)) return invalidUpstreamResponse();
-  if (error.kind === "invalid-request") {
-    return error.code === "invalid_configuration"
-      ? unavailable()
-      : { statusCode: 400, statusMessage: "Invalid public page request" };
-  }
-  if (error.kind === "protocol") return invalidUpstreamResponse();
-  return unavailable();
-}
-
-function invalidUpstreamResponse(): PublicPageHttpFailure {
-  return { statusCode: 502, statusMessage: "Invalid public content response" };
-}
-
-function unavailable(): PublicPageHttpFailure {
-  return { statusCode: 503, statusMessage: "Public content service unavailable" };
+export function publicPageHttpFailure(error: unknown): ReturnType<typeof corePublicHttpFailure> {
+  const failure = corePublicHttpFailure(error);
+  return failure.statusCode === 400
+    ? { statusCode: 400, statusMessage: "Invalid public page request" }
+    : failure;
 }

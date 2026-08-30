@@ -6,6 +6,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     coreBaseUrl: "",
     coreRequestTimeoutMs: 5_000,
+    corePrimaryNavigationId: "",
+    coreSiteSettingNamespace: "",
+    coreSiteSettingKey: "",
+    coreFoundationMediaId: "",
+    public: {
+      siteUrl: "",
+    },
   },
   css: ["~/assets/css/main.css"],
   typescript: {

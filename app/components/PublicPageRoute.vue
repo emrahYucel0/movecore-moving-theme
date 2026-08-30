@@ -2,6 +2,7 @@
 import PublicPageFoundation from "./PublicPageFoundation.vue";
 
 const page = await useCorePublicPage();
+if (page !== undefined) usePublicPageSeo(page);
 </script>
 
 <template>
