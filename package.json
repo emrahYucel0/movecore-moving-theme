@@ -12,6 +12,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
+    "test": "vitest run",
     "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare"
   },
@@ -25,6 +26,7 @@
     "@types/node": "24.13.3",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "vitest": "4.1.11",
     "vue-tsc": "3.3.11"
   }
 }
