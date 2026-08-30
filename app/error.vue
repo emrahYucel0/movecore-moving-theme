@@ -36,24 +36,24 @@ function errorPresentation(status: number): Readonly<{ readonly title: string; r
 </script>
 
 <template>
-  <main class="grid min-h-dvh place-items-center bg-slate-50 px-6 py-16 text-slate-950">
+  <main class="theme-error">
     <section
       role="alert"
       aria-labelledby="public-error-title"
-      class="w-full max-w-xl space-y-5 rounded-lg border border-slate-200 bg-white p-8"
+      class="theme-error__panel"
     >
-      <p class="text-sm font-semibold text-slate-600">
+      <p class="theme-error__code">
         Error {{ statusCode }}
       </p>
-      <h1 id="public-error-title" class="text-3xl font-bold tracking-tight">
+      <h1 id="public-error-title" class="theme-error__title">
         {{ presentation.title }}
       </h1>
-      <p class="leading-7 text-slate-700">
+      <p class="theme-error__detail">
         {{ presentation.detail }}
       </p>
       <button
         type="button"
-        class="min-h-11 cursor-pointer rounded-md bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700 active:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        class="theme-error__action"
         @click="returnHome"
       >
         Return to home

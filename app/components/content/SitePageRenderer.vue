@@ -7,52 +7,65 @@ defineProps<{
 </script>
 
 <template>
-  <main class="mx-auto w-full max-w-5xl px-6 py-12 sm:py-16">
-    <article aria-labelledby="site-page-title" class="space-y-12">
-      <header class="space-y-5">
+  <main class="theme-main">
+    <article aria-labelledby="site-page-title" class="theme-page">
+      <header class="theme-hero" :class="{ 'theme-hero--with-media': page.heroMedia }">
+        <div class="theme-hero__copy">
         <p
           v-if="page.eyebrow"
-          class="text-sm font-semibold uppercase tracking-wider text-slate-600"
+          class="theme-eyebrow"
         >
           {{ page.eyebrow }}
         </p>
-        <h1 id="site-page-title" class="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 id="site-page-title" class="theme-title">
           {{ page.title }}
         </h1>
-        <p v-if="page.intro" class="max-w-3xl whitespace-pre-line text-lg leading-8 text-slate-700">
+        <p v-if="page.intro" class="theme-intro">
           {{ page.intro }}
         </p>
+        </div>
+        <figure v-if="page.heroMedia" class="theme-hero__media">
         <img
-          v-if="page.heroMedia"
           :src="page.heroMedia.publicUrl"
           :alt="page.heroMedia.alt"
           :width="page.heroMedia.width"
           :height="page.heroMedia.height"
-          class="h-auto w-full rounded-lg object-cover"
+          class="theme-media-image"
+          decoding="async"
+          fetchpriority="high"
         >
+        </figure>
       </header>
 
-      <div v-if="page.sections.length > 0" class="space-y-12">
+      <div v-if="page.sections.length > 0" class="theme-sections">
         <section
           v-for="(section, index) in page.sections"
           :key="`${index}:${section.heading}`"
-          class="space-y-4 border-t border-slate-200 pt-8"
+          class="theme-section"
+          :class="{
+            'theme-section--with-media': section.media,
+            'theme-section--reverse': index % 2 === 1,
+          }"
         >
-          <h2 class="text-2xl font-semibold tracking-tight">
-            {{ section.heading }}
-          </h2>
-          <p v-if="section.body" class="max-w-3xl whitespace-pre-line leading-7 text-slate-700">
-            {{ section.body }}
-          </p>
+          <div class="theme-section__copy">
+            <h2 class="theme-section__title">
+              {{ section.heading }}
+            </h2>
+            <p v-if="section.body" class="theme-section__body">
+              {{ section.body }}
+            </p>
+          </div>
+          <figure v-if="section.media" class="theme-section__media">
           <img
-            v-if="section.media"
             :src="section.media.publicUrl"
             :alt="section.media.alt"
             :width="section.media.width"
             :height="section.media.height"
             loading="lazy"
-            class="h-auto max-w-full rounded-lg"
+            decoding="async"
+            class="theme-media-image"
           >
+          </figure>
         </section>
       </div>
     </article>

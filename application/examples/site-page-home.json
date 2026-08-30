@@ -1,22 +1,22 @@
 {
-  "eyebrow": "Structured publishing",
-  "title": "Build public sites on Core CMS",
-  "intro": "A framework-owned presentation layer backed by structured Core content.",
+  "eyebrow": "Residential & commercial moving",
+  "title": "Moving handled with care, from door to door.",
+  "intro": "Professional packing, transport and placement with a clear plan from the first box to the final room.",
   "heroMedia": {
     "assetId": "asset:example-hero",
-    "alt": "Example structured publishing overview"
+    "alt": "Moving truck beside stacked packing boxes"
   },
   "sections": [
     {
-      "heading": "Typed content",
-      "body": "Application-owned contracts turn published JSON into predictable semantic pages."
+      "heading": "Care at every handoff",
+      "body": "Packed, carried and placed with a consistent handling plan from collection through arrival."
     },
     {
-      "heading": "Public media",
-      "body": "Referenced assets are resolved through the Core Public HTTP boundary.",
+      "heading": "A planned moving process",
+      "body": "Clear stages keep packing, transport and placement aligned.",
       "media": {
         "assetId": "asset:example-section",
-        "alt": "Example public media composition"
+        "alt": "Moving route connecting two homes"
       }
     }
   ]

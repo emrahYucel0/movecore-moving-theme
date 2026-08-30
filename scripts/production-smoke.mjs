@@ -6,7 +6,7 @@ import path from "node:path";
 import { createMockCoreServer } from "./mock-core.mjs";
 
 const HOST = "127.0.0.1";
-const PRIVATE_SENTINEL = "http://core-r16-private.invalid:9876";
+const PRIVATE_SENTINEL = "http://core-r21-private.invalid:9876";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const MEDIA_ORIGIN = "https://cdn.example.test";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -49,7 +49,7 @@ try {
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
   await verifySitemap(runtimeOrigin, coreOrigin);
   await verifySentinelRuntimeLeak();
-  process.stdout.write("R1.6_PRODUCTION_SMOKE=PASS\n");
+  process.stdout.write("R2.1_PRODUCTION_SMOKE=PASS\n");
 } catch (error) {
   const safeOutput = runtimeOutput
     .replaceAll(PRIVATE_SENTINEL, "[private-core-origin]")
@@ -66,16 +66,17 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
   assert.equal(response.status, 200);
   const html = await response.text();
   for (const expected of [
-    "Core CMS Nuxt Starter",
-    "A typed, server-rendered public site powered through the Core CMS Public HTTP boundary.",
-    "Structured content",
-    "Public media",
-    "Abstract MoveCore demo hero",
-    "Abstract MoveCore demo section",
+    "Moving handled with care, from door to door.",
+    "Professional packing, transport and placement with a clear plan from the first box to the final room.",
+    "Care at every handoff",
+    "A planned moving process",
+    "Illustrated moving truck beside stacked packing boxes",
+    "Illustrated hands carefully passing a packed box",
     `${MEDIA_ORIGIN}/demo-media/hero.svg`,
     `${MEDIA_ORIGIN}/demo-media/section.svg`,
-    "<title>MoveCore Starter Demo</title>",
-    "A production-oriented Nuxt starter for Core CMS.",
+    `${MEDIA_ORIGIN}/demo-media/process.svg`,
+    "<title>Northline Moving | Moving with a clear plan</title>",
+    "Professional packing, transport and placement for carefully planned residential and commercial moves.",
     "index,follow",
     `${PUBLIC_SITE_ORIGIN}/`,
     "Home",
@@ -94,7 +95,7 @@ async function verifySiteComposition(runtimeOrigin, coreOrigin) {
   assert.equal(response.status, 200);
   const composition = await response.json();
   assert.equal(composition.navigation.id, "primary");
-  assert.equal(composition.setting.value.name, "MoveCore Nuxt Starter");
+  assert.equal(composition.setting.value.name, "Northline Moving");
   assert.equal(composition.media.assetId, "asset:demo-hero");
   assert.equal(JSON.stringify(composition).includes(coreOrigin), false);
 }
@@ -187,7 +188,7 @@ async function verifySentinelRuntimeLeak() {
       const response = await fetch(`${origin}${pathname}`, { headers: { accept: "text/html" } });
       assert.equal(response.status, 503, pathname);
       const body = await response.text();
-      for (const forbidden of [PRIVATE_SENTINEL, "core-r16-private.invalid", "NUXT_CORE_BASE_URL"]) {
+      for (const forbidden of [PRIVATE_SENTINEL, "core-r21-private.invalid", "NUXT_CORE_BASE_URL"]) {
         assert.equal(body.includes(forbidden), false, `${pathname} leaked private runtime configuration`);
       }
     }

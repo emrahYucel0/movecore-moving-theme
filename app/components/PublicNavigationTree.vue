@@ -4,30 +4,35 @@ import type { PublicSiteNavigationItem } from "~~/shared/site-composition";
 defineOptions({ name: "PublicNavigationTree" });
 defineProps<{
   readonly items: readonly PublicSiteNavigationItem[];
+  readonly depth: number;
 }>();
 </script>
 
 <template>
-  <ul class="space-y-2">
-    <li v-for="item in items" :key="item.id">
+  <ul
+    class="theme-nav-list"
+    :class="{ 'theme-nav-list--nested': depth > 0 }"
+    :data-depth="depth"
+  >
+    <li v-for="item in items" :key="item.id" class="theme-nav-item">
       <NuxtLink
         v-if="item.destination.kind === 'internal'"
         :to="item.destination.path"
-        class="underline-offset-4 hover:underline"
+        class="theme-nav-link"
       >
         {{ item.label }}
       </NuxtLink>
       <a
         v-else
         :href="item.destination.url"
-        class="underline-offset-4 hover:underline"
+        class="theme-nav-link"
       >
         {{ item.label }}
       </a>
       <PublicNavigationTree
         v-if="item.children.length > 0"
         :items="item.children"
-        class="mt-2 border-l border-slate-300 pl-4"
+        :depth="depth + 1"
       />
     </li>
   </ul>

@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2026-08-30",
   ssr: true,
+  devtools: { enabled: false },
   runtimeConfig: {
     coreBaseUrl: "",
     coreRequestTimeoutMs: 5_000,
@@ -14,7 +15,7 @@ export default defineNuxtConfig({
       siteUrl: "",
     },
   },
-  css: ["~/assets/css/main.css"],
+  css: ["~/assets/css/main.css", "~/assets/css/theme.css"],
   typescript: {
     strict: true,
   },

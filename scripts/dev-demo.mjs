@@ -45,7 +45,7 @@ try {
     windowsHide: true,
   });
 
-  process.stdout.write(`\nMoveCore demo: http://${HOST}:${NUXT_PORT}\n`);
+  process.stdout.write(`\nMoveCore Moving theme demo: http://${HOST}:${NUXT_PORT}\n`);
   process.stdout.write(`Mock Core: http://${HOST}:${CORE_PORT} (local process only)\n`);
   process.stdout.write(`Demo media: http://${HOST}:${MEDIA_PORT} (local public assets)\n`);
   process.stdout.write("Press Ctrl+C to stop both processes.\n\n");

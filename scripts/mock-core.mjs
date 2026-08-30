@@ -18,10 +18,13 @@ export function createMockMediaServer() {
     const url = new URL(request.url ?? "/", "http://mock-media.invalid");
     if (request.method !== "GET") return json(response, 405, failure("method_not_allowed"));
     if (url.pathname === "/demo-media/hero.svg") {
-      return svg(response, "MoveCore demo hero", "#0f172a", "#38bdf8");
+      return svg(response, heroIllustration());
     }
     if (url.pathname === "/demo-media/section.svg") {
-      return svg(response, "MoveCore demo section", "#172554", "#a5b4fc");
+      return svg(response, handoffIllustration());
+    }
+    if (url.pathname === "/demo-media/process.svg") {
+      return svg(response, processIllustration());
     }
     return json(response, 404, failure("not_found"));
   });
@@ -41,7 +44,7 @@ function handleRequest(request, response, mediaOrigin) {
       data: {
         namespace: "site",
         key: "foundation",
-        value: { name: "MoveCore Nuxt Starter" },
+        value: { name: "Northline Moving" },
       },
     });
   }
@@ -78,19 +81,20 @@ function pageResponse(pathname, response) {
     "/": {
       type: "site.page",
       payload: {
-        eyebrow: "Structured publishing",
-        title: "Core CMS Nuxt Starter",
-        intro: "A typed, server-rendered public site powered through the Core CMS Public HTTP boundary.",
-        heroMedia: { assetId: "asset:demo-hero", alt: "Abstract MoveCore demo hero" },
+        eyebrow: "Residential & commercial moving",
+        title: "Moving handled with care, from door to door.",
+        intro: "Professional packing, transport and placement with a clear plan from the first box to the final room.",
+        heroMedia: { assetId: "asset:demo-hero", alt: "Illustrated moving truck beside stacked packing boxes" },
         sections: [
           {
-            heading: "Structured content",
-            body: "Application-owned fields become semantic server-rendered content.",
+            heading: "Care at every handoff",
+            body: "Packed, carried and placed with a consistent handling plan from collection through arrival.",
+            media: { assetId: "asset:demo-section", alt: "Illustrated hands carefully passing a packed box" },
           },
           {
-            heading: "Public media",
-            body: "Published image projections remain resolved through Core Public HTTP.",
-            media: { assetId: "asset:demo-section", alt: "Abstract MoveCore demo section" },
+            heading: "A planned moving process",
+            body: "Clear stages keep packing, transport and room-by-room placement aligned without unnecessary complexity.",
+            media: { assetId: "asset:demo-process", alt: "Illustrated moving route connecting two homes" },
           },
         ],
       },
@@ -98,13 +102,13 @@ function pageResponse(pathname, response) {
     "/about": {
       type: "site.page",
       payload: {
-        eyebrow: "About this starter",
-        title: "A clean Core-backed foundation",
-        intro: "This page demonstrates a second canonical route using the same site.page contract.",
+        eyebrow: "A considered service",
+        title: "A clear plan for the work between homes.",
+        intro: "Northline Moving is a fictional demo brand showing how structured Core content becomes a focused service experience.",
         sections: [
           {
-            heading: "Application ownership",
-            body: "The starter owns presentation while Core owns published content and routing projections.",
+            heading: "Built around careful handling",
+            body: "The theme owns presentation while Core continues to own published content, routing and public projections.",
           },
         ],
       },
@@ -160,10 +164,10 @@ function publicPage(pathname, type, payload) {
       publishedAt: DEMO_PUBLISHED_AT,
     },
     seo: {
-      title: pathname === "/" ? "MoveCore Starter Demo" : "About MoveCore Starter",
+      title: pathname === "/" ? "Northline Moving | Moving with a clear plan" : "About Northline Moving",
       description: pathname === "/"
-        ? "A production-oriented Nuxt starter for Core CMS."
-        : "How the MoveCore Nuxt starter divides application and CMS ownership.",
+        ? "Professional packing, transport and placement for carefully planned residential and commercial moves."
+        : "A fictional moving service demo built on the MoveCore Nuxt application boundary.",
       canonicalPath: pathname,
       index: true,
       follow: true,
@@ -178,7 +182,11 @@ function mediaResponse(assetId, request, response, configuredOrigin) {
   if (assetId === "asset:document") {
     return json(response, 200, { data: publicMedia(assetId, "document", "document.pdf", request, configuredOrigin) });
   }
-  const filename = assetId === "asset:demo-hero" ? "hero.svg" : "section.svg";
+  const filename = assetId === "asset:demo-hero"
+    ? "hero.svg"
+    : assetId === "asset:demo-process"
+      ? "process.svg"
+      : "section.svg";
   return json(response, 200, {
     data: publicMedia(assetId, "image", filename, request, configuredOrigin),
   });
@@ -193,9 +201,9 @@ function publicMedia(assetId, kind, filename, request, configuredOrigin) {
     original: {
       mimeType: isImage ? "image/svg+xml" : "application/pdf",
       format: isImage ? "svg" : "pdf",
-      byteSize: 512,
+      byteSize: 1_024,
       publicUrl: isImage ? `${origin}/demo-media/${filename}` : `${origin}/${filename}`,
-      ...(isImage ? { width: 1200, height: 675, aspectRatio: 16 / 9 } : {}),
+      ...(isImage ? { width: 1200, height: 800, aspectRatio: 1.5 } : {}),
     },
     variants: [],
   };
@@ -217,11 +225,22 @@ function json(response, status, body, headers = {}) {
   response.end(JSON.stringify(body));
 }
 
-function svg(response, label, background, accent) {
-  const body = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="${label}"><rect width="1200" height="675" fill="${background}"/><circle cx="950" cy="110" r="250" fill="${accent}" opacity=".55"/><path d="M0 510 330 250l250 200 220-170 400 315v80H0Z" fill="${accent}" opacity=".8"/><text x="72" y="120" fill="white" font-family="system-ui,sans-serif" font-size="42">${label}</text></svg>`;
+function svg(response, body) {
   response.writeHead(200, {
     "content-type": "image/svg+xml; charset=utf-8",
     "cache-control": "public, max-age=300",
   });
   response.end(body);
+}
+
+function heroIllustration() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Moving truck beside stacked packing boxes"><rect width="1200" height="800" fill="#d9d8cf"/><rect y="610" width="1200" height="190" fill="#bbc2b9"/><rect x="92" y="104" width="680" height="472" fill="#f8f6ef"/><path d="M170 470h592v-246H396v80H170z" fill="#19302c"/><path d="M762 318h168l114 112v40H762z" fill="#c94f2c"/><rect x="822" y="346" width="103" height="72" fill="#d9d8cf"/><circle cx="318" cy="525" r="58" fill="#f8f6ef" stroke="#19302c" stroke-width="26"/><circle cx="889" cy="525" r="58" fill="#f8f6ef" stroke="#19302c" stroke-width="26"/><rect x="110" y="390" width="118" height="118" fill="#c94f2c"/><rect x="236" y="342" width="144" height="166" fill="#e9a46e"/><path d="M308 342v166M236 404h144" stroke="#19302c" stroke-width="8"/><path d="M92 104h680M92 576h952" stroke="#19302c" stroke-width="8"/></svg>`;
+}
+
+function handoffIllustration() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Hands passing a packed box"><rect width="1200" height="800" fill="#19302c"/><rect x="416" y="198" width="368" height="390" fill="#e9a46e"/><path d="M600 198v390M416 326h368" stroke="#f8f6ef" stroke-width="10"/><path d="M0 492h246l170-96v192l-176 96H0zM1200 492H954l-170-96v192l176 96h240z" fill="#c94f2c"/><path d="M246 492l170-96M954 492l-170-96" stroke="#f8f6ef" stroke-width="10"/><circle cx="600" cy="454" r="54" fill="none" stroke="#19302c" stroke-width="10"/></svg>`;
+}
+
+function processIllustration() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Route connecting two homes"><rect width="1200" height="800" fill="#f8f6ef"/><path d="M166 558C338 362 416 658 598 432S852 260 1034 190" fill="none" stroke="#c94f2c" stroke-width="18" stroke-dasharray="30 24"/><path d="M92 552l138-112 138 112v154H92zM832 250l138-112 138 112v154H832z" fill="#19302c"/><rect x="182" y="610" width="92" height="96" fill="#d9d8cf"/><rect x="922" y="308" width="92" height="96" fill="#d9d8cf"/><circle cx="166" cy="558" r="34" fill="#f8f6ef" stroke="#c94f2c" stroke-width="14"/><circle cx="1034" cy="190" r="34" fill="#f8f6ef" stroke="#c94f2c" stroke-width="14"/><path d="M482 354h220v142H482z" fill="#e9a46e"/><path d="M592 354v142M482 416h220" stroke="#19302c" stroke-width="8"/></svg>`;
 }
