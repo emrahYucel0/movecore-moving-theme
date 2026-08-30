@@ -1,4 +1,4 @@
-import type { PublicSeoProjection } from "../server/core/contracts";
+import type { PublicSeoProjection } from "./core-public-contracts";
 import type { SitePageViewModel } from "./content/site-page";
 
 export interface PublicApplicationPage {

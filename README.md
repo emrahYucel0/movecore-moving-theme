@@ -1,107 +1,131 @@
 # MoveCore Nuxt Starter
 
-MoveCore Nuxt Starter is the independent Nuxt 4 SSR frontend foundation for applications that consume Core CMS through its versioned Public HTTP API.
-
-The current milestone is **R1.5B — starter-owned structured page rendering**. Root and catch-all pages resolve through Core CMS, while the starter validates and renders its own `site.page` content contract. Core page SEO still drives document metadata, and `/sitemap.xml` still renders Core's paginated public sitemap.
+A production-oriented Nuxt 4 SSR starter for public applications backed by the versioned Core CMS Public HTTP API. The starter owns rendering and the `site.page` application contract; Core owns published content, routing, SEO, navigation, settings, media projections, and sitemap inventory.
 
 ## Requirements
 
 - Node.js 24 LTS (`>=24.11.0 <25`)
 - npm 11
 
-## Local development
+## Five-minute offline demo
+
+The demo is explicit and local-only. It starts a deterministic mock Core on `127.0.0.1:4010`, tiny public demo media on `127.0.0.1:4011`, and Nuxt dev on `127.0.0.1:3000`; it needs no database, Docker, Core checkout, network, or production service.
 
 ```bash
 npm install
+npm run dev:demo
+```
+
+Open `http://127.0.0.1:3000`. Press Ctrl+C once to stop every demo process. Startup fails clearly if any fixed demo port is already occupied.
+
+Demo routes:
+
+- `/` and `/about`: typed `site.page` SSR pages with navigation and public media
+- `/old`: permanent `301` redirect to `/about`
+- `/temporary`: temporary `302` redirect to `/about`
+- `/missing`: safe `404` page
+- `/sitemap.xml`: absolute public sitemap
+
+Demo content is a fixture, not a seed. The command never starts implicitly from `npm run dev` or a production build.
+
+## Connect a real Core CMS
+
+Create `.env` from `.env.example`, provide a reachable Core Public HTTP origin, and start normal development:
+
+```bash
 npm run dev
 ```
 
-Type-check the application:
+The real-Core setup is:
 
-```bash
-npm run typecheck
-```
-
-Create and preview a production build:
-
-```bash
-npm run build
-npm run preview
-```
-
-## Architecture boundary
-
-This repository is a frontend consumer. It **must not**:
-
-- access Prisma or MySQL directly;
-- import Core persistence adapters;
-- import Core domain packages as an integration shortcut;
-- access Ege models or its database;
-- contain Core Admin functionality.
-
-Communication with Core CMS occurs only through the versioned Public HTTP boundary. The server-only client reads `NUXT_CORE_BASE_URL`; it must never be exposed through `runtimeConfig.public`.
-
-Multilingual and i18n support is a future architectural milestone. It is intentionally not implemented in R1.4, and this foundation does not impose a locale-specific route architecture.
-
-## Core CMS Public HTTP client
-
-R1.2 adds a typed client under `server/core`. It uses only Core CMS `/v1` Public HTTP reads and is created lazily when server code requests it. The browser never receives the Core backend origin.
-
-Private runtime configuration:
+1. Start/configure Core CMS `v1.0.0-rc.2`.
+2. Copy, mount, or otherwise make `application/editor-profiles.json` available on Core's filesystem.
+3. Set Core's `CORE_CMS_EDITOR_PROFILES_FILE` to that absolute path and restart Core.
+4. Configure the starter's private Core base URL and optional composition selectors.
+5. Configure the starter's public site URL.
+6. Run `npm run dev`.
 
 ```text
-NUXT_CORE_BASE_URL=http://127.0.0.1:3000
+NUXT_CORE_BASE_URL=http://127.0.0.1:4000
 NUXT_CORE_REQUEST_TIMEOUT_MS=5000
 NUXT_CORE_PRIMARY_NAVIGATION_ID=primary
 NUXT_CORE_SITE_SETTING_NAMESPACE=site
 NUXT_CORE_SITE_SETTING_KEY=foundation
 NUXT_CORE_FOUNDATION_MEDIA_ID=foundation-image
+NUXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
 ```
 
-The timeout is optional and bounded by the client. All selectors are optional; blank selectors disable that foundation resource without a Core request. These private values never belong under `runtimeConfig.public` or a `NUXT_PUBLIC_*` variable. The client has no database access, Core package imports, credentials, mutations, retries, or Admin integration.
-
-## Core-backed public routes
-
-Both `/` and the catch-all Nuxt page call one fixed-purpose internal server endpoint. That endpoint resolves the pathname with Core's page resolver; its projection already includes published content, so normal page rendering never performs a second content request. Core redirects become Nuxt `301`/`302` responses, missing pages become real `404` responses, and invalid or unavailable upstream states remain distinct `400`, `502`, or `503` failures.
-
-The public renderer supports the starter-owned `site.page` contract. The fixed-purpose page endpoint validates the published payload, resolves deduplicated media references server-side, and sends a narrow render-facing view model to semantic SSR. Unsupported content types, malformed application content, missing media, and non-image assets used in image slots fail locally without exposing raw payloads.
+`NUXT_CORE_BASE_URL` and every `NUXT_CORE_*` selector are private server configuration. Blank optional selectors disable that composition read. `NUXT_PUBLIC_SITE_URL` is intentionally public and supplies the absolute canonical/sitemap origin; it must not point to the private Core backend.
 
 ## Application-owned Editor Profile
 
-The versioned Admin Editor Profile manifest is committed at
-`application/editor-profiles.json`. A Core deployment may load it with an
-absolute path outside Core's repository:
+The only supported application content type is `site.page`. Its versioned Editor Profile lives at `application/editor-profiles.json` and is validated against the same fields consumed by the SSR parser.
+
+Core must be able to read that file at runtime. Mount the starter directory into the Core host/container, or copy the versioned manifest into a deployment-owned configuration directory, then give Core an absolute path:
 
 ```text
-CORE_CMS_EDITOR_PROFILES_FILE=<absolute-path-to-starter>\application\editor-profiles.json
+CORE_CMS_EDITOR_PROFILES_FILE=C:\absolute\path\to\application\editor-profiles.json
 ```
 
-The starter owns the `site.page` meaning and payload interpretation. Core only
-validates the generic profile structure and exposes it to Admin; Core remains
-unaware of the profile's application semantics. Core must be restarted after a
-manifest change.
+For a container this can be a mounted path such as `/app-config/editor-profiles.json`. Restart Core after changing the manifest. If the file is absent, not mounted, unreadable, or not configured, the structured profile will not be available in Admin. Do not copy application semantics into Core source code.
 
-The authoring flow is deliberately small:
+## Authoring and publishing flow
 
-1. Core loads the starter manifest and exposes the structured Site Page editor.
-2. An editor creates and publishes content with type `site.page`.
-3. URL/SEO associates that content resource with a canonical path.
-4. Nuxt resolves the path through Core Public HTTP.
-5. The starter validates the `site.page` payload and ignores unknown fields.
-6. Referenced public images are resolved once per distinct asset ID.
-7. Nuxt renders semantic SSR HTML while Core SEO remains independent metadata.
+1. Make the starter manifest available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE`.
+2. Restart Core and confirm Admin exposes the Site Page editor for `site.page`.
+3. Create content with the structured fields defined by the profile.
+4. Select public image assets for media fields; Core stores asset references, not presentation markup.
+5. Publish the content revision.
+6. Associate its content resource with a canonical URL and independent SEO metadata in Core.
+7. Publish/configure the primary navigation and any optional site setting/media selectors.
+8. Request the route in Nuxt; the server resolves, validates, composes media, and renders semantic HTML.
 
-Sector-neutral payloads under `application/examples` are documentation and test
-fixtures only. They are not database seeds and are never written to Core.
+Files under `application/examples` are documentation and parser fixtures only. They are not database seeds, are not written to Core, and are not loaded by the demo as business data.
 
-## Public site composition
+## Runtime architecture
 
-R1.4 adds one fixed-purpose internal site endpoint for the configured Navigation, public Setting, and foundation Media projections. It is not a generic Core proxy. Internal navigation uses Nuxt links, external destinations remain normal public anchors, setting JSON is escaped, and an image projection may render its Core-provided public asset URL. A public media URL is intentionally browser-visible and is distinct from the private Core backend origin.
+The browser talks only to Nuxt. Nuxt server code calls fixed Core `/v1` Public HTTP reads; there is no generic proxy, Prisma/MySQL access, Core package import, Ege dependency, Admin API, credential forwarding, mutation, or retry loop.
 
-Absolute canonical and sitemap URLs require the validated public origin:
+Nuxt does not own or impose the CMS URL structure. Core's URL resolver owns canonical paths, so `/about`, `/services/example`, `/example`, or `/tr/example` can all work when the application configures them. Public routing remains Core-owned:
 
-```text
-NUXT_PUBLIC_SITE_URL=https://example.com
+- `/` and the catch-all page resolve a normalized path through Core.
+- Published page projections include content and independent SEO metadata.
+- Core `301`/`302` decisions remain redirects; missing pages remain `404`.
+- Malformed local application content is `500`, invalid Core protocol is `502`, and unavailable Core is `503`.
+- The public error page preserves safe status codes, exposes no upstream details, and provides a home recovery action.
+
+The fixed `/api/_movecore/site` endpoint retains Navigation, Setting, and foundation Media composition without rendering transport/debug JSON in the public shell. Internal navigation uses Nuxt links; external destinations use normal anchors.
+
+## Content, SEO, media, and sitemap boundaries
+
+Core Content intentionally accepts application-defined opaque JSON and generic publication does not enforce the `site.page` schema. Editor Profiles improve structured authoring but do not make application payload interpretation a Core responsibility. The starter validates the payload during public composition; unknown fields are ignored, while unsupported types and invalid required fields fail closed. This is an application-contract validation limitation and a future hardening opportunity, not a security vulnerability.
+
+The visible heading comes from `site.page.title`; SEO title, description, canonical path, index, and follow come from Core's separate page SEO projection. Do not duplicate SEO fields inside `site.page`. `NUXT_PUBLIC_SITE_URL` supplies the public origin. `/sitemap.xml` reads all paginated Core sitemap entries, escapes XML, and rejects repeating cursors.
+
+Core Media owns the asset projection, public URL, and dimensions; `site.page` owns usage-specific alt text. Public image references are deduplicated and resolved server-side through Core Public HTTP, then narrowed before they reach rendering. Core media creation and content publication are separate operations; authoring across those resources is not an atomic transaction, so applications must not assume that it is.
+
+## Validation
+
+Run the portable release gate on Windows, macOS, or Linux:
+
+```bash
+npm run verify
 ```
 
-Missing or invalid site-origin configuration fails page SEO and sitemap requests with a sanitized `503`; the production build itself does not require it. Core-provided title, description, index/follow choices, and canonical path drive page metadata independently from the visible `site.page` title. `/sitemap.xml` follows every Core `nextAfter` cursor, escapes XML, and rejects repeating pagination cursors. The optional R1.4 setting and foundation-media proof remains intact for later R1.6 onboarding cleanup.
+It runs tests, Nuxt type checking, and a production build in order. Additional production-runtime smoke coverage uses the same shared mock Core as the demo:
+
+```bash
+npm run smoke:production
+npm audit --omit=dev
+npm audit
+```
+
+## Current limits
+
+- Exactly one application profile: `site.page`
+- No multilingual/i18n route architecture
+- No theme system or visual page builder
+- No application-specific R2 content types
+- No direct database, Core Admin, production deployment, or migration behavior
+
+R2 can add application-owned profiles and renderers without changing the Public HTTP boundary established here.
