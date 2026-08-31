@@ -48,6 +48,8 @@ MoveCore Moving & Logistics Theme R2.3
   -> production-quality commercial homepage composition
 MoveCore Moving & Logistics Theme R2.4
   -> bounded service and location contracts with SSR inner-page templates
+MoveCore Moving & Logistics Theme R2.5
+  -> progressive motion and a deterministic production performance gate
 ```
 
 The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads. There is no generic proxy, Core package import, direct database access, Ege dependency, Admin API forwarding or mutation path.
@@ -82,7 +84,10 @@ npm run typecheck
 npm run build
 npm run verify
 npm run smoke:production
+npm run perf:production
 ```
+
+`npm run perf:production` uses the installed Chrome/Chromium executable, the real Nitro production build, and the deterministic local Core/media fixtures. Its constrained mobile profile is 390×844 at DPR 2, 4× CPU throttling, 150 ms latency, 1.6 Mbps download and 750 Kbps upload. The homepage receives one warm-up plus five measured runs; representative service and location routes receive a browser smoke measurement. This is a repeatable local regression gate, not a claim about hosted Lighthouse or PageSpeed.
 
 ## Production connection
 
@@ -125,6 +130,18 @@ R2.4 adds exactly two bounded Moving-specific types. `moving.service` models one
 The nested `/services/...` and `/areas/...` URLs are deterministic demo fixtures, not product policy. Core may resolve either type at a flat or differently nested canonical path. Related-service and nearby-area destinations are bounded textual href references, not database relations or automatic graph traversal.
 
 `moving.article` is deliberately deferred. A dedicated article type is not justified until publication date, author, taxonomy, listing, related-article and Article structured-data semantics are demonstrated. General editorial pages continue to use `site.page`; R2.4 adds no blog, geo hierarchy, bulk SEO generation, map, form, pricing, review or page-builder system.
+
+## R2.5 performance and motion
+
+R2.5 keeps all SSR content immediately visible and adds no runtime motion dependency. CSS transitions provide small link affordances; supported browsers progressively animate only structural handoff, process and closing rules with scroll-driven timelines. Unsupported browsers receive the complete static design, JavaScript is not required for motion, and `prefers-reduced-motion: reduce` resolves every animated detail to its final static state. Native document scrolling remains authoritative.
+
+The current public theme has no client-owned interactive state, so production uses Nuxt's supported `features.noScripts` mode. Navigation remains native document navigation, every route is rendered by Nitro, and the development demo retains Nuxt client scripts for normal development diagnostics. Any future client interaction must explicitly revisit this production policy and its performance budget.
+
+Explicit renderer lazy loading was measured and rejected: it produced negligible homepage transfer savings while adding requests and hydration work. The application therefore keeps direct imports behind its fixed, validated `site.page`, `moving.home`, `moving.service` and `moving.location` type dispatch. No CMS value becomes a component name or import path.
+
+Current image rendering supports authored alt text, intrinsic dimensions, eager high-priority hero delivery, and async decoding; below-fold images are lazy and async. Core's public media projection can contain variants, but the frozen application content view models do not currently expose a responsive `srcset`/`sizes` composition, so R2.5 does not invent URLs or expand those contracts.
+
+For release photography, prefer AVIF or WebP where the publication pipeline supports them, generate viewport-appropriate responsive dimensions, target no more than 150 KiB transferred for the mobile hero LCP candidate, preserve intrinsic width and height, and lazy-load below-fold media. Never send an oversized desktop original to a mobile viewport. Responsive variant composition remains a future media-boundary enhancement and must use public Core metadata rather than frontend-generated URLs.
 
 ## Known current limitations
 

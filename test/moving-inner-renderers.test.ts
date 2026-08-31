@@ -25,6 +25,7 @@ describe.each([
     expect(renderer).toContain(":alt=\"page.hero.media.alt\"");
     expect(renderer).toContain(":width=\"page.hero.media.width\"");
     expect(renderer).toContain(":height=\"page.hero.media.height\"");
+    expect(renderer).toContain('decoding="async"');
     expect(renderer).toContain('fetchpriority="high"');
     expect(renderer).not.toContain("$fetch");
   });
@@ -54,7 +55,7 @@ describe("R2.4 explicit presentation dispatch", () => {
     expect(route).not.toMatch(/component\s*:is|componentMap|rendererRegistry|dynamic/u);
   });
 
-  it("defines distinct responsive inner-page systems with no animation layer", async () => {
+  it("keeps distinct responsive inner-page systems under the application-owned motion layer", async () => {
     const theme = await source("../app/assets/css/theme.css");
     for (const evidence of [
       ".moving-service-included", ".moving-service-process", ".moving-related-services",
@@ -63,7 +64,8 @@ describe("R2.4 explicit presentation dispatch", () => {
       "@media (max-width: 47.9375rem)", "@media (max-width: 30rem)",
     ]) expect(theme).toContain(evidence);
     const rules = theme.slice(theme.indexOf(".moving-inner"), theme.indexOf(".theme-error"));
-    expect(rules).not.toMatch(/animation|@keyframes|gradient|border-radius|box-shadow/u);
+    expect(rules).not.toMatch(/gradient|border-radius|box-shadow/u);
+    expect(theme).toContain(".moving-inner-process::after");
   });
 });
 

@@ -17,6 +17,11 @@
   --theme-font-body: "Aptos", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --theme-font-display: "Arial Narrow", "Aptos Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
   --theme-font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  --motion-fast: 140ms;
+  --motion-base: 240ms;
+  --motion-slow: 640ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *,
@@ -427,6 +432,7 @@ button:focus-visible {
   background: var(--theme-signal);
   content: "";
   pointer-events: none;
+  transform-origin: center top;
 }
 
 .moving-hero__media::after {
@@ -466,6 +472,11 @@ button:focus-visible {
   font-weight: 750;
   line-height: 1.2;
   text-decoration: none;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-base) var(--motion-ease-emphasis);
 }
 
 .moving-action-link:hover {
@@ -627,6 +638,17 @@ button:focus-visible {
   text-align: left;
 }
 
+.moving-service-index .moving-action-link:hover,
+.moving-service-index .moving-action-link:focus-visible,
+.moving-area-list .moving-action-link:hover,
+.moving-area-list .moving-action-link:focus-visible,
+.moving-editorial-links .moving-action-link:hover,
+.moving-editorial-links .moving-action-link:focus-visible,
+.moving-nearby-list .moving-action-link:hover,
+.moving-nearby-list .moving-action-link:focus-visible {
+  transform: translateX(0.35rem);
+}
+
 .moving-service-index p,
 .moving-process p {
   max-width: 34rem;
@@ -646,11 +668,26 @@ button:focus-visible {
 }
 
 .moving-process {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
   margin-top: clamp(3rem, 6vw, 5.5rem);
   list-style: none;
   counter-reset: moving-step;
+}
+
+.moving-process::after,
+.moving-inner-process::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 0.18rem;
+  background: var(--theme-signal);
+  content: "";
+  pointer-events: none;
+  transform-origin: left center;
 }
 
 .moving-process li {
@@ -713,6 +750,7 @@ button:focus-visible {
   height: 42%;
   background: var(--theme-signal-soft);
   content: "";
+  pointer-events: none;
 }
 
 .moving-assurance__media .moving-media-image {
@@ -780,6 +818,7 @@ button:focus-visible {
 }
 
 .moving-final-action {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: clamp(2.5rem, 5vw, 6rem);
@@ -788,6 +827,18 @@ button:focus-visible {
   padding: clamp(4.5rem, 9vw, 8.5rem) var(--theme-gutter);
   background: var(--theme-ink);
   color: var(--theme-surface);
+}
+
+.moving-final-action::before {
+  position: absolute;
+  top: 0;
+  right: var(--theme-gutter);
+  left: var(--theme-gutter);
+  height: 0.2rem;
+  background: var(--theme-signal);
+  content: "";
+  pointer-events: none;
+  transform-origin: left center;
 }
 
 .moving-final-action__copy {
@@ -896,6 +947,7 @@ button:focus-visible {
   background: var(--theme-signal);
   content: "";
   pointer-events: none;
+  transform-origin: center top;
 }
 
 .moving-inner-hero__media .moving-media-image {
@@ -1097,11 +1149,92 @@ button:focus-visible {
 }
 
 .moving-inner-process {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   margin-top: clamp(3rem, 6vw, 5.5rem);
   list-style: none;
   counter-reset: moving-inner-step;
+}
+
+@keyframes moving-signal-handoff {
+  from {
+    transform: scaleY(0.35);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes moving-sequence-progress {
+  from {
+    transform: scaleX(0.08);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes moving-sequence-progress-vertical {
+  from {
+    transform: scaleY(0.08);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes moving-detail-handoff {
+  from {
+    transform: translate3d(-0.45rem, -0.45rem, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes moving-closing-signal {
+  from {
+    transform: scaleX(0.12);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .moving-hero__media::before,
+    .moving-inner-hero__media::before {
+      animation: moving-signal-handoff linear both;
+      animation-timeline: view(block);
+      animation-range: entry 0% cover 55%;
+    }
+
+    .moving-process::after,
+    .moving-inner-process::after {
+      animation: moving-sequence-progress linear both;
+      animation-timeline: view(block);
+      animation-range: entry 12% cover 68%;
+    }
+
+    .moving-assurance__media::after {
+      animation: moving-detail-handoff linear both;
+      animation-timeline: view(block);
+      animation-range: entry 15% cover 58%;
+    }
+
+    .moving-final-action::before {
+      animation: moving-closing-signal linear both;
+      animation-timeline: view(block);
+      animation-range: entry 10% cover 54%;
+    }
+  }
 }
 
 .moving-inner-process li {
@@ -1643,6 +1776,24 @@ button:focus-visible {
     margin-top: 3rem;
   }
 
+  .moving-process::after,
+  .moving-inner-process::after {
+    right: auto;
+    bottom: 0;
+    width: 0.18rem;
+    height: auto;
+    transform-origin: center top;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .moving-process::after,
+      .moving-inner-process::after {
+        animation-name: moving-sequence-progress-vertical;
+      }
+    }
+  }
+
   .moving-process li {
     min-height: 0;
     padding: 3.25rem 0 2.5rem 3rem;
@@ -1740,7 +1891,19 @@ button:focus-visible {
   *::before,
   *::after {
     scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .moving-hero__media::before,
+  .moving-inner-hero__media::before,
+  .moving-process::after,
+  .moving-inner-process::after,
+  .moving-assurance__media::after,
+  .moving-final-action::before {
+    animation: none !important;
+    transform: none !important;
   }
 }
 

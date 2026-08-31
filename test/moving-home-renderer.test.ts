@@ -39,14 +39,15 @@ describe("moving.home commercial renderer", () => {
     expect(action).toContain(":href=\"action.href\"");
   });
 
-  it("adds responsive presentation rules and no homepage animation", async () => {
+  it("keeps responsive presentation while motion remains a CSS-only enhancement", async () => {
     const theme = await source("../app/assets/css/theme.css");
     expect(theme).toContain(".moving-home__section");
     expect(theme).toContain(".moving-assurance");
     expect(theme).toContain("@media (max-width: 67.9375rem)");
     expect(theme).toContain("@media (max-width: 47.9375rem)");
     const movingRules = theme.slice(theme.indexOf(".moving-home"), theme.indexOf(".theme-error"));
-    expect(movingRules).not.toMatch(/animation|@keyframes/u);
+    expect(movingRules).toContain("@supports (animation-timeline: view())");
+    expect(movingRules).not.toContain("opacity: 0");
   });
 });
 

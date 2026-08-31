@@ -28,6 +28,7 @@ defineProps<{
             :height="page.hero.media.height"
             class="moving-media-image"
             loading="eager"
+            decoding="async"
             fetchpriority="high"
           >
         </figure>
