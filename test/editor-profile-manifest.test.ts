@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { MOVING_HOME_LIMITS, parseMovingHomePayload } from "../shared/content/moving-home";
+import { MOVING_SERVICE_LIMITS, parseMovingServicePayload } from "../shared/content/moving-service";
+import { MOVING_LOCATION_LIMITS, parseMovingLocationPayload } from "../shared/content/moving-location";
 import { parseSitePagePayload } from "../shared/content/site-page";
 
 describe("application Editor Profile manifest", () => {
@@ -9,7 +11,7 @@ describe("application Editor Profile manifest", () => {
     expect(Object.keys(manifest).sort()).toEqual(["profiles", "version"]);
     expect(manifest["version"]).toBe(1);
     const profiles = array(manifest["profiles"]);
-    expect(profiles).toHaveLength(2);
+    expect(profiles).toHaveLength(4);
 
     const profile = profileById(profiles, "site.page");
     expect(profile).toMatchObject({ id: "site.page", version: 1, contentType: "site.page" });
@@ -38,7 +40,9 @@ describe("application Editor Profile manifest", () => {
   it("expresses moving.home v1 with parser-aligned fields, kinds, required flags, and lengths", async () => {
     const manifest = await loadManifest();
     const profiles = array(manifest["profiles"]);
-    expect(profiles.map((value) => record(value)["id"])).toEqual(["site.page", "moving.home"]);
+    expect(profiles.map((value) => record(value)["id"])).toEqual([
+      "site.page", "moving.home", "moving.service", "moving.location",
+    ]);
     const profile = profileById(profiles, "moving.home");
     expect(profile).toMatchObject({ id: "moving.home", version: 1, contentType: "moving.home" });
     const fields = array(profile["fields"]).map(record);
@@ -96,6 +100,94 @@ describe("application Editor Profile manifest", () => {
     expect(maximumDepth(fields)).toBe(3);
   });
 
+  it("expresses moving.service v1 with explicit parser-aligned groups", async () => {
+    const profiles = array((await loadManifest())["profiles"]);
+    const profile = profileById(profiles, "moving.service");
+    expect(profile).toMatchObject({ id: "moving.service", version: 1, contentType: "moving.service" });
+    const fields = array(profile["fields"]).map(record);
+    expect(fields.map((entry) => entry["key"])).toEqual([
+      "hero", "overview", "included", "process", "relatedServices", "finalAction",
+    ]);
+    for (const entry of fields) expect(entry["required"]).toBe(true);
+
+    const hero = nested(fields, "hero", "group", true);
+    expect(hero.map((entry) => entry["key"])).toEqual([
+      "eyebrow", "title", "intro", "media", "primaryAction",
+    ]);
+    expect(field(hero, "title")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_SERVICE_LIMITS.title });
+    expect(field(hero, "intro")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_SERVICE_LIMITS.heroIntro });
+    expectMediaFields(nested(hero, "media", "group", false));
+    expectActionFields(nested(hero, "primaryAction", "group", true));
+
+    const overview = nested(fields, "overview", "group", true);
+    expect(field(overview, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_SERVICE_LIMITS.overviewBody });
+    expect(field(nested(overview, "points", "repeater", true), "text"))
+      .toMatchObject({ kind: "text", required: true, maxLength: MOVING_SERVICE_LIMITS.point });
+
+    for (const key of ["included", "process"] as const) {
+      const section = nested(fields, key, "group", true);
+      expect(field(section, "eyebrow")).toMatchObject({ kind: "text", required: false, maxLength: 80 });
+      expect(field(section, "title")).toMatchObject({ kind: "text", required: true, maxLength: 160 });
+      expect(field(section, "intro")).toMatchObject({ kind: "textarea", required: false, maxLength: 700 });
+    }
+    const includedItems = nested(nested(fields, "included", "group", true), "items", "repeater", true);
+    expect(field(includedItems, "title")).toMatchObject({ kind: "text", required: true, maxLength: 120 });
+    expect(field(includedItems, "description")).toMatchObject({ kind: "textarea", required: false, maxLength: 400 });
+    const steps = nested(nested(fields, "process", "group", true), "steps", "repeater", true);
+    expect(field(steps, "title")).toMatchObject({ kind: "text", required: true, maxLength: 100 });
+    expect(field(steps, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: 320 });
+
+    const related = nested(fields, "relatedServices", "group", true);
+    const relatedItems = nested(related, "items", "repeater", true);
+    expect(field(relatedItems, "title")).toMatchObject({ kind: "text", required: true, maxLength: 120 });
+    expectHrefField(field(relatedItems, "href"));
+
+    const finalAction = nested(fields, "finalAction", "group", true);
+    expectActionFields(nested(finalAction, "primaryAction", "group", true));
+    expectActionFields(nested(finalAction, "secondaryAction", "group", false));
+    expect(totalFields(fields)).toBe(46);
+    expect(maximumDepth(fields)).toBe(3);
+  });
+
+  it("expresses moving.location v1 with explicit parser-aligned groups", async () => {
+    const profiles = array((await loadManifest())["profiles"]);
+    const profile = profileById(profiles, "moving.location");
+    expect(profile).toMatchObject({ id: "moving.location", version: 1, contentType: "moving.location" });
+    const fields = array(profile["fields"]).map(record);
+    expect(fields.map((entry) => entry["key"])).toEqual([
+      "hero", "overview", "services", "localDetails", "nearbyAreas", "finalAction",
+    ]);
+    for (const entry of fields) expect(entry["required"]).toBe(true);
+
+    const hero = nested(fields, "hero", "group", true);
+    expect(field(hero, "title")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_LOCATION_LIMITS.heroTitle });
+    expect(field(hero, "intro")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.heroIntro });
+    expectMediaFields(nested(hero, "media", "group", false));
+
+    const overview = nested(fields, "overview", "group", true);
+    expect(field(overview, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.overviewBody });
+    expect(field(nested(overview, "highlights", "repeater", true), "text"))
+      .toMatchObject({ kind: "text", required: true, maxLength: MOVING_LOCATION_LIMITS.highlight });
+
+    const services = nested(fields, "services", "group", true);
+    const serviceItems = nested(services, "items", "repeater", true);
+    expect(field(serviceItems, "description")).toMatchObject({ kind: "textarea", required: false, maxLength: MOVING_LOCATION_LIMITS.itemDescription });
+    expectHrefField(field(serviceItems, "href"));
+
+    const details = nested(fields, "localDetails", "group", true);
+    expect(field(details, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.overviewBody });
+    const detailItems = nested(details, "items", "repeater", true);
+    expect(field(detailItems, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.itemDescription });
+
+    const nearby = nested(fields, "nearbyAreas", "group", true);
+    expectActionFields(nested(nearby, "items", "repeater", true));
+    const finalAction = nested(fields, "finalAction", "group", true);
+    expectActionFields(nested(finalAction, "primaryAction", "group", true));
+    expectActionFields(nested(finalAction, "secondaryAction", "group", false));
+    expect(totalFields(fields)).toBe(43);
+    expect(maximumDepth(fields)).toBe(3);
+  });
+
   it.each(["site-page-home.json", "site-page-detail.json"])(
     "keeps example fixture %s compatible with the parser",
     async (name) => {
@@ -113,6 +205,16 @@ describe("application Editor Profile manifest", () => {
       "utf8",
     ));
     expect(parseMovingHomePayload(payload).hero.primaryAction.href).toBe("/about");
+  });
+
+  it.each([
+    ["moving-service.json", parseMovingServicePayload, "A room-by-room plan for moving home."],
+    ["moving-location.json", parseMovingLocationPayload, "Moving support shaped around practical local access."],
+  ] as const)("keeps %s compatible with its application parser", async (name, parse, title) => {
+    const payload: unknown = JSON.parse(await readFile(
+      new URL(`../application/examples/${name}`, import.meta.url), "utf8",
+    ));
+    expect(parse(payload).hero.title).toBe(title);
   });
 });
 

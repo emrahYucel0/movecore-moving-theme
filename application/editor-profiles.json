@@ -528,6 +528,310 @@
           ]
         }
       ]
+    },
+    {
+      "id": "moving.service",
+      "version": 1,
+      "contentType": "moving.service",
+      "label": "Moving Service",
+      "description": "Structured content for one focused moving service page.",
+      "fields": [
+        {
+          "key": "hero",
+          "label": "Service hero",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 700 },
+            {
+              "key": "media",
+              "label": "Media",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+                { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+              ]
+            },
+            {
+              "key": "primaryAction",
+              "label": "Primary action",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "overview",
+          "label": "Service overview",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
+            {
+              "key": "points",
+              "label": "Overview points",
+              "kind": "repeater",
+              "description": "Add 2 to 6 practical service points.",
+              "required": true,
+              "fields": [
+                { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "included",
+          "label": "What is included",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 700 },
+            {
+              "key": "items",
+              "label": "Included items",
+              "kind": "repeater",
+              "description": "Add 3 to 8 inclusions in editorial order.",
+              "required": true,
+              "fields": [
+                { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 400 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "process",
+          "label": "Service process",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 700 },
+            {
+              "key": "steps",
+              "label": "Steps",
+              "kind": "repeater",
+              "description": "Add 3 to 6 steps. List order owns visible numbering.",
+              "required": true,
+              "fields": [
+                { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 100 },
+                { "key": "description", "label": "Description", "kind": "textarea", "required": true, "maxLength": 320 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "relatedServices",
+          "label": "Related services",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            {
+              "key": "items",
+              "label": "Service links",
+              "kind": "repeater",
+              "description": "Add 2 to 6 summary links.",
+              "required": true,
+              "fields": [
+                { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 400 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "finalAction",
+          "label": "Final action",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 600 },
+            {
+              "key": "primaryAction",
+              "label": "Primary action",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            },
+            {
+              "key": "secondaryAction",
+              "label": "Secondary action",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.location",
+      "version": 1,
+      "contentType": "moving.location",
+      "label": "Moving Location",
+      "description": "Structured content for one useful moving location page, not a geographic database.",
+      "fields": [
+        {
+          "key": "hero",
+          "label": "Location hero",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+            {
+              "key": "media",
+              "label": "Media",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+                { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "overview",
+          "label": "Location overview",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
+            {
+              "key": "highlights",
+              "label": "Location highlights",
+              "kind": "repeater",
+              "description": "Add 2 to 6 genuinely useful location points.",
+              "required": true,
+              "fields": [
+                { "key": "text", "label": "Highlight", "kind": "text", "required": true, "maxLength": 240 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "services",
+          "label": "Available services",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 700 },
+            {
+              "key": "items",
+              "label": "Service links",
+              "kind": "repeater",
+              "description": "Add 2 to 8 relevant service links.",
+              "required": true,
+              "fields": [
+                { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 500 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "localDetails",
+          "label": "Local moving details",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
+            {
+              "key": "items",
+              "label": "Operational details",
+              "kind": "repeater",
+              "description": "Add 2 to 6 useful local considerations.",
+              "required": true,
+              "fields": [
+                { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Description", "kind": "textarea", "required": true, "maxLength": 500 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "nearbyAreas",
+          "label": "Nearby areas",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            {
+              "key": "items",
+              "label": "Area links",
+              "kind": "repeater",
+              "description": "Add 2 to 8 navigational area links.",
+              "required": true,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "finalAction",
+          "label": "Final action",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 600 },
+            {
+              "key": "primaryAction",
+              "label": "Primary action",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            },
+            {
+              "key": "secondaryAction",
+              "label": "Secondary action",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

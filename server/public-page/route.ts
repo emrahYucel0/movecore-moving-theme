@@ -3,6 +3,8 @@ import { corePublicHttpFailure } from "../core/http-failure";
 import type { PageRouteResult } from "../../shared/page-route";
 import {
   composeMovingHome,
+  composeMovingLocation,
+  composeMovingService,
   composeSitePage,
   PublicApplicationContentError,
 } from "./application-content";
@@ -37,6 +39,26 @@ export async function resolvePublicPageRoute(
           type: "moving.home",
           seo: result.page.seo,
           content: await composeMovingHome(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.service") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.service",
+          seo: result.page.seo,
+          content: await composeMovingService(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.location") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.location",
+          seo: result.page.seo,
+          content: await composeMovingLocation(result.page, resolver),
         },
       };
     }

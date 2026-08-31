@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ActionLink } from "~~/shared/content/moving-home";
+import type { ActionLink } from "~~/shared/content/moving-common";
 
 const props = defineProps<{
   readonly action: ActionLink;

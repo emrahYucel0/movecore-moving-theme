@@ -1,6 +1,9 @@
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 
 const DEMO_PUBLISHED_AT = "2026-08-30T00:00:00.000Z";
+const MOVING_SERVICE_EXAMPLE = loadExample("moving-service.json");
+const MOVING_LOCATION_EXAMPLE = loadExample("moving-location.json");
 
 export function createMockCoreServer(options = {}) {
   const mediaOrigin = options.mediaOrigin;
@@ -63,6 +66,10 @@ function handleRequest(request, response, mediaOrigin) {
         items: [
           { path: "/", lastModified: DEMO_PUBLISHED_AT },
           { path: "/about", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/services/home-moving", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/services/office-relocation", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/areas/north-district", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/areas/riverside", lastModified: DEMO_PUBLISHED_AT },
         ],
       },
     });
@@ -96,6 +103,22 @@ function pageResponse(pathname, response) {
         ],
       },
     },
+    "/services/home-moving": {
+      type: "moving.service",
+      payload: movingServicePayload("home"),
+    },
+    "/services/office-relocation": {
+      type: "moving.service",
+      payload: movingServicePayload("office"),
+    },
+    "/areas/north-district": {
+      type: "moving.location",
+      payload: movingLocationPayload("north"),
+    },
+    "/areas/riverside": {
+      type: "moving.location",
+      payload: movingLocationPayload("riverside"),
+    },
     "/invalid": { type: "site.page", payload: { intro: "No title" } },
     "/unsupported": { type: "something.else", payload: { title: "Unsupported" } },
     "/missing-media": mediaPage("asset:missing"),
@@ -124,6 +147,44 @@ function primaryNavigation() {
         destination: { kind: "internal", path: "/about" },
         children: [],
       },
+      {
+        id: "services",
+        label: "Services",
+        destination: { kind: "internal", path: "/services/home-moving" },
+        children: [
+          {
+            id: "home-moving",
+            label: "Home moving",
+            destination: { kind: "internal", path: "/services/home-moving" },
+            children: [],
+          },
+          {
+            id: "office-relocation",
+            label: "Office relocation",
+            destination: { kind: "internal", path: "/services/office-relocation" },
+            children: [],
+          },
+        ],
+      },
+      {
+        id: "areas",
+        label: "Areas",
+        destination: { kind: "internal", path: "/areas/north-district" },
+        children: [
+          {
+            id: "north-district",
+            label: "North District",
+            destination: { kind: "internal", path: "/areas/north-district" },
+            children: [],
+          },
+          {
+            id: "riverside",
+            label: "Riverside",
+            destination: { kind: "internal", path: "/areas/riverside" },
+            children: [],
+          },
+        ],
+      },
     ],
   };
 }
@@ -147,10 +208,8 @@ function publicPage(pathname, type, payload) {
       publishedAt: DEMO_PUBLISHED_AT,
     },
     seo: {
-      title: pathname === "/" ? "Northline Moving | Moving with a clear plan" : "About Northline Moving",
-      description: pathname === "/"
-        ? "Professional packing, transport and placement for carefully planned residential and commercial moves."
-        : "A fictional moving service demo built on the MoveCore Nuxt application boundary.",
+      title: seoTitle(pathname),
+      description: seoDescription(pathname),
       canonicalPath: pathname,
       index: true,
       follow: true,
@@ -239,10 +298,10 @@ function movingHomePayload() {
       title: "The right help for the work ahead.",
       intro: "Focused moving support for homes, workplaces and smaller changes of address.",
       items: [
-        { title: "Home moving", description: "A coordinated plan for packing, transport and room-by-room placement.", href: "/about" },
-        { title: "Office relocation", description: "Structured preparation and handoff for workplace moves.", href: "/about" },
-        { title: "Packing support", description: "Careful preparation for furniture, boxes and fragile belongings.", href: "/about" },
-        { title: "Small moves", description: "A clear scope for compact moves that still need thoughtful handling.", href: "/about" },
+        { title: "Home moving", description: "A coordinated plan for packing, transport and room-by-room placement.", href: "/services/home-moving" },
+        { title: "Office relocation", description: "Structured preparation and handoff for workplace moves.", href: "/services/office-relocation" },
+        { title: "Packing support", description: "Careful preparation for furniture, boxes and fragile belongings.", href: "/services/home-moving" },
+        { title: "Small moves", description: "A clear scope for compact moves that still need thoughtful handling.", href: "/services/home-moving" },
       ],
     },
     process: {
@@ -276,10 +335,10 @@ function movingHomePayload() {
       title: "Moving support across the fictional Northline area.",
       intro: "These general labels demonstrate homepage area navigation without creating a location SEO model.",
       areas: [
-        { label: "Central district", href: "/about" },
-        { label: "North district", href: "/about" },
-        { label: "Riverside", href: "/about" },
-        { label: "West side", href: "/about" },
+        { label: "North district", href: "/areas/north-district" },
+        { label: "Riverside", href: "/areas/riverside" },
+        { label: "North district planning", href: "/areas/north-district" },
+        { label: "Riverside planning", href: "/areas/riverside" },
       ],
     },
     finalAction: {
@@ -290,6 +349,60 @@ function movingHomePayload() {
       secondaryAction: { label: "Call the team", href: "tel:+15550101010" },
     },
   };
+}
+
+function movingServicePayload(kind) {
+  const payload = structuredClone(MOVING_SERVICE_EXAMPLE);
+  if (kind === "office") {
+    payload.hero.eyebrow = "Office relocation";
+    payload.hero.title = "A structured handoff for moving workplaces.";
+    payload.hero.intro = "Coordinate access, equipment groups, transport and room priorities through one clear workplace move.";
+    payload.hero.media.alt = "Illustrated moving truck prepared for an office relocation";
+    payload.overview.title = "Protect continuity through a clear sequence.";
+    payload.overview.body = "Office relocation planning connects teams, access windows and destination zones so equipment and shared items have an agreed route through the move.";
+    payload.included.title = "What the relocation plan can include.";
+    payload.finalAction.title = "Plan a clear workplace handoff.";
+  }
+  return payload;
+}
+
+function movingLocationPayload(kind) {
+  const payload = structuredClone(MOVING_LOCATION_EXAMPLE);
+  if (kind === "riverside") {
+    payload.hero.eyebrow = "Riverside";
+    payload.hero.title = "Plan a Riverside move around access and handoff.";
+    payload.hero.intro = "Use practical building entry, loading and room-placement details for a move in the fictional Riverside area.";
+    delete payload.hero.media;
+    payload.overview.title = "Make the route into each property explicit.";
+    payload.localDetails.title = "Resolve Riverside access details before arrival.";
+    payload.nearbyAreas.items = [
+      { label: "North District", href: "/areas/north-district" },
+      { label: "Riverside", href: "/areas/riverside" },
+    ];
+  }
+  return payload;
+}
+
+function seoTitle(pathname) {
+  const titles = {
+    "/": "Northline Moving | Moving with a clear plan",
+    "/about": "About Northline Moving",
+    "/services/home-moving": "Home Moving Service | Northline Moving",
+    "/services/office-relocation": "Office Relocation Service | Northline Moving",
+    "/areas/north-district": "North District Moving Support | Northline Moving",
+    "/areas/riverside": "Riverside Moving Support | Northline Moving",
+  };
+  return titles[pathname] ?? "Northline Moving";
+}
+
+function seoDescription(pathname) {
+  return pathname === "/"
+    ? "Professional packing, transport and placement for carefully planned residential and commercial moves."
+    : "A fictional moving service demo built on the MoveCore Nuxt application boundary.";
+}
+
+function loadExample(name) {
+  return JSON.parse(readFileSync(new URL(`../application/examples/${name}`, import.meta.url), "utf8"));
 }
 
 function heroIllustration() {

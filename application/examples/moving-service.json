@@ -1,0 +1,61 @@
+{
+  "hero": {
+    "eyebrow": "Home moving",
+    "title": "A room-by-room plan for moving home.",
+    "intro": "Coordinate packing, access, transport and placement through one clear moving sequence.",
+    "media": {
+      "assetId": "asset:demo-hero",
+      "alt": "Illustrated moving truck beside prepared packing boxes"
+    },
+    "primaryAction": {
+      "label": "Plan your move",
+      "href": "/about"
+    }
+  },
+  "overview": {
+    "title": "Keep every handoff understandable.",
+    "body": "Home moving involves more than the journey between addresses. The plan connects access, packing priorities, room labels and destination placement so each stage has a clear purpose.",
+    "points": [
+      { "text": "Agree access and timing before moving day" },
+      { "text": "Match preparation to the rooms and belongings involved" },
+      { "text": "Confirm placement priorities at the destination" }
+    ]
+  },
+  "included": {
+    "eyebrow": "Service scope",
+    "title": "What the moving plan can include.",
+    "intro": "The final scope is agreed around the needs of the move.",
+    "items": [
+      { "title": "Access planning", "description": "Review entrances, stairs, lifts and loading points before the move begins." },
+      { "title": "Protective preparation", "description": "Prepare furniture and boxed belongings for the agreed handling sequence." },
+      { "title": "Coordinated transport", "description": "Keep loading, travel and unloading connected to one practical schedule." },
+      { "title": "Room placement", "description": "Use room labels and destination priorities to support a clear final handoff." }
+    ]
+  },
+  "process": {
+    "eyebrow": "How it works",
+    "title": "A practical sequence from plan to placement.",
+    "intro": "Each stage prepares the next one.",
+    "steps": [
+      { "title": "Confirm the scope", "description": "Outline what is moving, the access at both addresses and the target timing." },
+      { "title": "Prepare the rooms", "description": "Pack and label belongings according to the agreed room-by-room plan." },
+      { "title": "Coordinate the move", "description": "Manage loading, transport and unloading as one connected handoff." },
+      { "title": "Place and review", "description": "Position items in destination rooms and review the agreed scope before completion." }
+    ]
+  },
+  "relatedServices": {
+    "eyebrow": "Related support",
+    "title": "Continue planning the right service.",
+    "items": [
+      { "title": "Office relocation", "description": "A structured handoff for workplace equipment, access and room priorities.", "href": "/services/office-relocation" },
+      { "title": "Home moving", "description": "Return to the complete home-moving scope and preparation sequence.", "href": "/services/home-moving" }
+    ]
+  },
+  "finalAction": {
+    "eyebrow": "Start with the scope",
+    "title": "Build a clear plan for moving day.",
+    "body": "Share the addresses, timing and rooms involved so the next step is understandable.",
+    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "secondaryAction": { "label": "Call the team", "href": "tel:+15550101010" }
+  }
+}

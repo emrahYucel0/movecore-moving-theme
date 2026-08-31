@@ -80,6 +80,46 @@ describe("public page application route", () => {
     });
   });
 
+  it.each([
+    ["moving.service", "moving-service.json", "/flat-service", "A room-by-room plan for moving home."],
+    ["moving.location", "moving-location.json", "/campaign/local-support", "Moving support shaped around practical local access."],
+  ] as const)(
+    "dispatches %s at an arbitrary Core-resolved canonical path",
+    async (contentType, fixture, canonicalPath, visibleTitle) => {
+      const payload: unknown = JSON.parse(await readFile(
+        new URL(`../application/examples/${fixture}`, import.meta.url), "utf8",
+      ));
+      const publishedPage: PublicPageProjection = {
+        ...page,
+        content: { ...page.content, type: contentType, payload },
+        seo: { ...page.seo, title: "A deliberately different SEO title", canonicalPath },
+      };
+      const resolvePage = vi.fn(async () => ({ kind: "page", page: publishedPage } as const));
+      const getMedia = vi.fn(async (assetId: string) => ({
+        assetId,
+        kind: "image" as const,
+        original: {
+          mimeType: "image/webp",
+          format: "webp",
+          byteSize: 1,
+          publicUrl: `https://cdn.example.test/${encodeURIComponent(assetId)}.webp`,
+        },
+        variants: [],
+      }));
+
+      const result = await resolvePublicPageRoute(canonicalPath, { resolvePage, getMedia });
+      expect(resolvePage).toHaveBeenCalledWith(canonicalPath);
+      expect(result).toMatchObject({
+        kind: "page",
+        page: {
+          type: contentType,
+          seo: { title: "A deliberately different SEO title", canonicalPath },
+          content: { hero: { title: visibleTitle } },
+        },
+      });
+    },
+  );
+
   it("rejects unsupported published types without media reads", async () => {
     const getMedia = vi.fn();
     await expect(resolvePublicPageRoute("/unsupported", {

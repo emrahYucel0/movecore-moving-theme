@@ -6,7 +6,7 @@ import path from "node:path";
 import { createMockCoreServer } from "./mock-core.mjs";
 
 const HOST = "127.0.0.1";
-const PRIVATE_SENTINEL = "http://core-r23-private.invalid:9876";
+const PRIVATE_SENTINEL = "http://core-r24-private.invalid:9876";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const MEDIA_ORIGIN = "https://cdn.example.test";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -44,12 +44,13 @@ try {
 
   await waitForRuntime(runtimeOrigin);
   await verifyRenderedPage(runtimeOrigin, coreOrigin);
+  await verifyInnerPages(runtimeOrigin, coreOrigin);
   await verifySiteComposition(runtimeOrigin, coreOrigin);
   await verifyApplicationFailures(runtimeOrigin, coreOrigin);
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
   await verifySitemap(runtimeOrigin, coreOrigin);
   await verifySentinelRuntimeLeak();
-  process.stdout.write("R2.3_PRODUCTION_SMOKE=PASS\n");
+  process.stdout.write("R2.4_PRODUCTION_SMOKE=PASS\n");
 } catch (error) {
   const safeOutput = runtimeOutput
     .replaceAll(PRIVATE_SENTINEL, "[private-core-origin]")
@@ -78,7 +79,7 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "Care is part of the process.",
     "Clear arrival windows",
     "Moving support across the fictional Northline area.",
-    "Central district",
+    "North district",
     "Start with a clear moving plan.",
     "Plan your move",
     "Call the team",
@@ -123,6 +124,69 @@ async function verifySiteComposition(runtimeOrigin, coreOrigin) {
   assert.equal(composition.setting.value.name, "Northline Moving");
   assert.equal(composition.media.assetId, "asset:demo-hero");
   assert.equal(JSON.stringify(composition).includes(coreOrigin), false);
+}
+
+async function verifyInnerPages(runtimeOrigin, coreOrigin) {
+  const expectations = [
+    [
+      "/services/home-moving",
+      [
+        "A room-by-room plan for moving home.",
+        "Keep every handoff understandable.",
+        "What the moving plan can include.",
+        "A practical sequence from plan to placement.",
+        "Continue planning the right service.",
+        "Build a clear plan for moving day.",
+        "Home Moving Service | Northline Moving",
+        `${MEDIA_ORIGIN}/demo-media/hero.svg`,
+      ],
+    ],
+    [
+      "/services/office-relocation",
+      [
+        "A structured handoff for moving workplaces.",
+        "Protect continuity through a clear sequence.",
+        "What the relocation plan can include.",
+        "Plan a clear workplace handoff.",
+        "Office Relocation Service | Northline Moving",
+      ],
+    ],
+    [
+      "/areas/north-district",
+      [
+        "Moving support shaped around practical local access.",
+        "Start with the conditions at both addresses.",
+        "Choose a service around the move itself.",
+        "Operational details worth resolving early.",
+        "Explore nearby moving pages.",
+        "Connect the addresses to one clear sequence.",
+        "North District Moving Support | Northline Moving",
+        `${MEDIA_ORIGIN}/demo-media/section.svg`,
+      ],
+    ],
+    [
+      "/areas/riverside",
+      [
+        "Plan a Riverside move around access and handoff.",
+        "Make the route into each property explicit.",
+        "Resolve Riverside access details before arrival.",
+        "Riverside Moving Support | Northline Moving",
+      ],
+    ],
+  ];
+  for (const [pathname, evidence] of expectations) {
+    const response = await fetch(`${runtimeOrigin}${pathname}`, { redirect: "manual" });
+    assert.equal(response.status, 200, pathname);
+    const html = await response.text();
+    for (const expected of evidence) {
+      assert.ok(html.includes(expected), `${pathname} missing SSR evidence: ${expected}`);
+    }
+    assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1, pathname);
+    assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5, pathname);
+    for (const forbidden of [coreOrigin, PRIVATE_SENTINEL, "revisionId", "publishedAt", "\"payload\":"]) {
+      assert.equal(html.includes(forbidden), false, `${pathname} leaked ${forbidden}`);
+    }
+  }
 }
 
 async function verifyApplicationFailures(runtimeOrigin, coreOrigin) {
@@ -180,6 +244,10 @@ async function verifySitemap(runtimeOrigin, coreOrigin) {
   const xml = await response.text();
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/about</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/home-moving</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/office-relocation</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/north-district</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/riverside</loc>`));
   assert.equal(xml.includes(coreOrigin), false);
   assert.equal(xml.includes(PRIVATE_SENTINEL), false);
 }
@@ -213,7 +281,7 @@ async function verifySentinelRuntimeLeak() {
       const response = await fetch(`${origin}${pathname}`, { headers: { accept: "text/html" } });
       assert.equal(response.status, 503, pathname);
       const body = await response.text();
-      for (const forbidden of [PRIVATE_SENTINEL, "core-r21-private.invalid", "NUXT_CORE_BASE_URL"]) {
+      for (const forbidden of [PRIVATE_SENTINEL, "core-r21-private.invalid", "core-r23-private.invalid", "NUXT_CORE_BASE_URL"]) {
         assert.equal(body.includes(forbidden), false, `${pathname} leaked private runtime configuration`);
       }
     }

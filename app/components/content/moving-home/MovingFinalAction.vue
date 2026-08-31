@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MovingActionSection } from "~~/shared/content/moving-home";
+import type { MovingActionSection } from "~~/shared/content/moving-common";
 import PublicActionLink from "../PublicActionLink.vue";
 
 defineProps<{

@@ -3,13 +3,27 @@ import {
   type ContentImage,
   type ContentMediaReference,
 } from "./media";
+import {
+  isSafeActionHref,
+  MOVING_COMMON_LIMITS,
+  type ActionLink,
+  type MovingActionSection,
+  type MovingProcessStep,
+} from "./moving-common";
+
+export {
+  isSafeActionHref,
+  type ActionLink,
+  type MovingActionSection,
+  type MovingProcessStep,
+} from "./moving-common";
 
 export const MOVING_HOME_LIMITS = Object.freeze({
   eyebrow: 80,
   title: 160,
   intro: 600,
-  actionLabel: 80,
-  href: 2_048,
+  actionLabel: MOVING_COMMON_LIMITS.actionLabel,
+  href: MOVING_COMMON_LIMITS.href,
   proofValue: 40,
   proofLabel: 100,
   itemTitle: 100,
@@ -19,11 +33,6 @@ export const MOVING_HOME_LIMITS = Object.freeze({
   areaLabel: 100,
   finalBody: 600,
 });
-
-export interface ActionLink {
-  readonly label: string;
-  readonly href: string;
-}
 
 export interface MovingHomeHero {
   readonly eyebrow?: string;
@@ -52,11 +61,6 @@ export interface MovingServicesSection {
   readonly items: readonly MovingServiceSummary[];
 }
 
-export interface MovingProcessStep {
-  readonly title: string;
-  readonly description: string;
-}
-
 export interface MovingProcessSection {
   readonly eyebrow?: string;
   readonly title: string;
@@ -82,14 +86,6 @@ export interface MovingServiceAreasSection {
   readonly title: string;
   readonly intro?: string;
   readonly areas: readonly MovingAreaLink[];
-}
-
-export interface MovingActionSection {
-  readonly eyebrow?: string;
-  readonly title: string;
-  readonly body?: string;
-  readonly primaryAction: ActionLink;
-  readonly secondaryAction?: ActionLink;
 }
 
 export interface MovingHome {
@@ -133,23 +129,6 @@ export function parseMovingHomePayload(input: unknown): MovingHome {
     serviceAreas: parseServiceAreas(source["serviceAreas"]),
     finalAction: parseFinalAction(source["finalAction"]),
   });
-}
-
-export function isSafeActionHref(value: string): boolean {
-  if (value.length === 0 || value.length > MOVING_HOME_LIMITS.href || value.trim() !== value ||
-    /[\s\u0000-\u001f\u007f\\]/u.test(value)) return false;
-  if (value.startsWith("/")) return !value.startsWith("//");
-  if (value.startsWith("tel:") || value.startsWith("mailto:")) {
-    return value.slice(value.indexOf(":") + 1).length > 0;
-  }
-  if (!value.startsWith("http://") && !value.startsWith("https://")) return false;
-  try {
-    const parsed = new URL(value);
-    return (parsed.protocol === "http:" || parsed.protocol === "https:") &&
-      parsed.hostname.length > 0 && parsed.username === "" && parsed.password === "";
-  } catch {
-    return false;
-  }
 }
 
 function parseHero(value: unknown): MovingHomeHero {

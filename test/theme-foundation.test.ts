@@ -36,11 +36,11 @@ describe("R2.1 moving theme foundation", () => {
     }
   });
 
-  it("keeps the application content boundary on exactly site.page and moving.home", async () => {
+  it("keeps the application content boundary on exactly the four approved types", async () => {
     const manifest = JSON.parse(await source("../application/editor-profiles.json"));
     expect(manifest.profiles.map((profile: { contentType: string }) => profile.contentType))
-      .toEqual(["site.page", "moving.home"]);
-    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:service|location|article|quote)/u);
+      .toEqual(["site.page", "moving.home", "moving.service", "moving.location"]);
+    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:article|blog|category|city|district|neighborhood|contact|quote|testimonial|faq)/u);
   });
 
   it("keeps the offline demo deterministic and moving-specific", async () => {

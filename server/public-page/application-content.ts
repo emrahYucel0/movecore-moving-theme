@@ -17,6 +17,18 @@ import {
   type MovingHome,
   type MovingHomeViewModel,
 } from "../../shared/content/moving-home";
+import {
+  MovingServiceContractError,
+  parseMovingServicePayload,
+  type MovingService,
+  type MovingServiceViewModel,
+} from "../../shared/content/moving-service";
+import {
+  MovingLocationContractError,
+  parseMovingLocationPayload,
+  type MovingLocation,
+  type MovingLocationViewModel,
+} from "../../shared/content/moving-location";
 import type { ContentImage, ContentMediaReference } from "../../shared/content/media";
 
 export class PublicApplicationContentError extends Error {
@@ -112,6 +124,73 @@ export async function composeMovingHome(
   });
 }
 
+export async function composeMovingService(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingServiceViewModel> {
+  if (page.content.type !== "moving.service") throw applicationContentError();
+
+  let content: MovingService;
+  try {
+    content = parseMovingServicePayload(page.content.payload);
+  } catch (error: unknown) {
+    if (error instanceof MovingServiceContractError) throw applicationContentError();
+    throw error;
+  }
+
+  const media = await resolveReferencedMedia(movingServiceAssetIds(content), client);
+  const heroMedia = content.hero.media === undefined
+    ? undefined
+    : imageView(content.hero.media, requiredMedia(media, content.hero.media.assetId));
+  return Object.freeze({
+    hero: Object.freeze({
+      ...(content.hero.eyebrow === undefined ? {} : { eyebrow: content.hero.eyebrow }),
+      title: content.hero.title,
+      intro: content.hero.intro,
+      ...(heroMedia === undefined ? {} : { media: heroMedia }),
+      primaryAction: content.hero.primaryAction,
+    }),
+    overview: content.overview,
+    included: content.included,
+    process: content.process,
+    relatedServices: content.relatedServices,
+    finalAction: content.finalAction,
+  });
+}
+
+export async function composeMovingLocation(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingLocationViewModel> {
+  if (page.content.type !== "moving.location") throw applicationContentError();
+
+  let content: MovingLocation;
+  try {
+    content = parseMovingLocationPayload(page.content.payload);
+  } catch (error: unknown) {
+    if (error instanceof MovingLocationContractError) throw applicationContentError();
+    throw error;
+  }
+
+  const media = await resolveReferencedMedia(movingLocationAssetIds(content), client);
+  const heroMedia = content.hero.media === undefined
+    ? undefined
+    : imageView(content.hero.media, requiredMedia(media, content.hero.media.assetId));
+  return Object.freeze({
+    hero: Object.freeze({
+      ...(content.hero.eyebrow === undefined ? {} : { eyebrow: content.hero.eyebrow }),
+      title: content.hero.title,
+      intro: content.hero.intro,
+      ...(heroMedia === undefined ? {} : { media: heroMedia }),
+    }),
+    overview: content.overview,
+    services: content.services,
+    localDetails: content.localDetails,
+    nearbyAreas: content.nearbyAreas,
+    finalAction: content.finalAction,
+  });
+}
+
 async function resolveReferencedMedia(
   assetIds: ReadonlySet<string>,
   client: PublicPageMediaClient,
@@ -137,6 +216,14 @@ function movingHomeAssetIds(content: MovingHome): ReadonlySet<string> {
   const assetIds = new Set<string>([content.hero.media.assetId]);
   if (content.assurance.media !== undefined) assetIds.add(content.assurance.media.assetId);
   return assetIds;
+}
+
+function movingServiceAssetIds(content: MovingService): ReadonlySet<string> {
+  return new Set(content.hero.media === undefined ? [] : [content.hero.media.assetId]);
+}
+
+function movingLocationAssetIds(content: MovingLocation): ReadonlySet<string> {
+  return new Set(content.hero.media === undefined ? [] : [content.hero.media.assetId]);
 }
 
 function requiredMedia(

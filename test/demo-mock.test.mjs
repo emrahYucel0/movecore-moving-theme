@@ -59,11 +59,25 @@ describe("shared demo Core", () => {
     expect(root.page.content.payload.process.steps.map((step) => step.title)).toEqual([
       "Plan", "Prepare", "Move", "Place",
     ]);
-    expect(root.page.content.payload.serviceAreas.areas.map((area) => area.label)).toContain("Central district");
+    expect(root.page.content.payload.serviceAreas.areas.map((area) => area.label)).toContain("North district");
 
     const about = await client.resolvePage("/about");
     expect(about.kind).toBe("page");
     expect(about.page.content.payload).toMatchObject({ title: "A clear plan for the work between homes." });
+  });
+
+  it.each([
+    ["/services/home-moving", "moving.service", "A room-by-room plan for moving home."],
+    ["/services/office-relocation", "moving.service", "A structured handoff for moving workplaces."],
+    ["/areas/north-district", "moving.location", "Moving support shaped around practical local access."],
+    ["/areas/riverside", "moving.location", "Plan a Riverside move around access and handoff."],
+  ])("serves %s as %s", async (path, type, title) => {
+    const result = await client.resolvePage(path);
+    expect(result.kind).toBe("page");
+    expect(result.page.content.type).toBe(type);
+    expect(result.page.content.payload.hero.title).toBe(title);
+    expect(result.page.seo.canonicalPath).toBe(path);
+    expect(result.page.seo.title).not.toBe(title);
   });
 
   it("serves navigation, settings, public media, and a local SVG", async () => {
@@ -72,6 +86,8 @@ describe("shared demo Core", () => {
       items: [
         { label: "Home", destination: { kind: "internal", path: "/" } },
         { label: "About", destination: { kind: "internal", path: "/about" } },
+        { label: "Services", destination: { kind: "internal", path: "/services/home-moving" } },
+        { label: "Areas", destination: { kind: "internal", path: "/areas/north-district" } },
       ],
     });
     await expect(client.getSetting("site", "foundation")).resolves.toMatchObject({
@@ -101,7 +117,35 @@ describe("shared demo Core", () => {
 
   it("provides the canonical demo sitemap", async () => {
     await expect(client.listSitemap()).resolves.toMatchObject({
-      items: [{ path: "/" }, { path: "/about" }],
+      items: [
+        { path: "/" },
+        { path: "/about" },
+        { path: "/services/home-moving" },
+        { path: "/services/office-relocation" },
+        { path: "/areas/north-district" },
+        { path: "/areas/riverside" },
+      ],
     });
   });
+
+  it("keeps every internal demo content link resolvable", async () => {
+    const pages = await Promise.all([
+      "/", "/services/home-moving", "/services/office-relocation",
+      "/areas/north-district", "/areas/riverside",
+    ].map((path) => client.resolvePage(path)));
+    const hrefs = pages.flatMap((result) => result.kind === "page" ? internalHrefs(result.page.content.payload) : []);
+    const unique = [...new Set(hrefs)];
+    const results = await Promise.all(unique.map((href) => client.resolvePage(href)));
+    expect(unique.length).toBeGreaterThan(0);
+    expect(results.every((result) => result.kind === "page")).toBe(true);
+  });
 });
+
+function internalHrefs(value) {
+  if (Array.isArray(value)) return value.flatMap(internalHrefs);
+  if (value === null || typeof value !== "object") return [];
+  return Object.entries(value).flatMap(([key, item]) =>
+    key === "href" && typeof item === "string" && item.startsWith("/")
+      ? [item]
+      : internalHrefs(item));
+}

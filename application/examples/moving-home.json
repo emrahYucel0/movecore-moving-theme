@@ -26,10 +26,10 @@
     "title": "The right help for the work ahead.",
     "intro": "Focused moving support for homes, workplaces and smaller changes of address.",
     "items": [
-      { "title": "Home moving", "description": "A coordinated plan for packing, transport and room-by-room placement.", "href": "/about" },
-      { "title": "Office relocation", "description": "Structured preparation and handoff for workplace moves.", "href": "/about" },
-      { "title": "Packing support", "description": "Careful preparation for furniture, boxes and fragile belongings.", "href": "/about" },
-      { "title": "Small moves", "description": "A clear scope for compact moves that still need thoughtful handling.", "href": "/about" }
+      { "title": "Home moving", "description": "A coordinated plan for packing, transport and room-by-room placement.", "href": "/services/home-moving" },
+      { "title": "Office relocation", "description": "Structured preparation and handoff for workplace moves.", "href": "/services/office-relocation" },
+      { "title": "Packing support", "description": "Careful preparation for furniture, boxes and fragile belongings.", "href": "/services/home-moving" },
+      { "title": "Small moves", "description": "A clear scope for compact moves that still need thoughtful handling.", "href": "/services/home-moving" }
     ]
   },
   "process": {
@@ -63,10 +63,10 @@
     "title": "Moving support across the fictional Northline area.",
     "intro": "These general labels demonstrate homepage area navigation without creating a location SEO model.",
     "areas": [
-      { "label": "Central district", "href": "/about" },
-      { "label": "North district", "href": "/about" },
-      { "label": "Riverside", "href": "/about" },
-      { "label": "West side", "href": "/about" }
+      { "label": "North district", "href": "/areas/north-district" },
+      { "label": "Riverside", "href": "/areas/riverside" },
+      { "label": "North district planning", "href": "/areas/north-district" },
+      { "label": "Riverside planning", "href": "/areas/riverside" }
     ]
   },
   "finalAction": {
