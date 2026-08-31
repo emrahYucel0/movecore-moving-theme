@@ -79,25 +79,8 @@ function pageResponse(pathname, response) {
 
   const scenarios = {
     "/": {
-      type: "site.page",
-      payload: {
-        eyebrow: "Residential & commercial moving",
-        title: "Moving handled with care, from door to door.",
-        intro: "Professional packing, transport and placement with a clear plan from the first box to the final room.",
-        heroMedia: { assetId: "asset:demo-hero", alt: "Illustrated moving truck beside stacked packing boxes" },
-        sections: [
-          {
-            heading: "Care at every handoff",
-            body: "Packed, carried and placed with a consistent handling plan from collection through arrival.",
-            media: { assetId: "asset:demo-section", alt: "Illustrated hands carefully passing a packed box" },
-          },
-          {
-            heading: "A planned moving process",
-            body: "Clear stages keep packing, transport and room-by-room placement aligned without unnecessary complexity.",
-            media: { assetId: "asset:demo-process", alt: "Illustrated moving route connecting two homes" },
-          },
-        ],
-      },
+      type: "moving.home",
+      payload: movingHomePayload(),
     },
     "/about": {
       type: "site.page",
@@ -231,6 +214,82 @@ function svg(response, body) {
     "cache-control": "public, max-age=300",
   });
   response.end(body);
+}
+
+function movingHomePayload() {
+  return {
+    hero: {
+      eyebrow: "Residential & commercial moving",
+      title: "Moving handled with care, from door to door.",
+      intro: "A planned moving service for homes and businesses, with careful packing, coordinated transport and a clear handoff at every stage.",
+      media: {
+        assetId: "asset:demo-hero",
+        alt: "Illustrated moving truck beside stacked packing boxes",
+      },
+      primaryAction: { label: "Plan your move", href: "/about" },
+      secondaryAction: { label: "Call the team", href: "tel:+15550101010" },
+    },
+    proof: [
+      { value: "Planned", label: "Every move" },
+      { value: "Protected", label: "At each handoff" },
+      { value: "Clear", label: "From plan to placement" },
+    ],
+    services: {
+      eyebrow: "Moving support",
+      title: "The right help for the work ahead.",
+      intro: "Focused moving support for homes, workplaces and smaller changes of address.",
+      items: [
+        { title: "Home moving", description: "A coordinated plan for packing, transport and room-by-room placement.", href: "/about" },
+        { title: "Office relocation", description: "Structured preparation and handoff for workplace moves.", href: "/about" },
+        { title: "Packing support", description: "Careful preparation for furniture, boxes and fragile belongings.", href: "/about" },
+        { title: "Small moves", description: "A clear scope for compact moves that still need thoughtful handling.", href: "/about" },
+      ],
+    },
+    process: {
+      eyebrow: "A clear sequence",
+      title: "Know what happens next.",
+      intro: "Four practical stages keep the move understandable from preparation to handoff.",
+      steps: [
+        { title: "Plan", description: "Confirm access, timing and what needs to move." },
+        { title: "Prepare", description: "Protect furniture and pack according to the agreed scope." },
+        { title: "Move", description: "Coordinate loading, transport and unloading." },
+        { title: "Place", description: "Position items in the destination rooms before handoff." },
+      ],
+    },
+    assurance: {
+      eyebrow: "Care at every handoff",
+      title: "Care is part of the process.",
+      body: "A good move is not only about transport. It is about knowing who is handling each stage, what happens next and how belongings are protected along the way.",
+      media: {
+        assetId: "asset:demo-section",
+        alt: "Illustrated hands carefully passing a packed box",
+      },
+      points: [
+        { text: "Clear arrival windows" },
+        { text: "Room-by-room handling" },
+        { text: "Protective packing" },
+        { text: "Direct handoff" },
+      ],
+    },
+    serviceAreas: {
+      eyebrow: "Demo service area",
+      title: "Moving support across the fictional Northline area.",
+      intro: "These general labels demonstrate homepage area navigation without creating a location SEO model.",
+      areas: [
+        { label: "Central district", href: "/about" },
+        { label: "North district", href: "/about" },
+        { label: "Riverside", href: "/about" },
+        { label: "West side", href: "/about" },
+      ],
+    },
+    finalAction: {
+      eyebrow: "Ready when you are",
+      title: "Start with a clear moving plan.",
+      body: "Tell us what is moving, where it is going and when you need it there.",
+      primaryAction: { label: "Plan your move", href: "/about" },
+      secondaryAction: { label: "Call the team", href: "tel:+15550101010" },
+    },
+  };
 }
 
 function heroIllustration() {

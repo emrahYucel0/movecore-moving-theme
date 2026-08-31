@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { parsePublicContent, type PublicPageProjection } from "../server/core/contracts";
 import { CoreClientError } from "../server/core/errors";
@@ -40,8 +41,55 @@ describe("public page application route", () => {
     expect(getMedia).not.toHaveBeenCalled();
     expect(result).toEqual({
       kind: "page",
-      page: { seo: page.seo, content: { title: "Core SSR Proof", sections: [] } },
+      page: { type: "site.page", seo: page.seo, content: { title: "Core SSR Proof", sections: [] } },
     });
+  });
+
+  it("dispatches moving.home by published content type without coupling it to the root path", async () => {
+    const payload: unknown = JSON.parse(await readFile(
+      new URL("../application/examples/moving-home.json", import.meta.url),
+      "utf8",
+    ));
+    const movingPage: PublicPageProjection = {
+      ...page,
+      content: { ...page.content, type: "moving.home", payload },
+      seo: { ...page.seo, canonicalPath: "/campaign/moving" },
+    };
+    const resolvePage = vi.fn(async () => ({ kind: "page", page: movingPage } as const));
+    const getMedia = vi.fn(async (assetId: string) => ({
+      assetId,
+      kind: "image" as const,
+      original: {
+        mimeType: "image/webp",
+        format: "webp",
+        byteSize: 1,
+        publicUrl: `https://cdn.example.test/${encodeURIComponent(assetId)}.webp`,
+      },
+      variants: [],
+    }));
+
+    const result = await resolvePublicPageRoute("/campaign/moving", { resolvePage, getMedia });
+    expect(resolvePage).toHaveBeenCalledWith("/campaign/moving");
+    expect(result).toMatchObject({
+      kind: "page",
+      page: {
+        type: "moving.home",
+        seo: { canonicalPath: "/campaign/moving" },
+        content: { hero: { title: "Moving handled with care, from door to door." } },
+      },
+    });
+  });
+
+  it("rejects unsupported published types without media reads", async () => {
+    const getMedia = vi.fn();
+    await expect(resolvePublicPageRoute("/unsupported", {
+      getMedia,
+      resolvePage: async () => ({
+        kind: "page",
+        page: { ...page, content: { ...page.content, type: "something.else" } },
+      }),
+    })).rejects.toBeInstanceOf(PublicApplicationContentError);
+    expect(getMedia).not.toHaveBeenCalled();
   });
 
   it.each([

@@ -1,10 +1,18 @@
 import type { PublicSeoProjection } from "./core-public-contracts";
 import type { SitePageViewModel } from "./content/site-page";
+import type { MovingHomeViewModel } from "./content/moving-home";
 
-export interface PublicApplicationPage {
-  readonly seo: PublicSeoProjection;
-  readonly content: SitePageViewModel;
-}
+export type PublicApplicationPage =
+  | {
+    readonly type: "site.page";
+    readonly seo: PublicSeoProjection;
+    readonly content: SitePageViewModel;
+  }
+  | {
+    readonly type: "moving.home";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingHomeViewModel;
+  };
 
 export type PageRouteResult =
   | { readonly kind: "page"; readonly page: PublicApplicationPage }

@@ -8,11 +8,16 @@ import {
   parseSitePagePayload,
   SitePageContractError,
   type SitePage,
-  type SitePageImage,
-  type SitePageMediaReference,
   type SitePageSectionViewModel,
   type SitePageViewModel,
 } from "../../shared/content/site-page";
+import {
+  MovingHomeContractError,
+  parseMovingHomePayload,
+  type MovingHome,
+  type MovingHomeViewModel,
+} from "../../shared/content/moving-home";
+import type { ContentImage, ContentMediaReference } from "../../shared/content/media";
 
 export class PublicApplicationContentError extends Error {
   public constructor() {
@@ -37,7 +42,7 @@ export async function composeSitePage(
     throw error;
   }
 
-  const media = await resolveReferencedMedia(content, client);
+  const media = await resolveReferencedMedia(sitePageAssetIds(content), client);
   const heroMedia = content.heroMedia === undefined
     ? undefined
     : imageView(content.heroMedia, requiredMedia(media, content.heroMedia.assetId));
@@ -61,22 +66,77 @@ export async function composeSitePage(
   });
 }
 
-async function resolveReferencedMedia(
-  content: SitePage,
+export async function composeMovingHome(
+  page: PublicPageProjection,
   client: PublicPageMediaClient,
-): Promise<ReadonlyMap<string, PublicMediaProjection>> {
-  const assetIds = new Set<string>();
-  if (content.heroMedia !== undefined) assetIds.add(content.heroMedia.assetId);
-  for (const section of content.sections) {
-    if (section.media !== undefined) assetIds.add(section.media.assetId);
+): Promise<MovingHomeViewModel> {
+  if (page.content.type !== "moving.home") throw applicationContentError();
+
+  let content: MovingHome;
+  try {
+    content = parseMovingHomePayload(page.content.payload);
+  } catch (error: unknown) {
+    if (error instanceof MovingHomeContractError) throw applicationContentError();
+    throw error;
   }
 
+  const media = await resolveReferencedMedia(movingHomeAssetIds(content), client);
+  const heroMedia = imageView(content.hero.media, requiredMedia(media, content.hero.media.assetId));
+  const assuranceMedia = content.assurance.media === undefined
+    ? undefined
+    : imageView(content.assurance.media, requiredMedia(media, content.assurance.media.assetId));
+
+  return Object.freeze({
+    hero: Object.freeze({
+      ...(content.hero.eyebrow === undefined ? {} : { eyebrow: content.hero.eyebrow }),
+      title: content.hero.title,
+      intro: content.hero.intro,
+      media: heroMedia,
+      primaryAction: content.hero.primaryAction,
+      ...(content.hero.secondaryAction === undefined
+        ? {}
+        : { secondaryAction: content.hero.secondaryAction }),
+    }),
+    proof: content.proof,
+    services: content.services,
+    process: content.process,
+    assurance: Object.freeze({
+      ...(content.assurance.eyebrow === undefined ? {} : { eyebrow: content.assurance.eyebrow }),
+      title: content.assurance.title,
+      body: content.assurance.body,
+      ...(assuranceMedia === undefined ? {} : { media: assuranceMedia }),
+      points: content.assurance.points,
+    }),
+    serviceAreas: content.serviceAreas,
+    finalAction: content.finalAction,
+  });
+}
+
+async function resolveReferencedMedia(
+  assetIds: ReadonlySet<string>,
+  client: PublicPageMediaClient,
+): Promise<ReadonlyMap<string, PublicMediaProjection>> {
   const entries = await Promise.all([...assetIds].map(async (assetId) => {
     const media = await client.getMedia(assetId);
     if (media === null || media.kind !== "image") throw applicationContentError();
     return [assetId, media] as const;
   }));
   return new Map(entries);
+}
+
+function sitePageAssetIds(content: SitePage): ReadonlySet<string> {
+  const assetIds = new Set<string>();
+  if (content.heroMedia !== undefined) assetIds.add(content.heroMedia.assetId);
+  for (const section of content.sections) {
+    if (section.media !== undefined) assetIds.add(section.media.assetId);
+  }
+  return assetIds;
+}
+
+function movingHomeAssetIds(content: MovingHome): ReadonlySet<string> {
+  const assetIds = new Set<string>([content.hero.media.assetId]);
+  if (content.assurance.media !== undefined) assetIds.add(content.assurance.media.assetId);
+  return assetIds;
 }
 
 function requiredMedia(
@@ -88,7 +148,7 @@ function requiredMedia(
   return result;
 }
 
-function imageView(reference: SitePageMediaReference, media: PublicMediaProjection): SitePageImage {
+function imageView(reference: ContentMediaReference, media: PublicMediaProjection): ContentImage {
   const dimensions = imageDimensions(media.original);
   return Object.freeze({
     assetId: reference.assetId,

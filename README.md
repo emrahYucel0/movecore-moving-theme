@@ -20,7 +20,8 @@ Open `http://127.0.0.1:3000`. Press Ctrl+C once to stop all three processes.
 
 Demo routes:
 
-- `/` and `/about`: themed, typed `site.page` SSR pages
+- `/`: typed `moving.home` SSR homepage exercising every R2.2 content branch
+- `/about`: unchanged typed `site.page` SSR page
 - `/old`: permanent `301` redirect to `/about`
 - `/temporary`: temporary `302` redirect to `/about`
 - `/missing`: safe `404` presentation
@@ -37,11 +38,13 @@ MoveCore Nuxt Starter R1 at 131c25d
   -> inherited SSR and application boundaries
 MoveCore Moving & Logistics Theme R2.1
   -> moving-sector presentation and demo identity
+MoveCore Moving & Logistics Theme R2.2
+  -> moving.home content architecture and type dispatch
 ```
 
 The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads. There is no generic proxy, Core package import, direct database access, Ege dependency, Admin API forwarding or mutation path.
 
-Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for `site.page` interpretation and presentation.
+Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for `site.page` and `moving.home` interpretation and presentation.
 
 ## Theme visual direction
 
@@ -83,7 +86,11 @@ NUXT_PUBLIC_SITE_URL=https://public.example.com
 
 `NUXT_CORE_BASE_URL` and all `NUXT_CORE_*` selectors are private server configuration. Only `NUXT_PUBLIC_SITE_URL` is intentionally browser-visible. The optional generic site foundation setting may expose a short `name` string for the replaceable navigation brand label.
 
-Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and keeps the inherited `site.page` semantics unchanged.
+Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned, keeps the inherited `site.page` semantics unchanged, and adds the version 1 `moving.home` profile.
+
+Files under `application/examples/` are static development/reference fixtures. They are not database seeds and are never written to Core automatically.
+
+`moving.home` action destinations use profile `text` fields deliberately. Core rc.2's `url` editor validates only HTTP(S), while this application contract also permits internal absolute paths, `tel:` and `mailto:`. The server-side Moving parser is the authoritative safe-href boundary.
 
 ## R2.1 scope
 
@@ -91,10 +98,17 @@ R2.1 adds repository identity, semantic theme tokens, navigation presentation, t
 
 It does not add Moving-specific content types, business settings, forms, pricing, testimonials, service/location route assumptions, multilingual behavior, motion systems, production deployment or database behavior.
 
+## R2.2 scope
+
+R2.2 adds exactly one Moving-specific content type: `moving.home`. Its explicit contract covers hero actions and media, operational proof, service summaries, an ordered process, care/assurance, general area links and a closing action. Core-resolved pages dispatch by published content type, so `moving.home` is not coupled to `/`; the demo simply publishes it at `/` while `/about` continues to prove `site.page` coexistence.
+
+The R2.2 renderer is intentionally a neutral semantic proof using the existing R2.1 theme primitives. Finished homepage composition and art direction belong to R2.3. R2.2 does not add a page builder, service/location/article entities, forms, testimonials, pricing, location SEO, blog behavior, motion or new settings/navigation contracts.
+
 ## Known current limitations
 
-- The only application content type is still `site.page`.
-- The unchanged contract has no CTA, service taxonomy, location model or workflow fields.
+- Application content dispatch is intentionally limited to `site.page` and `moving.home`.
+- Homepage service and area entries are summaries/links, not canonical service or location entities.
+- There is still no quote form, service taxonomy, location model or workflow persistence.
 - Demo imagery is deterministic illustration, not final commercial photography.
+- The `moving.home` renderer proves contract structure; R2.3 owns finished homepage composition.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.
-- R2.2 owns the first Moving-specific content contract expansion.

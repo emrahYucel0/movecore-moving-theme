@@ -1,9 +1,12 @@
+import {
+  projectContentMediaReference,
+  type ContentImage,
+  type ContentMediaReference,
+} from "./media";
+
 const MAX_SECTIONS = 100;
 
-export interface SitePageMediaReference {
-  readonly assetId: string;
-  readonly alt: string;
-}
+export type SitePageMediaReference = ContentMediaReference;
 
 export interface SitePageSection {
   readonly heading: string;
@@ -19,13 +22,7 @@ export interface SitePage {
   readonly sections: readonly SitePageSection[];
 }
 
-export interface SitePageImage {
-  readonly assetId: string;
-  readonly alt: string;
-  readonly publicUrl: string;
-  readonly width?: number;
-  readonly height?: number;
-}
+export type SitePageImage = ContentImage;
 
 export interface SitePageSectionViewModel {
   readonly heading: string;
@@ -89,10 +86,7 @@ function parseSection(value: unknown): SitePageSection {
 function optionalMediaReference(value: unknown): SitePageMediaReference | undefined {
   if (value === undefined) return undefined;
   const source = plainRecord(value);
-  return Object.freeze({
-    assetId: requiredString(source["assetId"]),
-    alt: requiredString(source["alt"], 200),
-  });
+  return projectContentMediaReference(source, requiredString);
 }
 
 function requiredString(value: unknown, maximum?: number): string {

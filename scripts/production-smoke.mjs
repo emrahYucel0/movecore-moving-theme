@@ -6,7 +6,7 @@ import path from "node:path";
 import { createMockCoreServer } from "./mock-core.mjs";
 
 const HOST = "127.0.0.1";
-const PRIVATE_SENTINEL = "http://core-r21-private.invalid:9876";
+const PRIVATE_SENTINEL = "http://core-r22-private.invalid:9876";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const MEDIA_ORIGIN = "https://cdn.example.test";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -49,7 +49,7 @@ try {
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
   await verifySitemap(runtimeOrigin, coreOrigin);
   await verifySentinelRuntimeLeak();
-  process.stdout.write("R2.1_PRODUCTION_SMOKE=PASS\n");
+  process.stdout.write("R2.2_PRODUCTION_SMOKE=PASS\n");
 } catch (error) {
   const safeOutput = runtimeOutput
     .replaceAll(PRIVATE_SENTINEL, "[private-core-origin]")
@@ -67,14 +67,28 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
   const html = await response.text();
   for (const expected of [
     "Moving handled with care, from door to door.",
-    "Professional packing, transport and placement with a clear plan from the first box to the final room.",
+    "A planned moving service for homes and businesses",
+    "Planned",
+    "At each handoff",
+    "The right help for the work ahead.",
+    "Home moving",
+    "Office relocation",
+    "Know what happens next.",
+    "Prepare",
+    "Care is part of the process.",
+    "Clear arrival windows",
+    "Moving support across the fictional Northline area.",
+    "Central district",
+    "Start with a clear moving plan.",
+    "Plan your move",
+    "Call the team",
+    'href="/about"',
+    'href="tel:+15550101010"',
     "Care at every handoff",
-    "A planned moving process",
     "Illustrated moving truck beside stacked packing boxes",
     "Illustrated hands carefully passing a packed box",
     `${MEDIA_ORIGIN}/demo-media/hero.svg`,
     `${MEDIA_ORIGIN}/demo-media/section.svg`,
-    `${MEDIA_ORIGIN}/demo-media/process.svg`,
     "<title>Northline Moving | Moving with a clear plan</title>",
     "Professional packing, transport and placement for carefully planned residential and commercial moves.",
     "index,follow",
@@ -83,11 +97,22 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "About",
   ]) assert.ok(html.includes(expected), `Missing SSR evidence: ${expected}`);
   assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
-  assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 2);
+  assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5);
   for (const forbidden of [
     "\"payload\":", "revisionId", "publishedAt", "Public JSON payload", "<pre",
     coreOrigin, PRIVATE_SENTINEL, "MoveCore site foundation",
   ]) assert.equal(html.includes(forbidden), false, `SSR leak: ${forbidden}`);
+
+  const aboutResponse = await fetch(`${runtimeOrigin}/about`, { redirect: "manual" });
+  assert.equal(aboutResponse.status, 200);
+  const aboutHtml = await aboutResponse.text();
+  for (const expected of [
+    "A clear plan for the work between homes.",
+    "Built around careful handling",
+    "<title>About Northline Moving</title>",
+  ]) assert.ok(aboutHtml.includes(expected), `Missing /about SSR evidence: ${expected}`);
+  assert.equal((aboutHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
+  assert.equal(aboutHtml.includes("moving.home"), false);
 }
 
 async function verifySiteComposition(runtimeOrigin, coreOrigin) {

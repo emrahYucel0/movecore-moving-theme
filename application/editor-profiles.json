@@ -94,6 +94,440 @@
           ]
         }
       ]
+    },
+    {
+      "id": "moving.home",
+      "version": 1,
+      "contentType": "moving.home",
+      "label": "Moving Homepage",
+      "description": "Structured homepage content for a moving and logistics public application.",
+      "fields": [
+        {
+          "key": "hero",
+          "label": "Hero",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "intro",
+              "label": "Introduction",
+              "kind": "textarea",
+              "required": true,
+              "maxLength": 600
+            },
+            {
+              "key": "media",
+              "label": "Media",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                {
+                  "key": "assetId",
+                  "label": "Asset",
+                  "kind": "media",
+                  "required": true
+                },
+                {
+                  "key": "alt",
+                  "label": "Alternative text",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 200
+                }
+              ]
+            },
+            {
+              "key": "primaryAction",
+              "label": "Primary action",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                {
+                  "key": "label",
+                  "label": "Label",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            },
+            {
+              "key": "secondaryAction",
+              "label": "Secondary action",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                {
+                  "key": "label",
+                  "label": "Label",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "proof",
+          "label": "Proof statements",
+          "kind": "repeater",
+          "description": "Add 2 to 6 operational proof statements.",
+          "required": true,
+          "fields": [
+            {
+              "key": "value",
+              "label": "Value",
+              "kind": "text",
+              "required": true,
+              "maxLength": 40
+            },
+            {
+              "key": "label",
+              "label": "Label",
+              "kind": "text",
+              "required": true,
+              "maxLength": 100
+            }
+          ]
+        },
+        {
+          "key": "services",
+          "label": "Services summary",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "intro",
+              "label": "Introduction",
+              "kind": "textarea",
+              "required": false,
+              "maxLength": 600
+            },
+            {
+              "key": "items",
+              "label": "Services",
+              "kind": "repeater",
+              "description": "Add 3 to 8 service summaries.",
+              "required": true,
+              "fields": [
+                {
+                  "key": "title",
+                  "label": "Title",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 100
+                },
+                {
+                  "key": "description",
+                  "label": "Description",
+                  "kind": "textarea",
+                  "required": true,
+                  "maxLength": 320
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "process",
+          "label": "Moving process",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "intro",
+              "label": "Introduction",
+              "kind": "textarea",
+              "required": false,
+              "maxLength": 600
+            },
+            {
+              "key": "steps",
+              "label": "Steps",
+              "kind": "repeater",
+              "description": "Add 3 to 6 steps. List order is the editorial order.",
+              "required": true,
+              "fields": [
+                {
+                  "key": "title",
+                  "label": "Title",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 100
+                },
+                {
+                  "key": "description",
+                  "label": "Description",
+                  "kind": "textarea",
+                  "required": true,
+                  "maxLength": 320
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "assurance",
+          "label": "Care and assurance",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "body",
+              "label": "Body",
+              "kind": "textarea",
+              "required": true,
+              "maxLength": 1200
+            },
+            {
+              "key": "media",
+              "label": "Media",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                {
+                  "key": "assetId",
+                  "label": "Asset",
+                  "kind": "media",
+                  "required": true
+                },
+                {
+                  "key": "alt",
+                  "label": "Alternative text",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 200
+                }
+              ]
+            },
+            {
+              "key": "points",
+              "label": "Assurance points",
+              "kind": "repeater",
+              "description": "Add 2 to 6 care or handling points.",
+              "required": true,
+              "fields": [
+                {
+                  "key": "text",
+                  "label": "Point",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 200
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "serviceAreas",
+          "label": "Service areas summary",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "intro",
+              "label": "Introduction",
+              "kind": "textarea",
+              "required": false,
+              "maxLength": 600
+            },
+            {
+              "key": "areas",
+              "label": "Areas",
+              "kind": "repeater",
+              "description": "Add 3 to 12 homepage area links.",
+              "required": true,
+              "fields": [
+                {
+                  "key": "label",
+                  "label": "Label",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 100
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "finalAction",
+          "label": "Final action",
+          "kind": "group",
+          "required": true,
+          "fields": [
+            {
+              "key": "eyebrow",
+              "label": "Eyebrow",
+              "kind": "text",
+              "required": false,
+              "maxLength": 80
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "kind": "text",
+              "required": true,
+              "maxLength": 160
+            },
+            {
+              "key": "body",
+              "label": "Body",
+              "kind": "textarea",
+              "required": false,
+              "maxLength": 600
+            },
+            {
+              "key": "primaryAction",
+              "label": "Primary action",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                {
+                  "key": "label",
+                  "label": "Label",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            },
+            {
+              "key": "secondaryAction",
+              "label": "Secondary action",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                {
+                  "key": "label",
+                  "label": "Label",
+                  "kind": "text",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "key": "href",
+                  "label": "Destination",
+                  "kind": "text",
+                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

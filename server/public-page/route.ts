@@ -2,6 +2,7 @@ import type { CorePublicClient } from "../core/client";
 import { corePublicHttpFailure } from "../core/http-failure";
 import type { PageRouteResult } from "../../shared/page-route";
 import {
+  composeMovingHome,
   composeSitePage,
   PublicApplicationContentError,
 } from "./application-content";
@@ -19,13 +20,27 @@ export async function resolvePublicPageRoute(
 ): Promise<PageRouteResult> {
   const result = await resolver.resolvePage(path);
   if (result.kind === "page") {
-    return {
-      kind: "page",
-      page: {
-        seo: result.page.seo,
-        content: await composeSitePage(result.page, resolver),
-      },
-    };
+    if (result.page.content.type === "site.page") {
+      return {
+        kind: "page",
+        page: {
+          type: "site.page",
+          seo: result.page.seo,
+          content: await composeSitePage(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.home") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.home",
+          seo: result.page.seo,
+          content: await composeMovingHome(result.page, resolver),
+        },
+      };
+    }
+    throw new PublicApplicationContentError();
   }
   if (result.kind === "redirect") {
     return { kind: "redirect", to: result.to, status: result.status };

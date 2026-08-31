@@ -36,11 +36,11 @@ describe("R2.1 moving theme foundation", () => {
     }
   });
 
-  it("keeps the application content boundary on site.page", async () => {
+  it("keeps the application content boundary on exactly site.page and moving.home", async () => {
     const manifest = JSON.parse(await source("../application/editor-profiles.json"));
-    expect(manifest.profiles).toHaveLength(1);
-    expect(manifest.profiles[0].contentType).toBe("site.page");
-    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:home|service|location|article|quote)/u);
+    expect(manifest.profiles.map((profile: { contentType: string }) => profile.contentType))
+      .toEqual(["site.page", "moving.home"]);
+    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:service|location|article|quote)/u);
   });
 
   it("keeps the offline demo deterministic and moving-specific", async () => {
@@ -50,7 +50,7 @@ describe("R2.1 moving theme foundation", () => {
       "Residential & commercial moving",
       "Moving handled with care, from door to door.",
       "Care at every handoff",
-      "A planned moving process",
+      "Start with a clear moving plan.",
       "2026-08-30T00:00:00.000Z",
     ]) expect(mock).toContain(copy);
     expect(mock).not.toMatch(/https:\/\/(?:images|fonts|cdn)\./u);

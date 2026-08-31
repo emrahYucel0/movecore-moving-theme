@@ -43,11 +43,23 @@ describe("shared demo Core", () => {
   it("serves typed root and about pages through the real public client", async () => {
     const root = await client.resolvePage("/");
     expect(root.kind).toBe("page");
-    expect(root.page.content.type).toBe("site.page");
+    expect(root.page.content.type).toBe("moving.home");
     expect(root.page.content.payload).toMatchObject({
-      title: "Moving handled with care, from door to door.",
-      sections: [{ heading: "Care at every handoff" }, { heading: "A planned moving process" }],
+      hero: {
+        title: "Moving handled with care, from door to door.",
+        primaryAction: { href: "/about" },
+        secondaryAction: { href: "tel:+15550101010" },
+      },
+      assurance: { title: "Care is part of the process." },
+      finalAction: { title: "Start with a clear moving plan." },
     });
+    expect(root.page.content.payload.services.items.map((item) => item.title)).toEqual([
+      "Home moving", "Office relocation", "Packing support", "Small moves",
+    ]);
+    expect(root.page.content.payload.process.steps.map((step) => step.title)).toEqual([
+      "Plan", "Prepare", "Move", "Place",
+    ]);
+    expect(root.page.content.payload.serviceAreas.areas.map((area) => area.label)).toContain("Central district");
 
     const about = await client.resolvePage("/about");
     expect(about.kind).toBe("page");
