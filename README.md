@@ -52,6 +52,12 @@ The R2.1 system uses a warm mineral canvas, deep green-charcoal ink and one cont
 
 Theme styles live in `app/assets/css/theme.css`. Components use semantic theme classes and tokens rather than scattered color values. There are no remote fonts, animation libraries, UI frameworks, carousels, gradients or glass effects.
 
+### R2 commercial photography direction
+
+The current deterministic SVG fixtures are temporary composition proofs. Final photography should feel documentary and editorial: real moving crews in real homes or workplaces, natural daylight and skin tones, and clear physical context such as planning, protective packing, lifting, loading, arrival, room placement and crew coordination. Hero photography should leave a calm edge for the structural frame while keeping people, vehicle or handled objects legible through desktop and mobile crops. Assurance photography should work at a closer human scale and show careful handling rather than a posed team.
+
+Avoid empty smiling-worker poses, isolated cardboard-box stock shots, fake hard hats, unrelated warehouse scenes, corporate handshakes, oversaturated HDR treatment, CGI surfaces and AI-looking anatomy. Final assets should preserve authored alt text, include intrinsic dimensions, and be exported at responsive web sizes before production use.
+
 ## Development
 
 For the offline visual workflow, use `npm run dev:demo`. For a compatible real Core CMS development instance, create `.env` from `.env.example`, configure the private Core origin and optional selectors, then run:

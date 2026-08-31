@@ -1,23 +1,36 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
-describe("moving.home neutral structural renderer", () => {
+const componentPaths = [
+  "../app/components/content/MovingHomeRenderer.vue",
+  "../app/components/content/moving-home/MovingHero.vue",
+  "../app/components/content/moving-home/MovingProof.vue",
+  "../app/components/content/moving-home/MovingServices.vue",
+  "../app/components/content/moving-home/MovingProcess.vue",
+  "../app/components/content/moving-home/MovingAssurance.vue",
+  "../app/components/content/moving-home/MovingServiceAreas.vue",
+  "../app/components/content/moving-home/MovingFinalAction.vue",
+] as const;
+
+describe("moving.home commercial renderer", () => {
   it("uses one H1, sequential section headings, and semantic lists for every collection", async () => {
-    const renderer = await source("../app/components/content/MovingHomeRenderer.vue");
-    expect((renderer.match(/<h1(?:\s|>)/gu) ?? [])).toHaveLength(1);
-    expect((renderer.match(/<h2(?:\s|>)/gu) ?? [])).toHaveLength(5);
+    const sources = await Promise.all(componentPaths.map(source));
+    const renderer = sources[0] ?? "";
+    const combined = sources.join("\n");
+    expect((combined.match(/<h1(?:\s|>)/gu) ?? [])).toHaveLength(1);
+    expect((combined.match(/<h2(?:\s|>)/gu) ?? [])).toHaveLength(5);
     for (const evidence of [
       "<main", "<header", "<ul", "<ol", "<section", "<h3",
-      "page.proof", "page.services.items", "page.process.steps", "page.assurance.points",
-      "page.serviceAreas.areas", "page.finalAction",
-    ]) expect(renderer).toContain(evidence);
-    expect(renderer.indexOf("page.process.steps")).toBeLessThan(renderer.indexOf("page.assurance.points"));
+      "page.proof", "page.services", "page.process", "page.assurance",
+      "page.serviceAreas", "page.finalAction", "section.steps", "section.points", "section.areas",
+    ]) expect(combined).toContain(evidence);
+    expect(renderer.indexOf("<MovingProcess")).toBeLessThan(renderer.indexOf("<MovingAssurance"));
   });
 
   it("keeps authored data out of executable HTML, styles, component names, and targets", async () => {
-    const renderer = await source("../app/components/content/MovingHomeRenderer.vue");
+    const renderers = await Promise.all(componentPaths.map(source));
     const action = await source("../app/components/content/PublicActionLink.vue");
-    const combined = `${renderer}\n${action}`;
+    const combined = `${renderers.join("\n")}\n${action}`;
     for (const forbidden of [
       "v-html", "<component", ":is=", ":class=", ":style=", "target=", "JSON.stringify", "<pre",
     ]) expect(combined).not.toContain(forbidden);
@@ -26,13 +39,13 @@ describe("moving.home neutral structural renderer", () => {
     expect(action).toContain(":href=\"action.href\"");
   });
 
-  it("adds only responsive structural rules and no homepage animation", async () => {
+  it("adds responsive presentation rules and no homepage animation", async () => {
     const theme = await source("../app/assets/css/theme.css");
     expect(theme).toContain(".moving-home__section");
     expect(theme).toContain(".moving-assurance");
     expect(theme).toContain("@media (max-width: 67.9375rem)");
     expect(theme).toContain("@media (max-width: 47.9375rem)");
-    const movingRules = theme.slice(theme.indexOf(".moving-actions"), theme.indexOf(".theme-error"));
+    const movingRules = theme.slice(theme.indexOf(".moving-home"), theme.indexOf(".theme-error"));
     expect(movingRules).not.toMatch(/animation|@keyframes/u);
   });
 });

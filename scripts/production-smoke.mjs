@@ -6,7 +6,7 @@ import path from "node:path";
 import { createMockCoreServer } from "./mock-core.mjs";
 
 const HOST = "127.0.0.1";
-const PRIVATE_SENTINEL = "http://core-r22-private.invalid:9876";
+const PRIVATE_SENTINEL = "http://core-r23-private.invalid:9876";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const MEDIA_ORIGIN = "https://cdn.example.test";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -49,7 +49,7 @@ try {
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
   await verifySitemap(runtimeOrigin, coreOrigin);
   await verifySentinelRuntimeLeak();
-  process.stdout.write("R2.2_PRODUCTION_SMOKE=PASS\n");
+  process.stdout.write("R2.3_PRODUCTION_SMOKE=PASS\n");
 } catch (error) {
   const safeOutput = runtimeOutput
     .replaceAll(PRIVATE_SENTINEL, "[private-core-origin]")
