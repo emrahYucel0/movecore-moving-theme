@@ -11,9 +11,13 @@ const HOST = "127.0.0.1";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const PRIMARY_ROUTE = "/";
 const INNER_ROUTES = [
+  "/services",
   "/services/home-moving",
+  "/areas",
   "/areas/north-district",
   "/areas/riverside",
+  "/faq",
+  "/testimonials",
 ];
 const RUNS = readPositiveInteger("R25_PERF_RUNS", 5);
 const SETTLE_MS = readPositiveInteger("R25_PERF_SETTLE_MS", 1_500);

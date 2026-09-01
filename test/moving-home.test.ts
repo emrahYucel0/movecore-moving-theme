@@ -22,7 +22,9 @@ describe("moving.home application contract", () => {
     expect(page.assurance.points).toEqual([
       "Clear arrival windows", "Room-by-room handling", "Protective packing", "Direct handoff",
     ]);
-    expect(page.serviceAreas.areas).toHaveLength(4);
+    expect(page.serviceAreas.areas).toHaveLength(3);
+    expect(page.customerProof?.items).toHaveLength(2);
+    expect(page.frequentQuestions?.items).toHaveLength(3);
     for (const value of [
       page,
       page.hero,
@@ -38,6 +40,11 @@ describe("moving.home application contract", () => {
       page.assurance,
       page.assurance.points,
       page.serviceAreas,
+      page.customerProof,
+      page.customerProof?.featured,
+      page.customerProof?.items,
+      page.frequentQuestions,
+      page.frequentQuestions?.items,
       page.finalAction,
     ]) expect(Object.isFrozen(value)).toBe(true);
   });

@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "eyebrow": "Service areas",
+    "title": "Local moves planned around real access.",
+    "intro": "Explore the areas we serve and the practical property, parking and timing details that can shape moving day."
+  },
+  "coverage": {
+    "title": "Where we work.",
+    "body": "Our coverage is deliberately curated. Each area page explains useful local considerations rather than repeating generic location copy.",
+    "items": [
+      {
+        "title": "North District",
+        "description": "Plan apartment access, shared entrances and loading windows across established residential streets.",
+        "href": "/areas/north-district"
+      },
+      {
+        "title": "Riverside",
+        "description": "Coordinate building entry, restricted loading areas and clear handoff routes near the river corridor.",
+        "href": "/areas/riverside"
+      }
+    ]
+  },
+  "planning": {
+    "title": "Useful local detail, not a city directory.",
+    "body": "Coverage matters when it helps prepare the move. We focus on property access and coordination details that can change the plan.",
+    "points": [
+      { "text": "Building entry and lift access" },
+      { "text": "Loading and parking windows" },
+      { "text": "Walking distance from vehicle to door" },
+      { "text": "Destination room and handoff priorities" }
+    ]
+  },
+  "finalAction": {
+    "eyebrow": "Your route",
+    "title": "Tell us where the move starts and finishes.",
+    "body": "We can shape the plan around both properties and the access between them.",
+    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
+  }
+}

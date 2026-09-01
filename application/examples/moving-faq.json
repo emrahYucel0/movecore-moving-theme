@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "eyebrow": "Moving questions",
+    "title": "Clear answers before moving day.",
+    "intro": "Understand planning, packing, access and handoff before choosing the scope of your move."
+  },
+  "items": [
+    {
+      "question": "How early should we start planning?",
+      "answer": "Start once the move date and both addresses are reasonably clear. Early access details make timing and vehicle planning more accurate."
+    },
+    {
+      "question": "Can the team help with packing?",
+      "answer": "Yes. Packing can be included for the full property or focused on fragile, heavy or difficult-to-prepare items."
+    },
+    {
+      "question": "What access details are useful?",
+      "answer": "Share stairs, lifts, parking limits, walking distance, building rules and any time windows at both properties."
+    },
+    {
+      "question": "How are fragile items handled?",
+      "answer": "Fragile items should be identified during planning so the right protection, packing sequence and vehicle position can be prepared."
+    },
+    {
+      "question": "Can we set room priorities at the destination?",
+      "answer": "Yes. Clear room labels and placement priorities help the unloading team complete a more useful room-by-room handoff."
+    },
+    {
+      "question": "What happens if access changes?",
+      "answer": "Contact the team as soon as possible. A new parking limit, lift booking or key handoff can affect the sequence and arrival window."
+    }
+  ],
+  "finalAction": {
+    "eyebrow": "Still deciding",
+    "title": "Talk through the details that are specific to your move.",
+    "body": "A short planning conversation can clarify scope, access and timing.",
+    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
+  }
+}

@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "North District",
     "title": "Moving support shaped around practical local access.",
-    "intro": "Plan building entry, loading coordination and destination handoff for a move within the fictional North District.",
+    "intro": "Plan building entry, loading coordination and destination handoff for a move within North District.",
     "media": {
       "assetId": "asset:demo-section",
       "alt": "Illustrated hands coordinating the handoff of a packed box"
@@ -20,7 +20,7 @@
   "services": {
     "eyebrow": "Available support",
     "title": "Choose a service around the move itself.",
-    "intro": "These routes demonstrate useful navigation without creating hard CMS relations.",
+    "intro": "Choose the service that matches the property, access and handoff required for the move.",
     "items": [
       { "title": "Home moving", "description": "Room-by-room preparation, transport and placement for a change of home.", "href": "/services/home-moving" },
       { "title": "Office relocation", "description": "A coordinated workplace move with clear access and handoff priorities.", "href": "/services/office-relocation" }
@@ -29,7 +29,7 @@
   "localDetails": {
     "eyebrow": "Local planning",
     "title": "Operational details worth resolving early.",
-    "body": "The most useful local content explains what needs coordination. It does not rely on fabricated rules, maps or claims.",
+    "body": "Useful local planning focuses on the conditions that change the work at each address.",
     "items": [
       { "title": "Building entry", "description": "Confirm which entrance supports the safest and clearest route for furniture and boxes." },
       { "title": "Loading coordination", "description": "Agree where loading and unloading can happen within the planned arrival window." },
@@ -38,7 +38,7 @@
     ]
   },
   "nearbyAreas": {
-    "eyebrow": "Other demo areas",
+    "eyebrow": "Nearby coverage",
     "title": "Explore nearby moving pages.",
     "items": [
       { "label": "Riverside", "href": "/areas/riverside" },
@@ -50,6 +50,6 @@
     "title": "Connect the addresses to one clear sequence.",
     "body": "Start with access, timing and the rooms involved at each end of the move.",
     "primaryAction": { "label": "Plan your move", "href": "/about" },
-    "secondaryAction": { "label": "Call the team", "href": "tel:+15550101010" }
+    "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

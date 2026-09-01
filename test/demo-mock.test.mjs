@@ -48,7 +48,7 @@ describe("shared demo Core", () => {
       hero: {
         title: "Moving handled with care, from door to door.",
         primaryAction: { href: "/about" },
-        secondaryAction: { href: "tel:+15550101010" },
+        secondaryAction: { href: "tel:+12025550147" },
       },
       assurance: { title: "Care is part of the process." },
       finalAction: { title: "Start with a clear moving plan." },
@@ -59,7 +59,9 @@ describe("shared demo Core", () => {
     expect(root.page.content.payload.process.steps.map((step) => step.title)).toEqual([
       "Plan", "Prepare", "Move", "Place",
     ]);
-    expect(root.page.content.payload.serviceAreas.areas.map((area) => area.label)).toContain("North district");
+    expect(root.page.content.payload.serviceAreas.areas.map((area) => area.label)).toContain("North District");
+    expect(root.page.content.payload.customerProof.items).toHaveLength(2);
+    expect(root.page.content.payload.frequentQuestions.items).toHaveLength(3);
 
     const about = await client.resolvePage("/about");
     expect(about.kind).toBe("page");
@@ -67,10 +69,14 @@ describe("shared demo Core", () => {
   });
 
   it.each([
+    ["/services", "moving.services", "Practical support for every stage of a move."],
     ["/services/home-moving", "moving.service", "A room-by-room plan for moving home."],
     ["/services/office-relocation", "moving.service", "A structured handoff for moving workplaces."],
+    ["/areas", "moving.areas", "Local moves planned around real access."],
     ["/areas/north-district", "moving.location", "Moving support shaped around practical local access."],
     ["/areas/riverside", "moving.location", "Plan a Riverside move around access and handoff."],
+    ["/faq", "moving.faq", "Clear answers before moving day."],
+    ["/testimonials", "moving.testimonials", "What a well-planned move feels like."],
   ])("serves %s as %s", async (path, type, title) => {
     const result = await client.resolvePage(path);
     expect(result.kind).toBe("page");
@@ -86,8 +92,9 @@ describe("shared demo Core", () => {
       items: [
         { label: "Home", destination: { kind: "internal", path: "/" } },
         { label: "About", destination: { kind: "internal", path: "/about" } },
-        { label: "Services", destination: { kind: "internal", path: "/services/home-moving" } },
-        { label: "Areas", destination: { kind: "internal", path: "/areas/north-district" } },
+        { label: "Services", destination: { kind: "internal", path: "/services" } },
+        { label: "Areas", destination: { kind: "internal", path: "/areas" } },
+        { label: "FAQ", destination: { kind: "internal", path: "/faq" } },
       ],
     });
     const footer = await client.getNavigation("footer");
@@ -142,24 +149,37 @@ describe("shared demo Core", () => {
       items: [
         { path: "/" },
         { path: "/about" },
+        { path: "/services" },
         { path: "/services/home-moving" },
         { path: "/services/office-relocation" },
+        { path: "/areas" },
         { path: "/areas/north-district" },
         { path: "/areas/riverside" },
+        { path: "/faq" },
+        { path: "/testimonials" },
       ],
     });
   });
 
   it("keeps every internal demo content link resolvable", async () => {
     const pages = await Promise.all([
-      "/", "/services/home-moving", "/services/office-relocation",
-      "/areas/north-district", "/areas/riverside",
+      "/", "/services", "/services/home-moving", "/services/office-relocation",
+      "/areas", "/areas/north-district", "/areas/riverside", "/faq", "/testimonials",
     ].map((path) => client.resolvePage(path)));
     const hrefs = pages.flatMap((result) => result.kind === "page" ? internalHrefs(result.page.content.payload) : []);
     const unique = [...new Set(hrefs)];
     const results = await Promise.all(unique.map((href) => client.resolvePage(href)));
     expect(unique.length).toBeGreaterThan(0);
     expect(results.every((result) => result.kind === "page")).toBe(true);
+  });
+
+  it("keeps customer-facing content free of implementation and demo disclaimers", async () => {
+    const paths = ["/", "/about", "/services", "/areas", "/faq", "/testimonials"];
+    const pages = await Promise.all(paths.map((path) => client.resolvePage(path)));
+    const visible = pages.flatMap((result) => result.kind === "page"
+      ? visibleStrings(result.page.content.payload)
+      : []);
+    expect(visible.join("\n")).not.toMatch(/fictional|architecture demo|CMS relation|public projection|application boundary/iu);
   });
 });
 
@@ -170,4 +190,15 @@ function internalHrefs(value) {
     key === "href" && typeof item === "string" && item.startsWith("/")
       ? [item]
       : internalHrefs(item));
+}
+
+function visibleStrings(value) {
+  if (Array.isArray(value)) return value.flatMap(visibleStrings);
+  if (value === null || typeof value !== "object") return [];
+  return Object.entries(value).flatMap(([key, item]) => {
+    if (typeof item === "string") {
+      return ["assetId", "href"].includes(key) ? [] : [item];
+    }
+    return visibleStrings(item);
+  });
 }

@@ -11,7 +11,7 @@ describe("application Editor Profile manifest", () => {
     expect(Object.keys(manifest).sort()).toEqual(["profiles", "version"]);
     expect(manifest["version"]).toBe(1);
     const profiles = array(manifest["profiles"]);
-    expect(profiles).toHaveLength(4);
+    expect(profiles).toHaveLength(8);
 
     const profile = profileById(profiles, "site.page");
     expect(profile).toMatchObject({ id: "site.page", version: 1, contentType: "site.page" });
@@ -37,19 +37,25 @@ describe("application Editor Profile manifest", () => {
     expectMediaFields(array(sectionMedia["fields"]).map(record));
   });
 
-  it("expresses moving.home v1 with parser-aligned fields, kinds, required flags, and lengths", async () => {
+  it("expresses moving.home v2 with parser-aligned fields, kinds, required flags, and lengths", async () => {
     const manifest = await loadManifest();
     const profiles = array(manifest["profiles"]);
     expect(profiles.map((value) => record(value)["id"])).toEqual([
       "site.page", "moving.home", "moving.service", "moving.location",
+      "moving.services", "moving.areas", "moving.faq", "moving.testimonials",
     ]);
     const profile = profileById(profiles, "moving.home");
-    expect(profile).toMatchObject({ id: "moving.home", version: 1, contentType: "moving.home" });
+    expect(profile).toMatchObject({ id: "moving.home", version: 2, contentType: "moving.home" });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual([
-      "hero", "proof", "services", "process", "assurance", "serviceAreas", "finalAction",
+      "hero", "proof", "services", "process", "assurance", "serviceAreas",
+      "customerProof", "frequentQuestions", "finalAction",
     ]);
-    for (const entry of fields) expect(entry["required"]).toBe(true);
+    for (const entry of fields.filter((value) => !["customerProof", "frequentQuestions"].includes(String(value["key"])))) {
+      expect(entry["required"]).toBe(true);
+    }
+    expect(field(fields, "customerProof")["required"]).toBe(false);
+    expect(field(fields, "frequentQuestions")["required"]).toBe(false);
 
     const hero = nested(fields, "hero", "group", true);
     expect(hero.map((entry) => entry["key"])).toEqual([
@@ -91,12 +97,25 @@ describe("application Editor Profile manifest", () => {
     expect(field(areaItems, "label")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.areaLabel });
     expectHrefField(field(areaItems, "href"));
 
+    const proofSection = nested(fields, "customerProof", "group", false);
+    expect(field(proofSection, "title")).toMatchObject({ kind: "text", required: true, maxLength: 160 });
+    expect(nested(proofSection, "items", "repeater", true).map((entry) => entry["key"])).toEqual([
+      "quote", "customerName", "context", "serviceLabel",
+    ]);
+    expectActionFields(nested(proofSection, "action", "group", false));
+
+    const faqSection = nested(fields, "frequentQuestions", "group", false);
+    expect(nested(faqSection, "items", "repeater", true).map((entry) => entry["key"])).toEqual([
+      "question", "answer",
+    ]);
+    expectActionFields(nested(faqSection, "action", "group", false));
+
     const finalAction = nested(fields, "finalAction", "group", true);
     expect(field(finalAction, "body")).toMatchObject({ kind: "textarea", required: false, maxLength: MOVING_HOME_LIMITS.finalBody });
     expectActionFields(nested(finalAction, "primaryAction", "group", true));
     expectActionFields(nested(finalAction, "secondaryAction", "group", false));
 
-    expect(totalFields(fields)).toBe(57);
+    expect(totalFields(fields)).toBe(82);
     expect(maximumDepth(fields)).toBe(3);
   });
 

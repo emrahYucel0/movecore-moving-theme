@@ -3,8 +3,12 @@ import { corePublicHttpFailure } from "../core/http-failure";
 import type { PageRouteResult } from "../../shared/page-route";
 import {
   composeMovingHome,
+  composeMovingAreas,
+  composeMovingFaq,
   composeMovingLocation,
   composeMovingService,
+  composeMovingServices,
+  composeMovingTestimonials,
   composeSitePage,
   PublicApplicationContentError,
 } from "./application-content";
@@ -59,6 +63,46 @@ export async function resolvePublicPageRoute(
           type: "moving.location",
           seo: result.page.seo,
           content: await composeMovingLocation(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.services") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.services",
+          seo: result.page.seo,
+          content: await composeMovingServices(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.areas") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.areas",
+          seo: result.page.seo,
+          content: await composeMovingAreas(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.faq") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.faq",
+          seo: result.page.seo,
+          content: await composeMovingFaq(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.testimonials") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.testimonials",
+          seo: result.page.seo,
+          content: await composeMovingTestimonials(result.page, resolver),
         },
       };
     }

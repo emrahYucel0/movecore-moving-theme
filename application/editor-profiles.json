@@ -97,7 +97,7 @@
     },
     {
       "id": "moving.home",
-      "version": 1,
+      "version": 2,
       "contentType": "moving.home",
       "label": "Moving Homepage",
       "description": "Structured homepage content for a moving and logistics public application.",
@@ -448,6 +448,84 @@
                   "required": true,
                   "maxLength": 2048
                 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "customerProof",
+          "label": "Customer proof",
+          "kind": "group",
+          "description": "Add one featured customer story and 1 to 3 supporting stories.",
+          "required": false,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 600 },
+            {
+              "key": "featured",
+              "label": "Featured customer story",
+              "kind": "group",
+              "required": true,
+              "fields": [
+                { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
+                { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
+                { "key": "context", "label": "Location or context", "kind": "text", "required": false, "maxLength": 160 },
+                { "key": "serviceLabel", "label": "Service", "kind": "text", "required": false, "maxLength": 100 }
+              ]
+            },
+            {
+              "key": "items",
+              "label": "Supporting customer stories",
+              "kind": "repeater",
+              "description": "Add 1 to 3 supporting stories. Use only editorially approved customer wording.",
+              "required": true,
+              "fields": [
+                { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
+                { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
+                { "key": "context", "label": "Location or context", "kind": "text", "required": false, "maxLength": 160 },
+                { "key": "serviceLabel", "label": "Service", "kind": "text", "required": false, "maxLength": 100 }
+              ]
+            },
+            {
+              "key": "action",
+              "label": "Customer stories link",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "frequentQuestions",
+          "label": "Frequently asked questions",
+          "kind": "group",
+          "description": "Add 2 to 5 practical questions for the homepage.",
+          "required": false,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 600 },
+            {
+              "key": "items",
+              "label": "Questions",
+              "kind": "repeater",
+              "description": "Add 2 to 5 questions in editorial order.",
+              "required": true,
+              "fields": [
+                { "key": "question", "label": "Question", "kind": "text", "required": true, "maxLength": 200 },
+                { "key": "answer", "label": "Answer", "kind": "textarea", "required": true, "maxLength": 1200 }
+              ]
+            },
+            {
+              "key": "action",
+              "label": "FAQ link",
+              "kind": "group",
+              "required": false,
+              "fields": [
+                { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
               ]
             }
           ]
@@ -829,6 +907,247 @@
                 { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
               ]
             }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.services",
+      "version": 1,
+      "contentType": "moving.services",
+      "label": "Services Overview",
+      "description": "A commercial overview of the moving services offered by the business.",
+      "fields": [
+        {
+          "key": "hero", "label": "Services introduction", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+            {
+              "key": "media", "label": "Hero media", "kind": "group", "required": false,
+              "fields": [
+                { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+                { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "portfolio", "label": "Service portfolio", "kind": "group", "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": false, "maxLength": 800 },
+            {
+              "key": "items", "label": "Services", "kind": "repeater", "required": true,
+              "description": "Add 2 to 10 services with a unique destination for each entry.",
+              "fields": [
+                { "key": "title", "label": "Service name", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Short description", "kind": "textarea", "required": true, "maxLength": 600 },
+                { "key": "href", "label": "Service page", "kind": "text", "description": "Use an internal /path or another safe public destination.", "required": true, "maxLength": 2048 },
+                {
+                  "key": "media", "label": "Service media", "kind": "group", "required": false,
+                  "fields": [
+                    { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+                    { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "context", "label": "Planning context", "kind": "group", "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
+            {
+              "key": "points", "label": "Planning points", "kind": "repeater", "required": true,
+              "description": "Add 2 to 6 practical points.",
+              "fields": [
+                { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "finalAction", "label": "Final action", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
+            { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] },
+            { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.areas",
+      "version": 1,
+      "contentType": "moving.areas",
+      "label": "Service Areas Overview",
+      "description": "An editorial overview of the areas served and the local planning context.",
+      "fields": [
+        {
+          "key": "hero", "label": "Service areas introduction", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+            { "key": "media", "label": "Hero media", "kind": "group", "required": false, "fields": [
+              { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+              { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+            ] }
+          ]
+        },
+        {
+          "key": "coverage", "label": "Coverage", "kind": "group", "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Coverage introduction", "kind": "textarea", "required": true, "maxLength": 1600 },
+            {
+              "key": "items", "label": "Curated areas", "kind": "repeater", "required": true,
+              "description": "Add 2 to 12 useful area entries with a unique destination for each.",
+              "fields": [
+                { "key": "title", "label": "Area name", "kind": "text", "required": true, "maxLength": 120 },
+                { "key": "description", "label": "Local context", "kind": "textarea", "required": true, "maxLength": 600 },
+                { "key": "href", "label": "Area page", "kind": "text", "required": true, "maxLength": 2048 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "planning", "label": "Area planning", "kind": "group", "required": true,
+          "fields": [
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
+            { "key": "points", "label": "Planning points", "kind": "repeater", "required": true, "description": "Add 2 to 6 practical local considerations.", "fields": [
+              { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
+            ] }
+          ]
+        },
+        {
+          "key": "finalAction", "label": "Final action", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
+            { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] },
+            { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.faq",
+      "version": 1,
+      "contentType": "moving.faq",
+      "label": "Moving FAQ",
+      "description": "Practical customer questions and answers for planning a move.",
+      "fields": [
+        {
+          "key": "hero", "label": "FAQ introduction", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+            { "key": "media", "label": "Hero media", "kind": "group", "required": false, "fields": [
+              { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+              { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+            ] }
+          ]
+        },
+        {
+          "key": "items", "label": "Questions and answers", "kind": "repeater", "required": true,
+          "description": "Add 3 to 18 distinct questions in editorial order.",
+          "fields": [
+            { "key": "question", "label": "Question", "kind": "text", "required": true, "maxLength": 200 },
+            { "key": "answer", "label": "Answer", "kind": "textarea", "required": true, "maxLength": 1200 }
+          ]
+        },
+        {
+          "key": "finalAction", "label": "Final action", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
+            { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] },
+            { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.testimonials",
+      "version": 1,
+      "contentType": "moving.testimonials",
+      "label": "Customer Stories",
+      "description": "Editorial customer proof without external review-platform claims.",
+      "fields": [
+        {
+          "key": "hero", "label": "Customer stories introduction", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+            { "key": "media", "label": "Hero media", "kind": "group", "required": false, "fields": [
+              { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+              { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+            ] }
+          ]
+        },
+        {
+          "key": "featured", "label": "Featured customer story", "kind": "group", "required": true,
+          "fields": [
+            { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
+            { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
+            { "key": "context", "label": "Location or context", "kind": "text", "required": false, "maxLength": 160 },
+            { "key": "serviceLabel", "label": "Service", "kind": "text", "required": false, "maxLength": 100 }
+          ]
+        },
+        {
+          "key": "items", "label": "Supporting customer stories", "kind": "repeater", "required": true,
+          "description": "Add 2 to 10 distinct, editorially approved customer stories.",
+          "fields": [
+            { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
+            { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
+            { "key": "context", "label": "Location or context", "kind": "text", "required": false, "maxLength": 160 },
+            { "key": "serviceLabel", "label": "Service", "kind": "text", "required": false, "maxLength": 100 }
+          ]
+        },
+        {
+          "key": "finalAction", "label": "Final action", "kind": "group", "required": true,
+          "fields": [
+            { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+            { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
+            { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
+            { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] },
+            { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
+              { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
+              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+            ] }
           ]
         }
       ]

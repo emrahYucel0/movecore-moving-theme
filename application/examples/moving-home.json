@@ -13,7 +13,7 @@
     },
     "secondaryAction": {
       "label": "Call the team",
-      "href": "tel:+15550101010"
+      "href": "tel:+12025550147"
     }
   },
   "proof": [
@@ -59,15 +59,57 @@
     ]
   },
   "serviceAreas": {
-    "eyebrow": "Demo service area",
-    "title": "Moving support across the fictional Northline area.",
-    "intro": "These general labels demonstrate homepage area navigation without creating a location SEO model.",
+    "eyebrow": "Service areas",
+    "title": "Moving support shaped around local access.",
+    "intro": "Explore practical planning notes for the areas we serve.",
     "areas": [
-      { "label": "North district", "href": "/areas/north-district" },
+      { "label": "North District", "href": "/areas/north-district" },
       { "label": "Riverside", "href": "/areas/riverside" },
-      { "label": "North district planning", "href": "/areas/north-district" },
-      { "label": "Riverside planning", "href": "/areas/riverside" }
+      { "label": "View all service areas", "href": "/areas" }
     ]
+  },
+  "customerProof": {
+    "title": "A calm move is built before moving day.",
+    "intro": "Customers remember clear communication, careful handling and knowing what happens next.",
+    "featured": {
+      "quote": "The plan was clear before anyone lifted a box, and every room was ready to use when the team finished.",
+      "customerName": "The Rivera household",
+      "context": "North District",
+      "serviceLabel": "Home moving"
+    },
+    "items": [
+      {
+        "quote": "Access was difficult, but the team had already worked through the route and kept the handoff calm.",
+        "customerName": "Riverside residents",
+        "context": "Riverside",
+        "serviceLabel": "Home moving"
+      },
+      {
+        "quote": "Equipment and priority rooms arrived in the sequence we agreed with the project lead.",
+        "customerName": "Hartwell Studio team",
+        "serviceLabel": "Office relocation"
+      }
+    ],
+    "action": { "label": "Read customer experiences", "href": "/testimonials" }
+  },
+  "frequentQuestions": {
+    "title": "Questions worth answering early.",
+    "intro": "A few practical details can make the estimate and moving plan much clearer.",
+    "items": [
+      {
+        "question": "How early should we start planning?",
+        "answer": "Start once the date and both addresses are reasonably clear. Early access details make the plan more accurate."
+      },
+      {
+        "question": "Can the team help with packing?",
+        "answer": "Yes. Packing can cover the full property or focus on fragile and difficult-to-prepare items."
+      },
+      {
+        "question": "What access details are useful?",
+        "answer": "Share stairs, lifts, parking limits, walking distance and any building time windows at both properties."
+      }
+    ],
+    "action": { "label": "Read all questions", "href": "/faq" }
   },
   "finalAction": {
     "eyebrow": "Ready when you are",
@@ -79,7 +121,7 @@
     },
     "secondaryAction": {
       "label": "Call the team",
-      "href": "tel:+15550101010"
+      "href": "tel:+12025550147"
     }
   }
 }

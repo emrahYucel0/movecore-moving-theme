@@ -7,6 +7,8 @@ import MovingProcess from "./moving-home/MovingProcess.vue";
 import MovingProof from "./moving-home/MovingProof.vue";
 import MovingServiceAreas from "./moving-home/MovingServiceAreas.vue";
 import MovingServices from "./moving-home/MovingServices.vue";
+import MovingFaqCollection from "./moving-commercial/MovingFaqCollection.vue";
+import MovingTestimonialCollection from "./moving-commercial/MovingTestimonialCollection.vue";
 
 defineProps<{
   readonly page: MovingHomeViewModel;
@@ -21,7 +23,17 @@ defineProps<{
       <MovingServices :section="page.services" />
       <MovingProcess :section="page.process" />
       <MovingAssurance :section="page.assurance" />
+      <MovingTestimonialCollection
+        v-if="page.customerProof"
+        :section="page.customerProof"
+        title-id="moving-home-customer-proof-title"
+      />
       <MovingServiceAreas :section="page.serviceAreas" />
+      <MovingFaqCollection
+        v-if="page.frequentQuestions"
+        :section="page.frequentQuestions"
+        title-id="moving-home-faq-title"
+      />
       <MovingFinalAction :section="page.finalAction" />
     </article>
   </main>

@@ -1,0 +1,52 @@
+{
+  "hero": {
+    "eyebrow": "Moving services",
+    "title": "Practical support for every stage of a move.",
+    "intro": "Choose a complete moving plan or focused help for a workplace transition, with clear scope and careful handling.",
+    "media": {
+      "assetId": "asset:demo-hero",
+      "alt": "Moving truck prepared beside carefully packed boxes"
+    }
+  },
+  "portfolio": {
+    "title": "A focused service portfolio.",
+    "intro": "Each service starts with the access, timing and handling details that shape the work.",
+    "items": [
+      {
+        "title": "Home moving",
+        "description": "Room-by-room planning, protective packing, coordinated transport and placement at the new home.",
+        "href": "/services/home-moving",
+        "media": {
+          "assetId": "asset:demo-section",
+          "alt": "Packed box being handled with care"
+        }
+      },
+      {
+        "title": "Office relocation",
+        "description": "A structured workplace handoff that coordinates access windows, equipment groups and destination priorities.",
+        "href": "/services/office-relocation",
+        "media": {
+          "assetId": "asset:demo-process",
+          "alt": "Route connecting the departure and destination buildings"
+        }
+      }
+    ]
+  },
+  "context": {
+    "title": "The right scope before moving day.",
+    "body": "A useful estimate starts with what is moving, how both properties can be accessed and which services need to happen before transport begins.",
+    "points": [
+      { "text": "Access and parking confirmed early" },
+      { "text": "Packing responsibilities made clear" },
+      { "text": "Room priorities agreed before arrival" },
+      { "text": "One handoff plan shared with the team" }
+    ]
+  },
+  "finalAction": {
+    "eyebrow": "Plan the work",
+    "title": "Start with the details that shape your move.",
+    "body": "Share the addresses, timing and the level of help you expect.",
+    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
+  }
+}

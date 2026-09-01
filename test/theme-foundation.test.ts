@@ -36,23 +36,35 @@ describe("R2.1 moving theme foundation", () => {
     }
   });
 
-  it("keeps the application content boundary on exactly the four approved types", async () => {
+  it("keeps the application content boundary on the approved moving product types", async () => {
     const manifest = JSON.parse(await source("../application/editor-profiles.json"));
     expect(manifest.profiles.map((profile: { contentType: string }) => profile.contentType))
-      .toEqual(["site.page", "moving.home", "moving.service", "moving.location"]);
-    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:article|blog|category|city|district|neighborhood|contact|quote|testimonial|faq)/u);
+      .toEqual([
+        "site.page",
+        "moving.home",
+        "moving.service",
+        "moving.location",
+        "moving.services",
+        "moving.areas",
+        "moving.faq",
+        "moving.testimonials",
+      ]);
+    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:article|blog|category|city|district|neighborhood|contact|quote)/u);
   });
 
   it("keeps the offline demo deterministic and moving-specific", async () => {
     const mock = await source("../scripts/mock-core.mjs");
+    const home = await source("../application/examples/moving-home.json");
     for (const copy of [
       "Northline Moving",
+      "2026-08-30T00:00:00.000Z",
+    ]) expect(mock).toContain(copy);
+    for (const copy of [
       "Residential & commercial moving",
       "Moving handled with care, from door to door.",
       "Care at every handoff",
       "Start with a clear moving plan.",
-      "2026-08-30T00:00:00.000Z",
-    ]) expect(mock).toContain(copy);
+    ]) expect(home).toContain(copy);
     expect(mock).not.toMatch(/https:\/\/(?:images|fonts|cdn)\./u);
   });
 

@@ -10,6 +10,15 @@ import {
   type MovingActionSection,
   type MovingProcessStep,
 } from "./moving-common";
+import {
+  movingAssertUnique,
+  movingTestimonialIdentity,
+  parseMovingFaqItems,
+  parseMovingTestimonial,
+  parseMovingTestimonialItems,
+  type MovingFaqSection,
+  type MovingTestimonialSection,
+} from "./moving-commercial-common";
 
 export {
   isSafeActionHref,
@@ -95,6 +104,8 @@ export interface MovingHome {
   readonly process: MovingProcessSection;
   readonly assurance: MovingAssuranceSection;
   readonly serviceAreas: MovingServiceAreasSection;
+  readonly customerProof?: MovingTestimonialSection;
+  readonly frequentQuestions?: MovingFaqSection;
   readonly finalAction: MovingActionSection;
 }
 
@@ -120,6 +131,8 @@ export class MovingHomeContractError extends Error {
 
 export function parseMovingHomePayload(input: unknown): MovingHome {
   const source = plainRecord(input);
+  const customerProof = optionalCustomerProof(source["customerProof"]);
+  const frequentQuestions = optionalFrequentQuestions(source["frequentQuestions"]);
   return Object.freeze({
     hero: parseHero(source["hero"]),
     proof: parseBoundedArray(source["proof"], 2, 6, parseProofItem),
@@ -127,6 +140,8 @@ export function parseMovingHomePayload(input: unknown): MovingHome {
     process: parseProcess(source["process"]),
     assurance: parseAssurance(source["assurance"]),
     serviceAreas: parseServiceAreas(source["serviceAreas"]),
+    ...(customerProof === undefined ? {} : { customerProof }),
+    ...(frequentQuestions === undefined ? {} : { frequentQuestions }),
     finalAction: parseFinalAction(source["finalAction"]),
   });
 }
@@ -233,6 +248,36 @@ function parseArea(value: unknown): MovingAreaLink {
   return Object.freeze({
     label: requiredString(source["label"], MOVING_HOME_LIMITS.areaLabel),
     href: requiredHref(source["href"]),
+  });
+}
+
+function optionalCustomerProof(value: unknown): MovingTestimonialSection | undefined {
+  if (value === undefined) return undefined;
+  const source = plainRecord(value);
+  const intro = optionalString(source["intro"], MOVING_HOME_LIMITS.intro);
+  const action = optionalAction(source["action"]);
+  const featured = parseMovingTestimonial(source["featured"], contractError);
+  const items = parseMovingTestimonialItems(source["items"], 1, 3, contractError);
+  movingAssertUnique([featured, ...items], movingTestimonialIdentity, contractError);
+  return Object.freeze({
+    title: requiredString(source["title"], MOVING_HOME_LIMITS.title),
+    ...(intro === undefined ? {} : { intro }),
+    featured,
+    items,
+    ...(action === undefined ? {} : { action }),
+  });
+}
+
+function optionalFrequentQuestions(value: unknown): MovingFaqSection | undefined {
+  if (value === undefined) return undefined;
+  const source = plainRecord(value);
+  const intro = optionalString(source["intro"], MOVING_HOME_LIMITS.intro);
+  const action = optionalAction(source["action"]);
+  return Object.freeze({
+    title: requiredString(source["title"], MOVING_HOME_LIMITS.title),
+    ...(intro === undefined ? {} : { intro }),
+    items: parseMovingFaqItems(source["items"], 2, 5, contractError),
+    ...(action === undefined ? {} : { action }),
   });
 }
 

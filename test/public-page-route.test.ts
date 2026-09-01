@@ -83,6 +83,10 @@ describe("public page application route", () => {
   it.each([
     ["moving.service", "moving-service.json", "/flat-service", "A room-by-room plan for moving home."],
     ["moving.location", "moving-location.json", "/campaign/local-support", "Moving support shaped around practical local access."],
+    ["moving.services", "moving-services.json", "/portfolio", "Practical support for every stage of a move."],
+    ["moving.areas", "moving-areas.json", "/coverage", "Local moves planned around real access."],
+    ["moving.faq", "moving-faq.json", "/questions", "Clear answers before moving day."],
+    ["moving.testimonials", "moving-testimonials.json", "/customer-stories", "What a well-planned move feels like."],
   ] as const)(
     "dispatches %s at an arbitrary Core-resolved canonical path",
     async (contentType, fixture, canonicalPath, visibleTitle) => {

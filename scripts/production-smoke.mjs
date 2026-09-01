@@ -78,13 +78,15 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "Prepare",
     "Care is part of the process.",
     "Clear arrival windows",
-    "Moving support across the fictional Northline area.",
-    "North district",
+    "Moving support shaped around local access.",
+    "North District",
+    "A calm move is built before moving day.",
+    "Questions worth answering early.",
     "Start with a clear moving plan.",
     "Plan your move",
     "Call the team",
     'href="/about"',
-    'href="tel:+15550101010"',
+    'href="tel:+12025550147"',
     "Care at every handoff",
     "Illustrated moving truck beside stacked packing boxes",
     "Illustrated hands carefully passing a packed box",
@@ -109,7 +111,7 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
   assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5);
   for (const forbidden of [
     "\"payload\":", "revisionId", "publishedAt", "Public JSON payload", "<pre",
-    coreOrigin, PRIVATE_SENTINEL, "MoveCore site foundation",
+    coreOrigin, PRIVATE_SENTINEL, "MoveCore site foundation", "fictional demo", "CMS relation",
   ]) assert.equal(html.includes(forbidden), false, `SSR leak: ${forbidden}`);
 
   const aboutResponse = await fetch(`${runtimeOrigin}/about`, { redirect: "manual" });
@@ -142,6 +144,19 @@ async function verifySiteComposition(runtimeOrigin, coreOrigin) {
 async function verifyInnerPages(runtimeOrigin, coreOrigin) {
   const expectations = [
     [
+      "/services",
+      [
+        "Practical support for every stage of a move.",
+        "A focused service portfolio.",
+        "Home moving",
+        "Office relocation",
+        "The right scope before moving day.",
+        "Moving Services | Northline Moving",
+        `${MEDIA_ORIGIN}/demo-media/hero.svg`,
+      ],
+      3,
+    ],
+    [
       "/services/home-moving",
       [
         "A room-by-room plan for moving home.",
@@ -153,6 +168,7 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
         "Home Moving Service | Northline Moving",
         `${MEDIA_ORIGIN}/demo-media/hero.svg`,
       ],
+      5,
     ],
     [
       "/services/office-relocation",
@@ -163,6 +179,19 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
         "Plan a clear workplace handoff.",
         "Office Relocation Service | Northline Moving",
       ],
+      5,
+    ],
+    [
+      "/areas",
+      [
+        "Local moves planned around real access.",
+        "Where we work.",
+        "North District",
+        "Riverside",
+        "Useful local detail, not a city directory.",
+        "Service Areas | Northline Moving",
+      ],
+      3,
     ],
     [
       "/areas/north-district",
@@ -176,6 +205,7 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
         "North District Moving Support | Northline Moving",
         `${MEDIA_ORIGIN}/demo-media/section.svg`,
       ],
+      5,
     ],
     [
       "/areas/riverside",
@@ -185,9 +215,32 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
         "Resolve Riverside access details before arrival.",
         "Riverside Moving Support | Northline Moving",
       ],
+      5,
+    ],
+    [
+      "/faq",
+      [
+        "Clear answers before moving day.",
+        "Questions and practical answers",
+        "How early should we start planning?",
+        "What happens if access changes?",
+        "Moving Questions | Northline Moving",
+      ],
+      2,
+    ],
+    [
+      "/testimonials",
+      [
+        "What a well-planned move feels like.",
+        "Moving experiences in their own words",
+        "The Rivera household",
+        "Hartwell Studio team",
+        "Customer Experiences | Northline Moving",
+      ],
+      2,
     ],
   ];
-  for (const [pathname, evidence] of expectations) {
+  for (const [pathname, evidence, minimumH2] of expectations) {
     const response = await fetch(`${runtimeOrigin}${pathname}`, { redirect: "manual" });
     assert.equal(response.status, 200, pathname);
     const html = await response.text();
@@ -195,7 +248,7 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
       assert.ok(html.includes(expected), `${pathname} missing SSR evidence: ${expected}`);
     }
     assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1, pathname);
-    assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5, pathname);
+    assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= minimumH2, pathname);
     for (const forbidden of [coreOrigin, PRIVATE_SENTINEL, "revisionId", "publishedAt", "\"payload\":"]) {
       assert.equal(html.includes(forbidden), false, `${pathname} leaked ${forbidden}`);
     }
@@ -257,10 +310,14 @@ async function verifySitemap(runtimeOrigin, coreOrigin) {
   const xml = await response.text();
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/about</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/home-moving</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/office-relocation</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/north-district</loc>`));
   assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/riverside</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/faq</loc>`));
+  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/testimonials</loc>`));
   assert.equal(xml.includes(coreOrigin), false);
   assert.equal(xml.includes(PRIVATE_SENTINEL), false);
 }

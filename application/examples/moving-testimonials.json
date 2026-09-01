@@ -1,0 +1,39 @@
+{
+  "hero": {
+    "eyebrow": "Customer experiences",
+    "title": "What a well-planned move feels like.",
+    "intro": "Editorial customer stories about communication, careful handling and a clear handoff."
+  },
+  "featured": {
+    "quote": "The plan was clear before anyone lifted a box, and every room was ready to use when the team finished.",
+    "customerName": "The Rivera household",
+    "context": "North District",
+    "serviceLabel": "Home moving"
+  },
+  "items": [
+    {
+      "quote": "Access was difficult, but the team had already worked through the route and kept the building handoff calm.",
+      "customerName": "Riverside residents",
+      "context": "Riverside",
+      "serviceLabel": "Home moving"
+    },
+    {
+      "quote": "Desks, shared equipment and priority rooms arrived in the sequence we agreed with the project lead.",
+      "customerName": "Hartwell Studio team",
+      "context": "North District",
+      "serviceLabel": "Office relocation"
+    },
+    {
+      "quote": "We knew who was responsible for packing and what would happen at each handoff, which removed the usual uncertainty.",
+      "customerName": "Maple Row household",
+      "serviceLabel": "Packing support"
+    }
+  ],
+  "finalAction": {
+    "eyebrow": "Your moving plan",
+    "title": "Create the same clarity for your own move.",
+    "body": "Begin with the route, access and the help you need from the team.",
+    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
+  }
+}

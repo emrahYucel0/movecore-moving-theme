@@ -3,6 +3,10 @@ import type { SitePageViewModel } from "./content/site-page";
 import type { MovingHomeViewModel } from "./content/moving-home";
 import type { MovingServiceViewModel } from "./content/moving-service";
 import type { MovingLocationViewModel } from "./content/moving-location";
+import type { MovingServicesViewModel } from "./content/moving-services";
+import type { MovingAreasViewModel } from "./content/moving-areas";
+import type { MovingFaqViewModel } from "./content/moving-faq";
+import type { MovingTestimonialsViewModel } from "./content/moving-testimonials";
 
 export type PublicApplicationPage =
   | {
@@ -24,6 +28,26 @@ export type PublicApplicationPage =
     readonly type: "moving.location";
     readonly seo: PublicSeoProjection;
     readonly content: MovingLocationViewModel;
+  }
+  | {
+    readonly type: "moving.services";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingServicesViewModel;
+  }
+  | {
+    readonly type: "moving.areas";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingAreasViewModel;
+  }
+  | {
+    readonly type: "moving.faq";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingFaqViewModel;
+  }
+  | {
+    readonly type: "moving.testimonials";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingTestimonialsViewModel;
   };
 
 export type PageRouteResult =

@@ -29,6 +29,34 @@ import {
   type MovingLocation,
   type MovingLocationViewModel,
 } from "../../shared/content/moving-location";
+import {
+  MovingServicesContractError,
+  parseMovingServicesPayload,
+  type MovingServicesPage,
+  type MovingServicesViewModel,
+} from "../../shared/content/moving-services";
+import {
+  MovingAreasContractError,
+  parseMovingAreasPayload,
+  type MovingAreasPage,
+  type MovingAreasViewModel,
+} from "../../shared/content/moving-areas";
+import {
+  MovingFaqContractError,
+  parseMovingFaqPayload,
+  type MovingFaqPage,
+  type MovingFaqViewModel,
+} from "../../shared/content/moving-faq";
+import {
+  MovingTestimonialsContractError,
+  parseMovingTestimonialsPayload,
+  type MovingTestimonialsPage,
+  type MovingTestimonialsViewModel,
+} from "../../shared/content/moving-testimonials";
+import type {
+  MovingCollectionHero,
+  MovingCollectionHeroViewModel,
+} from "../../shared/content/moving-commercial-common";
 import type { ContentImage, ContentMediaReference } from "../../shared/content/media";
 
 export class PublicApplicationContentError extends Error {
@@ -120,6 +148,10 @@ export async function composeMovingHome(
       points: content.assurance.points,
     }),
     serviceAreas: content.serviceAreas,
+    ...(content.customerProof === undefined ? {} : { customerProof: content.customerProof }),
+    ...(content.frequentQuestions === undefined
+      ? {}
+      : { frequentQuestions: content.frequentQuestions }),
     finalAction: content.finalAction,
   });
 }
@@ -191,6 +223,94 @@ export async function composeMovingLocation(
   });
 }
 
+export async function composeMovingServices(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingServicesViewModel> {
+  if (page.content.type !== "moving.services") throw applicationContentError();
+  let content: MovingServicesPage;
+  try {
+    content = parseMovingServicesPayload(page.content.payload);
+  } catch (error: unknown) {
+    if (error instanceof MovingServicesContractError) throw applicationContentError();
+    throw error;
+  }
+  const media = await resolveReferencedMedia(movingServicesAssetIds(content), client);
+  return Object.freeze({
+    hero: collectionHeroView(content.hero, media),
+    portfolio: Object.freeze({
+      title: content.portfolio.title,
+      ...(content.portfolio.intro === undefined ? {} : { intro: content.portfolio.intro }),
+      items: Object.freeze(content.portfolio.items.map((item) => Object.freeze({
+        title: item.title,
+        description: item.description,
+        href: item.href,
+        ...(item.media === undefined
+          ? {}
+          : { media: imageView(item.media, requiredMedia(media, item.media.assetId)) }),
+      }))),
+    }),
+    context: content.context,
+    finalAction: content.finalAction,
+  });
+}
+
+export async function composeMovingAreas(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingAreasViewModel> {
+  if (page.content.type !== "moving.areas") throw applicationContentError();
+  const content = parseApplicationPayload(
+    page.content.payload,
+    parseMovingAreasPayload,
+    MovingAreasContractError,
+  );
+  const media = await resolveReferencedMedia(collectionHeroAssetIds(content.hero), client);
+  return Object.freeze({
+    hero: collectionHeroView(content.hero, media),
+    coverage: content.coverage,
+    planning: content.planning,
+    finalAction: content.finalAction,
+  });
+}
+
+export async function composeMovingFaq(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingFaqViewModel> {
+  if (page.content.type !== "moving.faq") throw applicationContentError();
+  const content = parseApplicationPayload(
+    page.content.payload,
+    parseMovingFaqPayload,
+    MovingFaqContractError,
+  );
+  const media = await resolveReferencedMedia(collectionHeroAssetIds(content.hero), client);
+  return Object.freeze({
+    hero: collectionHeroView(content.hero, media),
+    items: content.items,
+    finalAction: content.finalAction,
+  });
+}
+
+export async function composeMovingTestimonials(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingTestimonialsViewModel> {
+  if (page.content.type !== "moving.testimonials") throw applicationContentError();
+  const content = parseApplicationPayload(
+    page.content.payload,
+    parseMovingTestimonialsPayload,
+    MovingTestimonialsContractError,
+  );
+  const media = await resolveReferencedMedia(collectionHeroAssetIds(content.hero), client);
+  return Object.freeze({
+    hero: collectionHeroView(content.hero, media),
+    featured: content.featured,
+    items: content.items,
+    finalAction: content.finalAction,
+  });
+}
+
 async function resolveReferencedMedia(
   assetIds: ReadonlySet<string>,
   client: PublicPageMediaClient,
@@ -224,6 +344,46 @@ function movingServiceAssetIds(content: MovingService): ReadonlySet<string> {
 
 function movingLocationAssetIds(content: MovingLocation): ReadonlySet<string> {
   return new Set(content.hero.media === undefined ? [] : [content.hero.media.assetId]);
+}
+
+function movingServicesAssetIds(content: MovingServicesPage): ReadonlySet<string> {
+  const assetIds = new Set<string>(collectionHeroAssetIds(content.hero));
+  for (const item of content.portfolio.items) {
+    if (item.media !== undefined) assetIds.add(item.media.assetId);
+  }
+  return assetIds;
+}
+
+function collectionHeroAssetIds(hero: MovingCollectionHero): ReadonlySet<string> {
+  return new Set(hero.media === undefined ? [] : [hero.media.assetId]);
+}
+
+function collectionHeroView(
+  hero: MovingCollectionHero,
+  media: ReadonlyMap<string, PublicMediaProjection>,
+): MovingCollectionHeroViewModel {
+  const heroMedia = hero.media === undefined
+    ? undefined
+    : imageView(hero.media, requiredMedia(media, hero.media.assetId));
+  return Object.freeze({
+    ...(hero.eyebrow === undefined ? {} : { eyebrow: hero.eyebrow }),
+    title: hero.title,
+    intro: hero.intro,
+    ...(heroMedia === undefined ? {} : { media: heroMedia }),
+  });
+}
+
+function parseApplicationPayload<T, E extends Error>(
+  payload: unknown,
+  parse: (value: unknown) => T,
+  ContractError: new (...args: never[]) => E,
+): T {
+  try {
+    return parse(payload);
+  } catch (error: unknown) {
+    if (error instanceof ContractError) throw applicationContentError();
+    throw error;
+  }
 }
 
 function requiredMedia(
