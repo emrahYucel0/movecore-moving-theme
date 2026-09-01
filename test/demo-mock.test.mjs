@@ -90,9 +90,31 @@ describe("shared demo Core", () => {
         { label: "Areas", destination: { kind: "internal", path: "/areas/north-district" } },
       ],
     });
-    await expect(client.getSetting("site", "foundation")).resolves.toMatchObject({
-      value: { name: "Northline Moving" },
+    const footer = await client.getNavigation("footer");
+    expect(footer.id).toBe("footer");
+    expect(footer.items[0]).toMatchObject({
+      label: "About",
+      destination: { kind: "internal", path: "/about" },
     });
+    await expect(client.getSetting("moving", "business")).resolves.toMatchObject({
+      namespace: "moving",
+      key: "business",
+      value: {
+        companyName: "Northline Moving",
+        logoAssetId: "asset:demo-logo",
+        primaryPhone: { href: "tel:+12025550147" },
+        whatsapp: { href: "https://wa.me/12025550147" },
+        email: { href: "mailto:hello@example.test" },
+      },
+    });
+    const logo = await client.getMedia("asset:demo-logo");
+    expect(logo).toMatchObject({
+      kind: "image",
+      original: { mimeType: "image/svg+xml", width: 700, height: 180 },
+    });
+    const logoSvg = await fetch(logo.original.publicUrl);
+    expect(logoSvg.status).toBe(200);
+    expect(await logoSvg.text()).toContain(">NORTHLINE<");
     const media = await client.getMedia("asset:demo-hero");
     expect(media).toMatchObject({ kind: "image", original: { mimeType: "image/svg+xml" } });
     const svg = await fetch(media.original.publicUrl);

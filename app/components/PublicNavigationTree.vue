@@ -5,6 +5,7 @@ defineOptions({ name: "PublicNavigationTree" });
 defineProps<{
   readonly items: readonly PublicSiteNavigationItem[];
   readonly depth: number;
+  readonly autofocusFirst?: boolean;
 }>();
 </script>
 
@@ -14,11 +15,12 @@ defineProps<{
     :class="{ 'theme-nav-list--nested': depth > 0 }"
     :data-depth="depth"
   >
-    <li v-for="item in items" :key="item.id" class="theme-nav-item">
+    <li v-for="(item, index) in items" :key="item.id" class="theme-nav-item">
       <NuxtLink
         v-if="item.destination.kind === 'internal'"
         :to="item.destination.path"
         class="theme-nav-link"
+        :autofocus="autofocusFirst === true && depth === 0 && index === 0"
       >
         {{ item.label }}
       </NuxtLink>
@@ -26,6 +28,7 @@ defineProps<{
         v-else
         :href="item.destination.url"
         class="theme-nav-link"
+        :autofocus="autofocusFirst === true && depth === 0 && index === 0"
       >
         {{ item.label }}
       </a>
@@ -33,6 +36,7 @@ defineProps<{
         v-if="item.children.length > 0"
         :items="item.children"
         :depth="depth + 1"
+        :autofocus-first="false"
       />
     </li>
   </ul>

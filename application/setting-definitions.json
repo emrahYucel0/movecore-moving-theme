@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "namespace": "moving",
+      "key": "business",
+      "exposure": "public",
+      "value": {
+        "companyName": "Example Moving Company",
+        "primaryPhone": {
+          "display": "+1 202-555-0100",
+          "href": "tel:+12025550100"
+        },
+        "openingHours": [],
+        "socialLinks": []
+      }
+    }
+  ]
+}

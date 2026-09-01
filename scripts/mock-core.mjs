@@ -29,6 +29,9 @@ export function createMockMediaServer() {
     if (url.pathname === "/demo-media/process.svg") {
       return svg(response, processIllustration());
     }
+    if (url.pathname === "/demo-media/logo.svg") {
+      return svg(response, logoMark());
+    }
     return json(response, 404, failure("not_found"));
   });
 }
@@ -42,12 +45,15 @@ function handleRequest(request, response, mediaOrigin) {
   if (url.pathname === "/v1/navigation/primary") {
     return json(response, 200, { data: primaryNavigation() });
   }
-  if (url.pathname === "/v1/settings/site/foundation") {
+  if (url.pathname === "/v1/navigation/footer") {
+    return json(response, 200, { data: footerNavigation() });
+  }
+  if (url.pathname === "/v1/settings/moving/business") {
     return json(response, 200, {
       data: {
-        namespace: "site",
-        key: "foundation",
-        value: { name: "Northline Moving" },
+        namespace: "moving",
+        key: "business",
+        value: businessIdentity(),
       },
     });
   }
@@ -189,6 +195,60 @@ function primaryNavigation() {
   };
 }
 
+function footerNavigation() {
+  return {
+    id: "footer",
+    items: [
+      {
+        id: "footer-about",
+        label: "About",
+        destination: { kind: "internal", path: "/about" },
+        children: [],
+      },
+      {
+        id: "footer-services",
+        label: "Home moving",
+        destination: { kind: "internal", path: "/services/home-moving" },
+        children: [],
+      },
+      {
+        id: "footer-areas",
+        label: "North District",
+        destination: { kind: "internal", path: "/areas/north-district" },
+        children: [],
+      },
+    ],
+  };
+}
+
+function businessIdentity() {
+  return {
+    companyName: "Northline Moving",
+    logoAssetId: "asset:demo-logo",
+    primaryPhone: {
+      display: "+1 202-555-0147",
+      href: "tel:+12025550147",
+    },
+    whatsapp: {
+      label: "Message on WhatsApp",
+      href: "https://wa.me/12025550147",
+    },
+    email: {
+      display: "hello@example.test",
+      href: "mailto:hello@example.test",
+    },
+    address: "100 Example Avenue, Northline, EX 00000",
+    openingHours: [
+      { label: "Monday to Friday", value: "08:00 to 18:00" },
+      { label: "Saturday", value: "09:00 to 14:00" },
+    ],
+    socialLinks: [
+      { label: "Instagram", href: "https://example.test/northline-instagram" },
+      { label: "Facebook", href: "https://example.test/northline-facebook" },
+    ],
+  };
+}
+
 function mediaPage(assetId) {
   return {
     type: "site.page",
@@ -224,11 +284,13 @@ function mediaResponse(assetId, request, response, configuredOrigin) {
   if (assetId === "asset:document") {
     return json(response, 200, { data: publicMedia(assetId, "document", "document.pdf", request, configuredOrigin) });
   }
-  const filename = assetId === "asset:demo-hero"
-    ? "hero.svg"
-    : assetId === "asset:demo-process"
-      ? "process.svg"
-      : "section.svg";
+  const filename = assetId === "asset:demo-logo"
+    ? "logo.svg"
+    : assetId === "asset:demo-hero"
+      ? "hero.svg"
+      : assetId === "asset:demo-process"
+        ? "process.svg"
+        : "section.svg";
   return json(response, 200, {
     data: publicMedia(assetId, "image", filename, request, configuredOrigin),
   });
@@ -237,6 +299,9 @@ function mediaResponse(assetId, request, response, configuredOrigin) {
 function publicMedia(assetId, kind, filename, request, configuredOrigin) {
   const origin = configuredOrigin ?? `http://${request.headers.host ?? "127.0.0.1:4010"}`;
   const isImage = kind === "image";
+  const dimensions = assetId === "asset:demo-logo"
+    ? { width: 700, height: 180, aspectRatio: 700 / 180 }
+    : { width: 1200, height: 800, aspectRatio: 1.5 };
   return {
     assetId,
     kind,
@@ -245,7 +310,7 @@ function publicMedia(assetId, kind, filename, request, configuredOrigin) {
       format: isImage ? "svg" : "pdf",
       byteSize: 1_024,
       publicUrl: isImage ? `${origin}/demo-media/${filename}` : `${origin}/${filename}`,
-      ...(isImage ? { width: 1200, height: 800, aspectRatio: 1.5 } : {}),
+      ...(isImage ? dimensions : {}),
     },
     variants: [],
   };
@@ -415,4 +480,8 @@ function handoffIllustration() {
 
 function processIllustration() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Route connecting two homes"><rect width="1200" height="800" fill="#f8f6ef"/><path d="M166 558C338 362 416 658 598 432S852 260 1034 190" fill="none" stroke="#c94f2c" stroke-width="18" stroke-dasharray="30 24"/><path d="M92 552l138-112 138 112v154H92zM832 250l138-112 138 112v154H832z" fill="#19302c"/><rect x="182" y="610" width="92" height="96" fill="#d9d8cf"/><rect x="922" y="308" width="92" height="96" fill="#d9d8cf"/><circle cx="166" cy="558" r="34" fill="#f8f6ef" stroke="#c94f2c" stroke-width="14"/><circle cx="1034" cy="190" r="34" fill="#f8f6ef" stroke="#c94f2c" stroke-width="14"/><path d="M482 354h220v142H482z" fill="#e9a46e"/><path d="M592 354v142M482 416h220" stroke="#19302c" stroke-width="8"/></svg>`;
+}
+
+function logoMark() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 180" role="img" aria-label="Northline Moving logo"><rect width="180" height="180" fill="#c94f2c"/><path d="M39 127V53h27l48 45V53h27v74h-26L66 81v46z" fill="#faf9f4"/><path d="M221 145h444" stroke="#c94f2c" stroke-width="6"/><text x="218" y="91" fill="#19302c" font-family="Arial Narrow, Arial, sans-serif" font-size="61" font-weight="700" letter-spacing="-2">NORTHLINE</text><text x="221" y="128" fill="#4d5d58" font-family="Arial, sans-serif" font-size="19" font-weight="700" letter-spacing="6">MOVING COMPANY</text></svg>`;
 }

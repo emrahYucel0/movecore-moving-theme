@@ -29,9 +29,9 @@ try {
       NUXT_CORE_BASE_URL: coreOrigin,
       NUXT_CORE_REQUEST_TIMEOUT_MS: "1000",
       NUXT_CORE_PRIMARY_NAVIGATION_ID: "primary",
-      NUXT_CORE_SITE_SETTING_NAMESPACE: "site",
-      NUXT_CORE_SITE_SETTING_KEY: "foundation",
-      NUXT_CORE_FOUNDATION_MEDIA_ID: "asset:demo-hero",
+      NUXT_CORE_FOOTER_NAVIGATION_ID: "footer",
+      NUXT_CORE_SITE_SETTING_NAMESPACE: "moving",
+      NUXT_CORE_SITE_SETTING_KEY: "business",
       NUXT_PUBLIC_SITE_URL: PUBLIC_SITE_ORIGIN,
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -90,12 +90,20 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "Illustrated hands carefully passing a packed box",
     `${MEDIA_ORIGIN}/demo-media/hero.svg`,
     `${MEDIA_ORIGIN}/demo-media/section.svg`,
+    `${MEDIA_ORIGIN}/demo-media/logo.svg`,
     "<title>Northline Moving | Moving with a clear plan</title>",
     "Professional packing, transport and placement for carefully planned residential and commercial moves.",
     "index,follow",
     `${PUBLIC_SITE_ORIGIN}/`,
     "Home",
     "About",
+    "+1 202-555-0147",
+    "Message on WhatsApp",
+    "hello@example.test",
+    "100 Example Avenue, Northline, EX 00000",
+    "Monday to Friday",
+    "Instagram",
+    "Footer navigation",
   ]) assert.ok(html.includes(expected), `Missing SSR evidence: ${expected}`);
   assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
   assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5);
@@ -121,9 +129,14 @@ async function verifySiteComposition(runtimeOrigin, coreOrigin) {
   assert.equal(response.status, 200);
   const composition = await response.json();
   assert.equal(composition.navigation.id, "primary");
-  assert.equal(composition.setting.value.name, "Northline Moving");
-  assert.equal(composition.media.assetId, "asset:demo-hero");
+  assert.equal(composition.footerNavigation.id, "footer");
+  assert.equal(composition.business.companyName, "Northline Moving");
+  assert.equal(composition.business.primaryPhone.href, "tel:+12025550147");
+  assert.equal(composition.business.logo.assetId, "asset:demo-logo");
+  assert.equal(composition.business.logo.publicUrl, `${MEDIA_ORIGIN}/demo-media/logo.svg`);
   assert.equal(JSON.stringify(composition).includes(coreOrigin), false);
+  assert.equal(JSON.stringify(composition).includes("namespace"), false);
+  assert.equal(JSON.stringify(composition).includes("logoAssetId"), false);
 }
 
 async function verifyInnerPages(runtimeOrigin, coreOrigin) {
@@ -265,9 +278,9 @@ async function verifySentinelRuntimeLeak() {
       NUXT_CORE_BASE_URL: PRIVATE_SENTINEL,
       NUXT_CORE_REQUEST_TIMEOUT_MS: "500",
       NUXT_CORE_PRIMARY_NAVIGATION_ID: "",
+      NUXT_CORE_FOOTER_NAVIGATION_ID: "",
       NUXT_CORE_SITE_SETTING_NAMESPACE: "",
       NUXT_CORE_SITE_SETTING_KEY: "",
-      NUXT_CORE_FOUNDATION_MEDIA_ID: "",
       NUXT_PUBLIC_SITE_URL: PUBLIC_SITE_ORIGIN,
     },
     stdio: ["ignore", "pipe", "pipe"],

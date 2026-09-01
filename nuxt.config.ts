@@ -9,9 +9,9 @@ export default defineNuxtConfig({
     coreBaseUrl: "",
     coreRequestTimeoutMs: 5_000,
     corePrimaryNavigationId: "",
+    coreFooterNavigationId: "",
     coreSiteSettingNamespace: "",
     coreSiteSettingKey: "",
-    coreFoundationMediaId: "",
     public: {
       siteUrl: "",
     },

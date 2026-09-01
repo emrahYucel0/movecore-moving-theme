@@ -7,132 +7,124 @@ import {
 } from "../server/core/contracts";
 import { CoreClientError } from "../server/core/errors";
 import { corePublicHttpFailure } from "../server/core/http-failure";
-import { loadPublicSiteComposition } from "../server/site-composition/route";
+import {
+  loadPublicSiteComposition,
+  PublicSiteCompositionError,
+} from "../server/site-composition/route";
 
-const navigation = {
-  id: "primary",
-  items: [
-    {
-      id: "about",
-      label: "About",
-      destination: { kind: "internal", path: "/about" },
-      children: [
-        {
-          id: "team",
-          label: "Team",
-          destination: { kind: "internal", path: "/about/team" },
-          children: [],
-        },
-      ],
-    },
-    {
-      id: "external",
-      label: "Example",
-      destination: { kind: "external", url: "https://example.org" },
-      children: [],
-    },
-  ],
-} satisfies PublicNavigationProjection;
+const navigation = navigationFixture("primary");
+const footerNavigation = navigationFixture("footer");
+const setting = settingFixture();
+const logo = mediaFixture();
 
-const setting = {
-  namespace: "site",
-  key: "foundation",
-  value: { arbitrary: [true, 42, { nested: "value" }] },
-} satisfies PublicSettingProjection;
-
-const media = {
-  assetId: "foundation-image",
-  kind: "image",
-  original: {
-    mimeType: "image/webp",
-    format: "webp",
-    byteSize: 1234,
-    publicUrl: "https://cdn.example.test/media/foundation.webp",
-    width: 1200,
-    height: 800,
-    aspectRatio: 1.5,
-  },
-  variants: [],
-} satisfies PublicMediaProjection;
-
-describe("public site composition", () => {
-  it("does not create a Core client when optional selectors are absent", async () => {
+describe("public business shell composition", () => {
+  it("fails closed before creating a client when required selectors are absent or partial", async () => {
     const createClient = vi.fn();
-
-    await expect(loadPublicSiteComposition({}, createClient)).resolves.toEqual({
-      navigation: null,
-      setting: null,
-      media: null,
-    });
+    await expect(loadPublicSiteComposition({}, createClient)).rejects.toMatchObject({ kind: "configuration" });
+    await expect(loadPublicSiteComposition({
+      navigationId: "primary",
+      settingNamespace: "moving",
+    }, createClient)).rejects.toMatchObject({ kind: "configuration" });
     expect(createClient).not.toHaveBeenCalled();
   });
 
-  it("treats a partial setting selector as disabled", async () => {
-    const createClient = vi.fn();
-    await loadPublicSiteComposition({ settingNamespace: "site" }, createClient);
-    expect(createClient).not.toHaveBeenCalled();
-  });
-
-  it("loads configured navigation, setting, and media through their fixed client methods", async () => {
-    const getNavigation = vi.fn(async () => navigation);
+  it("fetches public setting and navigation server-side, then resolves the configured logo", async () => {
+    const getNavigation = vi.fn(async (id: string) => id === "footer" ? footerNavigation : navigation);
     const getSetting = vi.fn(async () => setting);
-    const getMedia = vi.fn(async () => media);
+    const getMedia = vi.fn(async () => logo);
 
-    const result = await loadPublicSiteComposition({
-      navigationId: " primary ",
-      settingNamespace: "site",
-      settingKey: "foundation",
-      mediaId: "foundation-image",
-    }, () => ({ getNavigation, getSetting, getMedia }));
-
-    expect(getNavigation).toHaveBeenCalledWith("primary");
-    expect(getSetting).toHaveBeenCalledWith("site", "foundation");
-    expect(getMedia).toHaveBeenCalledWith("foundation-image");
-    expect(result.navigation?.items[0]?.children[0]?.destination).toEqual({
-      kind: "internal",
-      path: "/about/team",
-    });
-    expect(result.navigation?.items[1]?.destination).toEqual({
-      kind: "external",
-      url: "https://example.org",
-    });
-    expect(result.setting?.value).toEqual(setting.value);
-    expect(result.media?.original).toEqual(media.original);
-  });
-
-  it("keeps real optional-resource 404 results as null", async () => {
-    const result = await loadPublicSiteComposition({
-      navigationId: "missing-nav",
-      settingNamespace: "site",
-      settingKey: "missing",
-      mediaId: "missing-media",
-    }, () => ({
-      getNavigation: async () => null,
-      getSetting: async () => null,
-      getMedia: async () => null,
+    const result = await loadPublicSiteComposition(selectors(), () => ({
+      getNavigation,
+      getSetting,
+      getMedia,
     }));
 
-    expect(result).toEqual({ navigation: null, setting: null, media: null });
+    expect(getNavigation).toHaveBeenNthCalledWith(1, "primary");
+    expect(getNavigation).toHaveBeenNthCalledWith(2, "footer");
+    expect(getSetting).toHaveBeenCalledWith("moving", "business");
+    expect(getMedia).toHaveBeenCalledWith("asset:business-logo");
+    expect(result).toMatchObject({
+      navigation: { id: "primary" },
+      footerNavigation: { id: "footer" },
+      business: {
+        companyName: "Example Moving",
+        primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
+        logo: {
+          assetId: "asset:business-logo",
+          publicUrl: "https://cdn.example.test/logo.svg",
+          alt: "Example Moving logo",
+          width: 640,
+          height: 180,
+        },
+      },
+    });
+    const transport = JSON.stringify(result);
+    expect(transport).not.toMatch(/namespace|storageKey|contentHash|logoAssetId|privateCoreOrigin/u);
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(Object.isFrozen(result.business)).toBe(true);
+  });
+
+  it("uses the typographic logo fallback and reuses primary navigation without extra reads", async () => {
+    const getNavigation = vi.fn(async () => navigation);
+    const getSetting = vi.fn(async () => ({
+      ...setting,
+      value: {
+        companyName: "No Logo Moving",
+        primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
+      },
+    }));
+    const getMedia = vi.fn();
+    const result = await loadPublicSiteComposition({
+      navigationId: "primary",
+      settingNamespace: "moving",
+      settingKey: "business",
+    }, () => ({ getNavigation, getSetting, getMedia }));
+
+    expect(result.business.logo).toBeUndefined();
+    expect(result.footerNavigation).toBe(result.navigation);
+    expect(getNavigation).toHaveBeenCalledTimes(1);
+    expect(getMedia).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["primary navigation missing", async () => null, async () => setting, async () => logo],
+    ["setting missing", async () => navigation, async () => null, async () => logo],
+    ["malformed setting", async () => navigation, async () => ({ ...setting, value: { companyName: "Broken" } }), async () => logo],
+    ["logo missing", async () => navigation, async () => setting, async () => null],
+    ["logo non-image", async () => navigation, async () => setting, async () => ({ ...logo, kind: "document" as const })],
+  ])("fails closed for %s", async (_case, getNavigation, getSetting, getMedia) => {
+    await expect(loadPublicSiteComposition({
+      navigationId: "primary",
+      settingNamespace: "moving",
+      settingKey: "business",
+    }, () => ({ getNavigation, getSetting, getMedia }))).rejects.toBeInstanceOf(PublicSiteCompositionError);
+  });
+
+  it("fails when a configured footer navigation is missing", async () => {
+    await expect(loadPublicSiteComposition(selectors(), () => ({
+      getNavigation: async (id) => id === "footer" ? null : navigation,
+      getSetting: async () => setting,
+      getMedia: async () => logo,
+    }))).rejects.toMatchObject({ kind: "application-data" });
   });
 
   it.each([
     ["navigation", new CoreClientError("unavailable")],
     ["setting", new CoreClientError("network")],
-    ["media", new CoreClientError("protocol")],
-  ] as const)("does not swallow a %s infrastructure failure", async (resource, failure) => {
-    const getNavigation = vi.fn(async () => navigation);
+    ["logo", new CoreClientError("protocol")],
+  ] as const)("does not swallow a %s Core failure", async (resource, failure) => {
+    const getNavigation = vi.fn(async (id: string) => id === "footer" ? footerNavigation : navigation);
     const getSetting = vi.fn(async () => setting);
-    const getMedia = vi.fn(async () => media);
+    const getMedia = vi.fn(async () => logo);
     if (resource === "navigation") getNavigation.mockRejectedValueOnce(failure);
     if (resource === "setting") getSetting.mockRejectedValueOnce(failure);
-    if (resource === "media") getMedia.mockRejectedValueOnce(failure);
+    if (resource === "logo") getMedia.mockRejectedValueOnce(failure);
 
-    await expect(loadPublicSiteComposition({
-      navigationId: "primary",
-      settingNamespace: "site",
-      settingKey: "foundation",
-      mediaId: "foundation-image",
-    }, () => ({ getNavigation, getSetting, getMedia }))).rejects.toBe(failure);
+    await expect(loadPublicSiteComposition(selectors(), () => ({
+      getNavigation,
+      getSetting,
+      getMedia,
+    }))).rejects.toBe(failure);
   });
 
   it.each([
@@ -141,27 +133,70 @@ describe("public site composition", () => {
     [new CoreClientError("unavailable"), 503],
     [new CoreClientError("network"), 503],
     [new CoreClientError("timeout"), 503],
-  ] as const)("maps composition errors to HTTP %i", (error, statusCode) => {
+  ] as const)("keeps existing Core errors mapped to HTTP %i", (error, statusCode) => {
     expect(corePublicHttpFailure(error).statusCode).toBe(statusCode);
   });
 
-  it("strips private media storage fields while preserving its public URL and dimensions", () => {
+  it("strips private media fields before the logo composition receives them", () => {
     const parsed = parsePublicMedia({
-      ...media,
+      ...logo,
       storageKey: "private/key",
-      originalFilename: "secret-name.webp",
       contentHash: "private-hash",
-      original: {
-        ...media.original,
-        storageKey: "private/original",
-        contentHash: "private-object-hash",
-      },
+      original: { ...logo.original, storageKey: "private/original" },
     });
-    const transport = JSON.stringify(parsed);
-
-    expect(parsed.original.publicUrl).toBe(media.original.publicUrl);
-    expect(parsed.original.width).toBe(1200);
-    expect(parsed.original.height).toBe(800);
-    expect(transport).not.toMatch(/storageKey|originalFilename|contentHash/u);
+    expect(parsed.original.publicUrl).toBe(logo.original.publicUrl);
+    expect(JSON.stringify(parsed)).not.toMatch(/storageKey|contentHash/u);
   });
 });
+
+function selectors() {
+  return {
+    navigationId: " primary ",
+    footerNavigationId: "footer",
+    settingNamespace: "moving",
+    settingKey: "business",
+  };
+}
+
+function navigationFixture(id: string): PublicNavigationProjection {
+  return {
+    id,
+    items: [{
+      id: `${id}-about`,
+      label: "About",
+      destination: { kind: "internal", path: "/about" },
+      children: [],
+    }],
+  };
+}
+
+function settingFixture(): PublicSettingProjection {
+  return {
+    namespace: "moving",
+    key: "business",
+    value: {
+      companyName: "Example Moving",
+      logoAssetId: "asset:business-logo",
+      primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
+      openingHours: [],
+      socialLinks: [],
+    },
+  };
+}
+
+function mediaFixture(): PublicMediaProjection {
+  return {
+    assetId: "asset:business-logo",
+    kind: "image",
+    original: {
+      mimeType: "image/svg+xml",
+      format: "svg",
+      byteSize: 1_024,
+      publicUrl: "https://cdn.example.test/logo.svg",
+      width: 640,
+      height: 180,
+      aspectRatio: 640 / 180,
+    },
+    variants: [],
+  };
+}

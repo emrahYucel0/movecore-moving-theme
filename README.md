@@ -97,13 +97,17 @@ The theme requires a compatible Core CMS Public HTTP runtime. Configure the priv
 NUXT_CORE_BASE_URL=http://127.0.0.1:4000
 NUXT_CORE_REQUEST_TIMEOUT_MS=5000
 NUXT_CORE_PRIMARY_NAVIGATION_ID=primary
-NUXT_CORE_SITE_SETTING_NAMESPACE=site
-NUXT_CORE_SITE_SETTING_KEY=foundation
-NUXT_CORE_FOUNDATION_MEDIA_ID=foundation-image
+NUXT_CORE_FOOTER_NAVIGATION_ID=footer
+NUXT_CORE_SITE_SETTING_NAMESPACE=moving
+NUXT_CORE_SITE_SETTING_KEY=business
 NUXT_PUBLIC_SITE_URL=https://public.example.com
 ```
 
-`NUXT_CORE_BASE_URL` and all `NUXT_CORE_*` selectors are private server configuration. Only `NUXT_PUBLIC_SITE_URL` is intentionally browser-visible. The optional generic site foundation setting may expose a short `name` string for the replaceable navigation brand label.
+`NUXT_CORE_BASE_URL` and all `NUXT_CORE_*` selectors are private server configuration. Only `NUXT_PUBLIC_SITE_URL` is intentionally browser-visible. `moving.business` is the required, public Business Identity source for the global shell. When `NUXT_CORE_FOOTER_NAVIGATION_ID` is blank, the footer reuses primary navigation.
+
+Make `application/setting-definitions.json` available to Core and set `CORE_CMS_SETTING_DEFINITIONS_FILE` to its absolute deployment path. Include `moving` in `CORE_CMS_ADMIN_SETTING_NAMESPACES` so authorized Admin users can read and update this namespace. Core loads definitions on startup; a missing definition receives the manifest default, while an existing compatible setting keeps its customer-managed value across restarts. The included default is an example-safe placeholder and must be changed before a real launch.
+
+Core Admin currently edits the Business Identity value as JSON. R2.7B adds the Core-backed setting, strict Moving application validation and public shell consumption; it does not add the final typed, schema-driven Business Settings Admin form.
 
 Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for `site.page`, `moving.home`, `moving.service` and `moving.location`. The inherited `site.page` and `moving.home` semantics remain unchanged.
 
@@ -135,13 +139,19 @@ The nested `/services/...` and `/areas/...` URLs are deterministic demo fixtures
 
 R2.5 keeps all SSR content immediately visible and adds no runtime motion dependency. CSS transitions provide small link affordances; supported browsers progressively animate only structural handoff, process and closing rules with scroll-driven timelines. Unsupported browsers receive the complete static design, JavaScript is not required for motion, and `prefers-reduced-motion: reduce` resolves every animated detail to its final static state. Native document scrolling remains authoritative.
 
-The current public theme has no client-owned interactive state, so production uses Nuxt's supported `features.noScripts` mode. Navigation remains native document navigation, every route is rendered by Nitro, and the development demo retains Nuxt client scripts for normal development diagnostics. Any future client interaction must explicitly revisit this production policy and its performance budget.
+Production continues to use Nuxt's supported `features.noScripts` mode. The responsive menu uses the native HTML popover primitive, including keyboard invocation, Escape dismissal and light dismissal, so product navigation does not depend on hydration. Every route remains rendered by Nitro, while the development demo retains Nuxt client scripts for normal development diagnostics. Any future interaction that native primitives cannot satisfy must explicitly revisit this policy and its performance budget.
 
 Explicit renderer lazy loading was measured and rejected: it produced negligible homepage transfer savings while adding requests and hydration work. The application therefore keeps direct imports behind its fixed, validated `site.page`, `moving.home`, `moving.service` and `moving.location` type dispatch. No CMS value becomes a component name or import path.
 
 Current image rendering supports authored alt text, intrinsic dimensions, eager high-priority hero delivery, and async decoding; below-fold images are lazy and async. Core's public media projection can contain variants, but the frozen application content view models do not currently expose a responsive `srcset`/`sizes` composition, so R2.5 does not invent URLs or expand those contracts.
 
 For release photography, prefer AVIF or WebP where the publication pipeline supports them, generate viewport-appropriate responsive dimensions, target no more than 150 KiB transferred for the mobile hero LCP candidate, preserve intrinsic width and height, and lazy-load below-fold media. Never send an oversized desktop original to a mobile viewport. Responsive variant composition remains a future media-boundary enhancement and must use public Core metadata rather than frontend-generated URLs.
+
+## R2.7B business identity and shell
+
+R2.7B makes the public `moving.business` setting the only source for header and footer identity. The application-owned parser validates company name, required phone, optional WhatsApp and email actions, optional address, bounded opening hours and bounded HTTPS social links before a typed immutable view reaches Vue. An optional logo asset is resolved through Core Public Media and must be an image; the shell uses a deliberate typographic fallback when no logo is configured.
+
+The commercial shell adds a restrained desktop contact hierarchy, a native-popover mobile menu and a complete responsive footer. It adds no form, lead capture, typed Business Settings Admin screen, new content type, client dependency or Core vocabulary.
 
 ## Known current limitations
 
