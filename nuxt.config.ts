@@ -12,6 +12,8 @@ export default defineNuxtConfig({
     coreFooterNavigationId: "",
     coreSiteSettingNamespace: "",
     coreSiteSettingKey: "",
+    movingSubmissionClientIdentitySecret: "",
+    coreSubmissionUpstreamSecret: "",
     public: {
       siteUrl: "",
     },

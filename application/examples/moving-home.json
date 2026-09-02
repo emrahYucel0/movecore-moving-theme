@@ -9,7 +9,7 @@
     },
     "primaryAction": {
       "label": "Plan your move",
-      "href": "/about"
+      "href": "/quote"
     },
     "secondaryAction": {
       "label": "Call the team",
@@ -117,7 +117,7 @@
     "body": "Tell us what is moving, where it is going and when you need it there.",
     "primaryAction": {
       "label": "Plan your move",
-      "href": "/about"
+      "href": "/quote"
     },
     "secondaryAction": {
       "label": "Call the team",

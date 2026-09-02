@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "submissions": [
+    {
+      "type": "moving.quote-request",
+      "enabled": true
+    },
+    {
+      "type": "moving.contact-request",
+      "enabled": true
+    }
+  ]
+}

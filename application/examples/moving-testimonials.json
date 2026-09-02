@@ -33,7 +33,7 @@
     "eyebrow": "Your moving plan",
     "title": "Create the same clarity for your own move.",
     "body": "Begin with the route, access and the help you need from the team.",
-    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "primaryAction": { "label": "Plan your move", "href": "/quote" },
     "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

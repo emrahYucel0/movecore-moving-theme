@@ -48,8 +48,10 @@ describe("R2.1 moving theme foundation", () => {
         "moving.areas",
         "moving.faq",
         "moving.testimonials",
+        "moving.quote",
+        "moving.contact",
       ]);
-    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:article|blog|category|city|district|neighborhood|contact|quote)/u);
+    expect(JSON.stringify(manifest)).not.toMatch(/moving\.(?:article|blog|category|city|district|neighborhood)/u);
   });
 
   it("keeps the offline demo deterministic and moving-specific", async () => {

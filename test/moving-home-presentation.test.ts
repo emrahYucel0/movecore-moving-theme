@@ -41,7 +41,7 @@ describe("R2.3 moving homepage presentation", () => {
       "--theme-signal-strong: #963216",
       "--theme-signal-soft: #e9a46e",
     ]) expect(theme).toContain(token);
-    const movingRules = theme.slice(theme.indexOf(".moving-home"), theme.indexOf(".theme-error"));
+    const movingRules = theme.slice(theme.indexOf(".moving-home"), theme.indexOf(".moving-conversion"));
     expect(movingRules).not.toMatch(/border-radius|linear-gradient|radial-gradient|drop-shadow/u);
   });
 

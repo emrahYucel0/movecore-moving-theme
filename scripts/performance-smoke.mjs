@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { access, mkdtemp, rm } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -18,6 +19,8 @@ const INNER_ROUTES = [
   "/areas/riverside",
   "/faq",
   "/testimonials",
+  "/quote",
+  "/contact",
 ];
 const RUNS = readPositiveInteger("R25_PERF_RUNS", 5);
 const SETTLE_MS = readPositiveInteger("R25_PERF_SETTLE_MS", 1_500);
@@ -111,6 +114,8 @@ let chrome;
 let chromeProfileDirectory;
 let runtimeOutput = "";
 let chromeOutput = "";
+const coreSubmissionUpstreamSecret = randomBytes(32).toString("base64url");
+const movingSubmissionClientIdentitySecret = randomBytes(32).toString("base64url");
 
 try {
   await access(path.join(rootDirectory, ".output", "server", "index.mjs"));
@@ -124,7 +129,7 @@ try {
   const runtimeOrigin = `http://${HOST}:${runtimePort}`;
 
   mockMedia = createMockMediaServer();
-  mockCore = createMockCoreServer({ mediaOrigin });
+  mockCore = createMockCoreServer({ mediaOrigin, upstreamSecret: coreSubmissionUpstreamSecret });
   await listen(mockMedia, mediaPort);
   await listen(mockCore, corePort);
 
@@ -141,6 +146,8 @@ try {
       NUXT_CORE_FOOTER_NAVIGATION_ID: "footer",
       NUXT_CORE_SITE_SETTING_NAMESPACE: "moving",
       NUXT_CORE_SITE_SETTING_KEY: "business",
+      NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET: movingSubmissionClientIdentitySecret,
+      NUXT_CORE_SUBMISSION_UPSTREAM_SECRET: coreSubmissionUpstreamSecret,
       NUXT_PUBLIC_SITE_URL: PUBLIC_SITE_ORIGIN,
     },
     stdio: ["ignore", "pipe", "pipe"],

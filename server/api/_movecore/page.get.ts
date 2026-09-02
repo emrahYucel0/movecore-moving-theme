@@ -3,6 +3,7 @@ import {
   publicPageHttpFailure,
   resolvePublicPageRoute,
 } from "../../public-page/route";
+import { randomBytes } from "node:crypto";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -15,7 +16,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    return await resolvePublicPageRoute(query.path, useCorePublicClient());
+    return await resolvePublicPageRoute(
+      query.path,
+      useCorePublicClient(),
+      randomBytes(32).toString("base64url"),
+    );
   } catch (error: unknown) {
     const failure = publicPageHttpFailure(error);
     throw createError({

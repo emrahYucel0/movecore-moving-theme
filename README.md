@@ -26,6 +26,13 @@ Demo routes:
 - `/services/office-relocation`: second `moving.service` canonical route
 - `/areas/north-district`: typed `moving.location` SSR detail page
 - `/areas/riverside`: `moving.location` without optional hero media
+- `/services`: typed `moving.services` collection page
+- `/areas`: typed `moving.areas` collection page
+- `/faq`: typed `moving.faq` collection page
+- `/testimonials`: typed `moving.testimonials` collection page
+- `/quote`: typed `moving.quote` page with the native quote-request form
+- `/contact`: typed `moving.contact` page with Business Identity and the native contact form
+- `/privacy`: replaceable reference privacy notice using `site.page`
 - `/old`: permanent `301` redirect to `/about`
 - `/temporary`: temporary `302` redirect to `/about`
 - `/missing`: safe `404` presentation
@@ -50,11 +57,17 @@ MoveCore Moving & Logistics Theme R2.4
   -> bounded service and location contracts with SSR inner-page templates
 MoveCore Moving & Logistics Theme R2.5
   -> progressive motion and a deterministic production performance gate
+MoveCore Moving & Logistics Theme R2.7B
+  -> Core-backed business identity and commercial site shell
+MoveCore Moving & Logistics Theme R2.8
+  -> bounded commercial collections and their editor profiles
+MoveCore Moving & Logistics Theme R2.9B
+  -> server-authenticated quote and contact conversion into Core Submissions
 ```
 
-The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads. There is no generic proxy, Core package import, direct database access, Ege dependency, Admin API forwarding or mutation path.
+The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads and exposes only two explicit same-origin Moving submission endpoints. There is no generic proxy, Core package import, direct database access, Ege dependency or Admin API forwarding. Browser form data is validated by the Moving application before Nuxt signs a private `POST /v1/submissions` request.
 
-Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for `site.page`, `moving.home`, `moving.service` and `moving.location` interpretation and presentation.
+Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for interpreting and presenting the ten supported types: `site.page`, `moving.home`, `moving.service`, `moving.location`, `moving.services`, `moving.areas`, `moving.faq`, `moving.testimonials`, `moving.quote` and `moving.contact`.
 
 ## Theme visual direction
 
@@ -87,7 +100,7 @@ npm run smoke:production
 npm run perf:production
 ```
 
-`npm run perf:production` uses the installed Chrome/Chromium executable, the real Nitro production build, and the deterministic local Core/media fixtures. Its constrained mobile profile is 390×844 at DPR 2, 4× CPU throttling, 150 ms latency, 1.6 Mbps download and 750 Kbps upload. The homepage receives one warm-up plus five measured runs; representative service and location routes receive a browser smoke measurement. This is a repeatable local regression gate, not a claim about hosted Lighthouse or PageSpeed.
+`npm run perf:production` uses the installed Chrome/Chromium executable, the real Nitro production build, and the deterministic local Core/media fixtures. Its constrained mobile profile is 390 by 844 at DPR 2, 4x CPU throttling, 150 ms latency, 1.6 Mbps download and 750 Kbps upload. The homepage receives one warm-up plus five measured runs; representative collection, service, location, quote and contact routes receive a browser smoke measurement. This is a repeatable local regression gate, not a claim about hosted Lighthouse or PageSpeed.
 
 ## Production connection
 
@@ -100,16 +113,20 @@ NUXT_CORE_PRIMARY_NAVIGATION_ID=primary
 NUXT_CORE_FOOTER_NAVIGATION_ID=footer
 NUXT_CORE_SITE_SETTING_NAMESPACE=moving
 NUXT_CORE_SITE_SETTING_KEY=business
+NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET=<base64url-encoded-32-byte-secret>
+NUXT_CORE_SUBMISSION_UPSTREAM_SECRET=<different-base64url-encoded-32-byte-secret>
 NUXT_PUBLIC_SITE_URL=https://public.example.com
 ```
 
-`NUXT_CORE_BASE_URL` and all `NUXT_CORE_*` selectors are private server configuration. Only `NUXT_PUBLIC_SITE_URL` is intentionally browser-visible. `moving.business` is the required, public Business Identity source for the global shell. When `NUXT_CORE_FOOTER_NAVIGATION_ID` is blank, the footer reuses primary navigation.
+`NUXT_CORE_BASE_URL`, the `NUXT_CORE_*` selectors and both submission secrets are private server configuration. Neither secret belongs under Nuxt `runtimeConfig.public`; only `NUXT_PUBLIC_SITE_URL` is intentionally browser-visible. The Core-side `CORE_CMS_SUBMISSION_UPSTREAM_SECRET` must decode to the same bytes as `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET`. The identity secret must be independent and is used only to authenticate a first-party anonymous abuse-isolation cookie and derive the pseudonym sent to Core. `moving.business` is the required, public Business Identity source for the global shell. When `NUXT_CORE_FOOTER_NAVIGATION_ID` is blank, the footer reuses primary navigation.
 
 Make `application/setting-definitions.json` available to Core and set `CORE_CMS_SETTING_DEFINITIONS_FILE` to its absolute deployment path. Include `moving` in `CORE_CMS_ADMIN_SETTING_NAMESPACES` so authorized Admin users can read and update this namespace. Core loads definitions on startup; a missing definition receives the manifest default, while an existing compatible setting keeps its customer-managed value across restarts. The included default is an example-safe placeholder and must be changed before a real launch.
 
 Core Admin currently edits the Business Identity value as JSON. R2.7B adds the Core-backed setting, strict Moving application validation and public shell consumption; it does not add the final typed, schema-driven Business Settings Admin form.
 
-Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for `site.page`, `moving.home`, `moving.service` and `moving.location`. The inherited `site.page` and `moving.home` semantics remain unchanged.
+Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for all ten supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code.
+
+Make `application/submission-definitions.json` available to Core and configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` with its absolute deployment path. Configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. Core learns only that `moving.quote-request` and `moving.contact-request` are enabled; their field contracts remain in this application. Core Admin shows accepted requests in its generic Submission Inbox. A typed Moving lead view is intentionally deferred.
 
 Files under `application/examples/` are static development/reference fixtures. They are not database seeds and are never written to Core automatically.
 
@@ -151,7 +168,13 @@ For release photography, prefer AVIF or WebP where the publication pipeline supp
 
 R2.7B makes the public `moving.business` setting the only source for header and footer identity. The application-owned parser validates company name, required phone, optional WhatsApp and email actions, optional address, bounded opening hours and bounded HTTPS social links before a typed immutable view reaches Vue. An optional logo asset is resolved through Core Public Media and must be an image; the shell uses a deliberate typographic fallback when no logo is configured.
 
-The commercial shell adds a restrained desktop contact hierarchy, a native-popover mobile menu and a complete responsive footer. It adds no form, lead capture, typed Business Settings Admin screen, new content type, client dependency or Core vocabulary.
+The commercial shell adds a restrained desktop contact hierarchy, a native-popover mobile menu and a complete responsive footer. R2.9B builds on that shell without changing the Business Identity ownership boundary or adding Core vocabulary.
+
+## R2.9B quote and contact conversion
+
+R2.9B adds explicit `moving.quote` and `moving.contact` page types around two application-owned, SSR-native forms. The same-origin endpoints are `POST /api/moving/quote` and `POST /api/moving/contact`. They accept a bounded URL-encoded body, enforce configured Origin and Host, validate strict typed Moving payloads, issue authenticated HttpOnly anonymous identity cookies, derive privacy-preserving Core client pseudonyms and independently sign the exact JSON bytes sent to Core. Every rendered form carries a cryptographically random request token that becomes the Core idempotency key. Success and safe failure states use POST/Redirect/GET and work without client JavaScript.
+
+Northline demo submission data is local-only and deterministic. The demo privacy page is reference content, not legal advice, and must be replaced for a real deployment. R2.9B does not send email, call a CRM, calculate prices, schedule moves or claim that the abuse-isolation identity eliminates spam.
 
 ## Known current limitations
 
@@ -160,6 +183,7 @@ The commercial shell adds a restrained desktop contact hierarchy, a native-popov
 - Related-service and nearby-area links are textual href references, not relational entities.
 - `moving.location` is a bounded content record, not a geo database or bulk SEO system.
 - Media publication and content publication remain separate Core lifecycles rather than one atomic application transaction.
-- There is still no quote form, service taxonomy, article model, location hierarchy or workflow persistence.
+- Core Admin's Submission Inbox remains generic; a Moving-friendly typed lead presentation is a later product milestone.
+- There is no email/CRM notification, CAPTCHA, pricing calculator, article model, service taxonomy or location hierarchy.
 - Demo imagery is deterministic illustration, not final commercial photography.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.

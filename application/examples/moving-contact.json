@@ -1,0 +1,13 @@
+{
+  "eyebrow": "Contact Northline",
+  "title": "Start a straightforward conversation with the moving team.",
+  "intro": "Use the direct details below or send a short message. For a move-specific estimate, the quote request captures the most useful planning information.",
+  "directContact": {
+    "title": "Speak with the team directly.",
+    "intro": "Choose the contact method that works for you during our listed opening hours."
+  },
+  "formIntroduction": {
+    "title": "Send a general enquiry.",
+    "intro": "Tell us what you need help with and include either a telephone number or email address for the reply."
+  }
+}

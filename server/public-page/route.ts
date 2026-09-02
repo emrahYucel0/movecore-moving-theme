@@ -9,6 +9,8 @@ import {
   composeMovingService,
   composeMovingServices,
   composeMovingTestimonials,
+  composeMovingContact,
+  composeMovingQuote,
   composeSitePage,
   PublicApplicationContentError,
 } from "./application-content";
@@ -23,6 +25,7 @@ export interface PublicPageHttpFailure {
 export async function resolvePublicPageRoute(
   path: string,
   resolver: PublicPageResolver,
+  submissionRequestToken?: string,
 ): Promise<PageRouteResult> {
   const result = await resolver.resolvePage(path);
   if (result.kind === "page") {
@@ -103,6 +106,30 @@ export async function resolvePublicPageRoute(
           type: "moving.testimonials",
           seo: result.page.seo,
           content: await composeMovingTestimonials(result.page, resolver),
+        },
+      };
+    }
+    if (result.page.content.type === "moving.quote") {
+      if (submissionRequestToken === undefined) throw new PublicApplicationContentError();
+      return {
+        kind: "page",
+        page: {
+          type: "moving.quote",
+          seo: result.page.seo,
+          content: composeMovingQuote(result.page),
+          requestToken: submissionRequestToken,
+        },
+      };
+    }
+    if (result.page.content.type === "moving.contact") {
+      if (submissionRequestToken === undefined) throw new PublicApplicationContentError();
+      return {
+        kind: "page",
+        page: {
+          type: "moving.contact",
+          seo: result.page.seo,
+          content: composeMovingContact(result.page),
+          requestToken: submissionRequestToken,
         },
       };
     }

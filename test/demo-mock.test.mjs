@@ -47,7 +47,7 @@ describe("shared demo Core", () => {
     expect(root.page.content.payload).toMatchObject({
       hero: {
         title: "Moving handled with care, from door to door.",
-        primaryAction: { href: "/about" },
+        primaryAction: { href: "/quote" },
         secondaryAction: { href: "tel:+12025550147" },
       },
       assurance: { title: "Care is part of the process." },
@@ -77,11 +77,13 @@ describe("shared demo Core", () => {
     ["/areas/riverside", "moving.location", "Plan a Riverside move around access and handoff."],
     ["/faq", "moving.faq", "Clear answers before moving day."],
     ["/testimonials", "moving.testimonials", "What a well-planned move feels like."],
+    ["/quote", "moving.quote", "Tell us what needs to move and where it needs to go."],
+    ["/contact", "moving.contact", "Start a straightforward conversation with the moving team."],
   ])("serves %s as %s", async (path, type, title) => {
     const result = await client.resolvePage(path);
     expect(result.kind).toBe("page");
     expect(result.page.content.type).toBe(type);
-    expect(result.page.content.payload.hero.title).toBe(title);
+    expect(result.page.content.payload.hero?.title ?? result.page.content.payload.title).toBe(title);
     expect(result.page.seo.canonicalPath).toBe(path);
     expect(result.page.seo.title).not.toBe(title);
   });
@@ -95,6 +97,8 @@ describe("shared demo Core", () => {
         { label: "Services", destination: { kind: "internal", path: "/services" } },
         { label: "Areas", destination: { kind: "internal", path: "/areas" } },
         { label: "FAQ", destination: { kind: "internal", path: "/faq" } },
+        { label: "Quote", destination: { kind: "internal", path: "/quote" } },
+        { label: "Contact", destination: { kind: "internal", path: "/contact" } },
       ],
     });
     const footer = await client.getNavigation("footer");
@@ -157,6 +161,9 @@ describe("shared demo Core", () => {
         { path: "/areas/riverside" },
         { path: "/faq" },
         { path: "/testimonials" },
+        { path: "/quote" },
+        { path: "/contact" },
+        { path: "/privacy" },
       ],
     });
   });
@@ -165,6 +172,7 @@ describe("shared demo Core", () => {
     const pages = await Promise.all([
       "/", "/services", "/services/home-moving", "/services/office-relocation",
       "/areas", "/areas/north-district", "/areas/riverside", "/faq", "/testimonials",
+      "/quote", "/contact", "/privacy",
     ].map((path) => client.resolvePage(path)));
     const hrefs = pages.flatMap((result) => result.kind === "page" ? internalHrefs(result.page.content.payload) : []);
     const unique = [...new Set(hrefs)];

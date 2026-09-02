@@ -34,7 +34,7 @@
     "eyebrow": "Still deciding",
     "title": "Talk through the details that are specific to your move.",
     "body": "A short planning conversation can clarify scope, access and timing.",
-    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "primaryAction": { "label": "Plan your move", "href": "/quote" },
     "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

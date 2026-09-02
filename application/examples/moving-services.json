@@ -46,7 +46,7 @@
     "eyebrow": "Plan the work",
     "title": "Start with the details that shape your move.",
     "body": "Share the addresses, timing and the level of help you expect.",
-    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "primaryAction": { "label": "Plan your move", "href": "/quote" },
     "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

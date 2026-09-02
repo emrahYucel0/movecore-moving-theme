@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createMockCoreServer, createMockMediaServer } from "./mock-core.mjs";
@@ -10,7 +11,12 @@ const MEDIA_PORT = 4011;
 const NUXT_PORT = 3000;
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nuxtEntry = path.join(rootDirectory, "node_modules", "nuxt", "bin", "nuxt.mjs");
-const mockCore = createMockCoreServer({ mediaOrigin: `http://${HOST}:${MEDIA_PORT}` });
+const coreSubmissionUpstreamSecret = randomBytes(32).toString("base64url");
+const movingSubmissionClientIdentitySecret = randomBytes(32).toString("base64url");
+const mockCore = createMockCoreServer({
+  mediaOrigin: `http://${HOST}:${MEDIA_PORT}`,
+  upstreamSecret: coreSubmissionUpstreamSecret,
+});
 const mockMedia = createMockMediaServer();
 let nuxt;
 let stopping = false;
@@ -39,6 +45,8 @@ try {
       NUXT_CORE_FOOTER_NAVIGATION_ID: "footer",
       NUXT_CORE_SITE_SETTING_NAMESPACE: "moving",
       NUXT_CORE_SITE_SETTING_KEY: "business",
+      NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET: movingSubmissionClientIdentitySecret,
+      NUXT_CORE_SUBMISSION_UPSTREAM_SECRET: coreSubmissionUpstreamSecret,
       NUXT_PUBLIC_SITE_URL: `http://${HOST}:${NUXT_PORT}`,
     },
     stdio: "inherit",

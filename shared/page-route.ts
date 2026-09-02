@@ -7,6 +7,7 @@ import type { MovingServicesViewModel } from "./content/moving-services";
 import type { MovingAreasViewModel } from "./content/moving-areas";
 import type { MovingFaqViewModel } from "./content/moving-faq";
 import type { MovingTestimonialsViewModel } from "./content/moving-testimonials";
+import type { MovingContactPage, MovingQuotePage } from "./content/moving-conversion";
 
 export type PublicApplicationPage =
   | {
@@ -48,6 +49,18 @@ export type PublicApplicationPage =
     readonly type: "moving.testimonials";
     readonly seo: PublicSeoProjection;
     readonly content: MovingTestimonialsViewModel;
+  }
+  | {
+    readonly type: "moving.quote";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingQuotePage;
+    readonly requestToken: string;
+  }
+  | {
+    readonly type: "moving.contact";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingContactPage;
+    readonly requestToken: string;
   };
 
 export type PageRouteResult =

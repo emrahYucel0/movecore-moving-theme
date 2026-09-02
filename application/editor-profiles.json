@@ -1151,6 +1151,66 @@
           ]
         }
       ]
+    },
+    {
+      "id": "moving.quote",
+      "version": 1,
+      "contentType": "moving.quote",
+      "label": "Quote Request Page",
+      "description": "Page messaging and planning reassurance around the application quote request form.",
+      "fields": [
+        { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+        { "key": "title", "label": "Page title", "kind": "text", "required": true, "maxLength": 180 },
+        { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+        {
+          "key": "reassurance", "label": "Customer reassurance", "kind": "group", "required": true,
+          "description": "Explain what happens after a customer sends a request.",
+          "fields": [
+            { "key": "title", "label": "Heading", "kind": "text", "required": true, "maxLength": 160 },
+            {
+              "key": "points", "label": "Reassurance points", "kind": "repeater", "required": true,
+              "description": "Add 2 to 5 short, accurate expectations.",
+              "fields": [
+                { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "planning", "label": "Optional planning guidance", "kind": "group", "required": false,
+          "fields": [
+            { "key": "title", "label": "Heading", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "body", "label": "Guidance", "kind": "textarea", "required": true, "maxLength": 1200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving.contact",
+      "version": 1,
+      "contentType": "moving.contact",
+      "label": "Contact Page",
+      "description": "Page messaging around business contact details and the general enquiry form.",
+      "fields": [
+        { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
+        { "key": "title", "label": "Page title", "kind": "text", "required": true, "maxLength": 180 },
+        { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 800 },
+        {
+          "key": "directContact", "label": "Direct contact introduction", "kind": "group", "required": true,
+          "fields": [
+            { "key": "title", "label": "Heading", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 1200 }
+          ]
+        },
+        {
+          "key": "formIntroduction", "label": "Enquiry introduction", "kind": "group", "required": true,
+          "description": "Introduce the general enquiry area; the application owns its fields and validation.",
+          "fields": [
+            { "key": "title", "label": "Heading", "kind": "text", "required": true, "maxLength": 160 },
+            { "key": "intro", "label": "Introduction", "kind": "textarea", "required": true, "maxLength": 1200 }
+          ]
+        }
+      ]
     }
   ]
 }

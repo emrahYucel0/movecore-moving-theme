@@ -49,7 +49,7 @@
     "eyebrow": "Plan the handoff",
     "title": "Connect the addresses to one clear sequence.",
     "body": "Start with access, timing and the rooms involved at each end of the move.",
-    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "primaryAction": { "label": "Plan your move", "href": "/quote" },
     "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

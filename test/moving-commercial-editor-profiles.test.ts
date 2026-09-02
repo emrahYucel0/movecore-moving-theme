@@ -8,7 +8,7 @@ import { MOVING_TESTIMONIALS_LIMITS } from "../shared/content/moving-testimonial
 describe("R2.8 commercial Editor Profiles", () => {
   it("defines all four application-owned collection profiles within Core limits", async () => {
     const profiles = await loadProfiles();
-    expect(profiles).toHaveLength(8);
+    expect(profiles).toHaveLength(10);
     for (const [id, keys, total, depth] of [
       ["moving.services", ["hero", "portfolio", "context", "finalAction"], 32, 4],
       ["moving.areas", ["hero", "coverage", "planning", "finalAction"], 29, 3],

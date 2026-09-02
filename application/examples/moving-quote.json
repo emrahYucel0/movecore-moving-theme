@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Plan your move",
+  "title": "Tell us what needs to move and where it needs to go.",
+  "intro": "Share the practical details your moving team needs for a useful first conversation. This is a quote request, not an instant price calculation.",
+  "reassurance": {
+    "title": "A useful request starts with the handoff.",
+    "points": [
+      { "text": "We use the addresses and move type to understand access and scope." },
+      { "text": "A member of the Northline team will follow up using the contact details you provide." },
+      { "text": "No booking or final price is created by sending this form." }
+    ]
+  },
+  "planning": {
+    "title": "Details can stay practical.",
+    "body": "If dates or property size are not settled yet, leave them blank and add anything useful in the notes. The team can resolve the remaining questions with you."
+  }
+}

@@ -58,6 +58,14 @@ import type {
   MovingCollectionHeroViewModel,
 } from "../../shared/content/moving-commercial-common";
 import type { ContentImage, ContentMediaReference } from "../../shared/content/media";
+import {
+  MovingContactContractError,
+  MovingQuoteContractError,
+  parseMovingContactPayload,
+  parseMovingQuotePayload,
+  type MovingContactPage,
+  type MovingQuotePage,
+} from "../../shared/content/moving-conversion";
 
 export class PublicApplicationContentError extends Error {
   public constructor() {
@@ -309,6 +317,24 @@ export async function composeMovingTestimonials(
     items: content.items,
     finalAction: content.finalAction,
   });
+}
+
+export function composeMovingQuote(page: PublicPageProjection): MovingQuotePage {
+  if (page.content.type !== "moving.quote") throw applicationContentError();
+  return parseApplicationPayload(
+    page.content.payload,
+    parseMovingQuotePayload,
+    MovingQuoteContractError,
+  );
+}
+
+export function composeMovingContact(page: PublicPageProjection): MovingContactPage {
+  if (page.content.type !== "moving.contact") throw applicationContentError();
+  return parseApplicationPayload(
+    page.content.payload,
+    parseMovingContactPayload,
+    MovingContactContractError,
+  );
 }
 
 async function resolveReferencedMedia(

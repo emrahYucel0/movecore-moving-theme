@@ -34,7 +34,7 @@
     "eyebrow": "Your route",
     "title": "Tell us where the move starts and finishes.",
     "body": "We can shape the plan around both properties and the access between them.",
-    "primaryAction": { "label": "Plan your move", "href": "/about" },
+    "primaryAction": { "label": "Plan your move", "href": "/quote" },
     "secondaryAction": { "label": "Call the team", "href": "tel:+12025550147" }
   }
 }

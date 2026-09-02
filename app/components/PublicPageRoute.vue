@@ -7,6 +7,8 @@ import MovingServicesRenderer from "./content/MovingServicesRenderer.vue";
 import MovingAreasRenderer from "./content/MovingAreasRenderer.vue";
 import MovingFaqRenderer from "./content/MovingFaqRenderer.vue";
 import MovingTestimonialsRenderer from "./content/MovingTestimonialsRenderer.vue";
+import MovingContactRenderer from "./content/MovingContactRenderer.vue";
+import MovingQuoteRenderer from "./content/MovingQuoteRenderer.vue";
 
 const page = await useCorePublicPage();
 if (page !== undefined) usePublicPageSeo(page);
@@ -21,4 +23,14 @@ if (page !== undefined) usePublicPageSeo(page);
   <MovingAreasRenderer v-else-if="page?.type === 'moving.areas'" :page="page.content" />
   <MovingFaqRenderer v-else-if="page?.type === 'moving.faq'" :page="page.content" />
   <MovingTestimonialsRenderer v-else-if="page?.type === 'moving.testimonials'" :page="page.content" />
+  <MovingQuoteRenderer
+    v-else-if="page?.type === 'moving.quote'"
+    :page="page.content"
+    :request-token="page.requestToken"
+  />
+  <MovingContactRenderer
+    v-else-if="page?.type === 'moving.contact'"
+    :page="page.content"
+    :request-token="page.requestToken"
+  />
 </template>

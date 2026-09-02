@@ -11,7 +11,7 @@ describe("application Editor Profile manifest", () => {
     expect(Object.keys(manifest).sort()).toEqual(["profiles", "version"]);
     expect(manifest["version"]).toBe(1);
     const profiles = array(manifest["profiles"]);
-    expect(profiles).toHaveLength(8);
+    expect(profiles).toHaveLength(10);
 
     const profile = profileById(profiles, "site.page");
     expect(profile).toMatchObject({ id: "site.page", version: 1, contentType: "site.page" });
@@ -43,6 +43,7 @@ describe("application Editor Profile manifest", () => {
     expect(profiles.map((value) => record(value)["id"])).toEqual([
       "site.page", "moving.home", "moving.service", "moving.location",
       "moving.services", "moving.areas", "moving.faq", "moving.testimonials",
+      "moving.quote", "moving.contact",
     ]);
     const profile = profileById(profiles, "moving.home");
     expect(profile).toMatchObject({ id: "moving.home", version: 2, contentType: "moving.home" });
@@ -223,7 +224,7 @@ describe("application Editor Profile manifest", () => {
       new URL("../application/examples/moving-home.json", import.meta.url),
       "utf8",
     ));
-    expect(parseMovingHomePayload(payload).hero.primaryAction.href).toBe("/about");
+    expect(parseMovingHomePayload(payload).hero.primaryAction.href).toBe("/quote");
   });
 
   it.each([

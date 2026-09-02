@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createMockCoreServer } from "./mock-core.mjs";
@@ -10,7 +11,18 @@ const PRIVATE_SENTINEL = "http://core-r25-private.invalid:9876";
 const PUBLIC_SITE_ORIGIN = "https://public.example.test";
 const MEDIA_ORIGIN = "https://cdn.example.test";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const mockCore = createMockCoreServer({ mediaOrigin: MEDIA_ORIGIN });
+const coreSubmissionUpstreamSecret = randomBytes(32).toString("base64url");
+const movingSubmissionClientIdentitySecret = randomBytes(32).toString("base64url");
+const mockSubmissions = [];
+const mockSubmissionEvents = [];
+const submissionControl = { mode: undefined };
+const mockCore = createMockCoreServer({
+  mediaOrigin: MEDIA_ORIGIN,
+  upstreamSecret: coreSubmissionUpstreamSecret,
+  submissions: mockSubmissions,
+  submissionEvents: mockSubmissionEvents,
+  submissionControl,
+});
 let runtime;
 let runtimeOutput = "";
 
@@ -32,7 +44,9 @@ try {
       NUXT_CORE_FOOTER_NAVIGATION_ID: "footer",
       NUXT_CORE_SITE_SETTING_NAMESPACE: "moving",
       NUXT_CORE_SITE_SETTING_KEY: "business",
-      NUXT_PUBLIC_SITE_URL: PUBLIC_SITE_ORIGIN,
+      NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET: movingSubmissionClientIdentitySecret,
+      NUXT_CORE_SUBMISSION_UPSTREAM_SECRET: coreSubmissionUpstreamSecret,
+      NUXT_PUBLIC_SITE_URL: runtimeOrigin,
     },
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
@@ -45,6 +59,8 @@ try {
   await waitForRuntime(runtimeOrigin);
   await verifyRenderedPage(runtimeOrigin, coreOrigin);
   await verifyInnerPages(runtimeOrigin, coreOrigin);
+  await verifyConversionPages(runtimeOrigin, coreOrigin);
+  await verifySubmissionBoundary(runtimeOrigin);
   await verifySiteComposition(runtimeOrigin, coreOrigin);
   await verifyApplicationFailures(runtimeOrigin, coreOrigin);
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
@@ -96,7 +112,7 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "<title>Northline Moving | Moving with a clear plan</title>",
     "Professional packing, transport and placement for carefully planned residential and commercial moves.",
     "index,follow",
-    `${PUBLIC_SITE_ORIGIN}/`,
+    `${runtimeOrigin}/`,
     "Home",
     "About",
     "+1 202-555-0147",
@@ -255,6 +271,199 @@ async function verifyInnerPages(runtimeOrigin, coreOrigin) {
   }
 }
 
+async function verifyConversionPages(runtimeOrigin, coreOrigin) {
+  for (const [pathname, evidence] of [
+    ["/quote", [
+      "Tell us what needs to move and where it needs to go.",
+      "Share the useful details.",
+      'action="/api/moving/quote"',
+      'name="requestToken"',
+      'name="privacyAcknowledged"',
+      "This is a quote request, not an instant price calculation.",
+    ]],
+    ["/contact", [
+      "Start a straightforward conversation with the moving team.",
+      "Speak with the team directly.",
+      'action="/api/moving/contact"',
+      "+1 202-555-0147",
+      "hello@example.test",
+      "Provide at least one contact method",
+    ]],
+    ["/privacy", [
+      "Privacy notice for this demonstration.",
+      "must be reviewed and replaced",
+      "This reference content is not legal advice",
+    ]],
+  ]) {
+    const response = await fetch(`${runtimeOrigin}${pathname}`, { redirect: "manual" });
+    assert.equal(response.status, 200, pathname);
+    const html = await response.text();
+    for (const expected of evidence) assert.ok(html.includes(expected), `${pathname}: ${expected}`);
+    assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1, pathname);
+    for (const forbidden of [coreOrigin, "Core-Submission-Signature", "revisionId", "\"payload\":", "<script"]) {
+      assert.equal(html.includes(forbidden), false, `${pathname} leaked ${forbidden}`);
+    }
+  }
+}
+
+async function verifySubmissionBoundary(runtimeOrigin) {
+  const quotePage = await loadForm(runtimeOrigin, "/quote");
+  for (const endpoint of ["/api/moving/quote", "/api/moving/contact"]) {
+    for (const method of ["GET", "PUT"]) {
+      const wrongMethod = await fetch(`${runtimeOrigin}${endpoint}`, {
+        method,
+        redirect: "manual",
+      });
+      assert.equal(wrongMethod.status, 405);
+      assert.equal(wrongMethod.headers.get("allow"), "POST");
+    }
+  }
+  const quoteBody = new URLSearchParams({
+    requestToken: quotePage.token,
+    name: "Jamie Rivera",
+    phone: "+1 (202) 555-0199",
+    email: "jamie@example.test",
+    origin: "12 Example Street",
+    destination: "84 Sample Avenue",
+    preferredDate: "2026-10-12",
+    moveType: "home",
+    propertySize: "two-three-bedrooms",
+    message: "A lift is available at the destination.",
+    privacyAcknowledged: "true",
+  });
+  quoteBody.append("requestedServices", "packing");
+  quoteBody.append("requestedServices", "special-handling");
+  const quoteResponse = await postForm(runtimeOrigin, "/api/moving/quote", quotePage.cookie, quoteBody, {
+    "core-submission-client": "browser-spoof",
+    "core-submission-timestamp": "1",
+    "core-submission-signature": "v1=browser-spoof",
+  });
+  assert.equal(quoteResponse.status, 303);
+  assert.equal(quoteResponse.headers.get("location"), "/quote?submitted=1");
+  assert.equal(mockSubmissions.length, 1);
+  assert.deepEqual(mockSubmissions[0].payload, {
+    schemaVersion: 1,
+    customer: { name: "Jamie Rivera", phone: "+1 (202) 555-0199", email: "jamie@example.test" },
+    move: {
+      origin: "12 Example Street", destination: "84 Sample Avenue", preferredDate: "2026-10-12",
+      moveType: "home", propertySize: "two-three-bedrooms",
+    },
+    requestedServices: ["packing", "special-handling"],
+    message: "A lift is available at the destination.",
+    privacyAcknowledged: true,
+  });
+  assert.match(mockSubmissions[0].client, /^[A-Za-z0-9_-]{43}$/u);
+  assert.equal(mockSubmissions[0].client.includes("Jamie"), false);
+
+  const replay = await postForm(runtimeOrigin, "/api/moving/quote", quotePage.cookie, quoteBody);
+  assert.equal(replay.status, 303);
+  assert.equal(mockSubmissions.length, 1);
+  assert.deepEqual(mockSubmissionEvents.slice(0, 2), [
+    { type: "moving.quote-request", replayed: false },
+    { type: "moving.quote-request", replayed: true },
+  ]);
+
+  const success = await fetch(`${runtimeOrigin}/quote?submitted=1`, {
+    headers: { cookie: quotePage.cookie },
+  });
+  const successHtml = await success.text();
+  assert.ok(successHtml.includes("Your moving details have been sent."));
+  assert.equal(successHtml.includes('action="/api/moving/quote"'), false);
+
+  const contactPage = await loadForm(runtimeOrigin, "/contact");
+  const contactBody = new URLSearchParams({
+    requestToken: contactPage.token,
+    name: "Morgan Lee",
+    email: "morgan@example.test",
+    subject: "Access question",
+    message: "Can your team work with a timed loading bay?",
+    privacyAcknowledged: "true",
+  });
+  const contactResponse = await postForm(
+    runtimeOrigin, "/api/moving/contact", contactPage.cookie, contactBody,
+  );
+  assert.equal(contactResponse.status, 303);
+  assert.equal(contactResponse.headers.get("location"), "/contact?submitted=1");
+  assert.equal(mockSubmissions.length, 2);
+  assert.equal(mockSubmissions[1].type, "moving.contact-request");
+  assert.notEqual(mockSubmissions[0].client, mockSubmissions[1].client);
+
+  const invalidPage = await loadForm(runtimeOrigin, "/contact", quotePage.cookie);
+  const invalid = await postForm(runtimeOrigin, "/api/moving/contact", quotePage.cookie, new URLSearchParams({
+    requestToken: invalidPage.token,
+    name: "No Contact",
+    message: "No reply method",
+    privacyAcknowledged: "true",
+  }));
+  assert.equal(invalid.status, 303);
+  assert.equal(invalid.headers.get("location"), "/contact?status=invalid");
+  assert.equal(mockSubmissions.length, 2);
+
+  const wrongOrigin = await fetch(`${runtimeOrigin}/api/moving/contact`, {
+    method: "POST",
+    redirect: "manual",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      origin: "https://evil.example.test",
+      cookie: quotePage.cookie,
+    },
+    body: contactBody,
+  });
+  assert.equal(wrongOrigin.status, 403);
+  const wrongType = await fetch(`${runtimeOrigin}/api/moving/contact`, {
+    method: "POST",
+    redirect: "manual",
+    headers: { "content-type": "application/json", origin: runtimeOrigin, cookie: quotePage.cookie },
+    body: "{}",
+  });
+  assert.equal(wrongType.status, 415);
+
+  for (const [mode, expected] of [
+    ["rate-limited", "/quote?status=rate-limited"],
+    ["unavailable", "/quote?status=unavailable"],
+    ["authentication-failed", "/quote?status=unavailable"],
+  ]) {
+    submissionControl.mode = mode;
+    const page = await loadForm(runtimeOrigin, "/quote", quotePage.cookie);
+    quoteBody.set("requestToken", page.token);
+    const response = await postForm(runtimeOrigin, "/api/moving/quote", quotePage.cookie, quoteBody);
+    assert.equal(response.status, 303, mode);
+    assert.equal(response.headers.get("location"), expected, mode);
+  }
+  submissionControl.mode = undefined;
+  assert.equal(mockSubmissions.length, 2);
+}
+
+async function loadForm(runtimeOrigin, pathname, existingCookie) {
+  const response = await fetch(`${runtimeOrigin}${pathname}`, {
+    headers: existingCookie === undefined ? {} : { cookie: existingCookie },
+  });
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  const match = /<input[^>]+name="requestToken"[^>]+value="([A-Za-z0-9_-]{43})"/u.exec(html);
+  assert.ok(match, `${pathname} did not render a request token.`);
+  const setCookies = typeof response.headers.getSetCookie === "function"
+    ? response.headers.getSetCookie()
+    : [response.headers.get("set-cookie")].filter(Boolean);
+  const cookie = existingCookie ?? setCookies[0]?.split(";", 1)[0];
+  assert.ok(cookie, `${pathname} did not establish the anonymous abuse-isolation cookie.`);
+  return { token: match[1], cookie };
+}
+
+function postForm(runtimeOrigin, pathname, cookie, body, extraHeaders = {}) {
+  return fetch(`${runtimeOrigin}${pathname}`, {
+    method: "POST",
+    redirect: "manual",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      origin: runtimeOrigin,
+      cookie,
+      ...extraHeaders,
+    },
+    body,
+  });
+}
+
 async function verifyApplicationFailures(runtimeOrigin, coreOrigin) {
   const expectations = [
     ["/invalid", 500, "Page unavailable", ["No title"]],
@@ -308,16 +517,11 @@ async function verifySitemap(runtimeOrigin, coreOrigin) {
   const response = await fetch(`${runtimeOrigin}/sitemap.xml`);
   assert.equal(response.status, 200);
   const xml = await response.text();
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/about</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/home-moving</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/services/office-relocation</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/north-district</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/areas/riverside</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/faq</loc>`));
-  assert.ok(xml.includes(`<loc>${PUBLIC_SITE_ORIGIN}/testimonials</loc>`));
+  for (const pathname of [
+    "/", "/about", "/services", "/services/home-moving", "/services/office-relocation",
+    "/areas", "/areas/north-district", "/areas/riverside", "/faq", "/testimonials",
+    "/quote", "/contact", "/privacy",
+  ]) assert.ok(xml.includes(`<loc>${runtimeOrigin}${pathname}</loc>`), pathname);
   assert.equal(xml.includes(coreOrigin), false);
   assert.equal(xml.includes(PRIVATE_SENTINEL), false);
 }

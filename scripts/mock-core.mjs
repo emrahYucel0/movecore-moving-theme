@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 const DEMO_PUBLISHED_AT = "2026-08-30T00:00:00.000Z";
@@ -9,12 +10,22 @@ const MOVING_SERVICES_EXAMPLE = loadExample("moving-services.json");
 const MOVING_AREAS_EXAMPLE = loadExample("moving-areas.json");
 const MOVING_FAQ_EXAMPLE = loadExample("moving-faq.json");
 const MOVING_TESTIMONIALS_EXAMPLE = loadExample("moving-testimonials.json");
+const MOVING_QUOTE_EXAMPLE = loadExample("moving-quote.json");
+const MOVING_CONTACT_EXAMPLE = loadExample("moving-contact.json");
 
 export function createMockCoreServer(options = {}) {
   const mediaOrigin = options.mediaOrigin;
-  return createServer((request, response) => {
+  const submissions = options.submissions ?? [];
+  const idempotency = new Map();
+  return createServer(async (request, response) => {
     try {
-      handleRequest(request, response, mediaOrigin);
+      await handleRequest(request, response, mediaOrigin, {
+        submissions,
+        submissionEvents: options.submissionEvents ?? [],
+        idempotency,
+        upstreamSecret: options.upstreamSecret,
+        submissionControl: options.submissionControl ?? { mode: options.submissionMode },
+      });
     } catch {
       json(response, 500, failure("service_unavailable"));
     }
@@ -41,8 +52,11 @@ export function createMockMediaServer() {
   });
 }
 
-function handleRequest(request, response, mediaOrigin) {
+async function handleRequest(request, response, mediaOrigin, submissionState) {
   const url = new URL(request.url ?? "/", "http://mock-core.invalid");
+  if (request.method === "POST" && url.pathname === "/v1/submissions") {
+    return submissionResponse(request, response, submissionState);
+  }
   if (request.method !== "GET") return json(response, 405, failure("method_not_allowed"));
   if (url.pathname === "/v1/pages/resolve") {
     return pageResponse(url.searchParams.get("path"), response);
@@ -85,6 +99,9 @@ function handleRequest(request, response, mediaOrigin) {
           { path: "/areas/riverside", lastModified: DEMO_PUBLISHED_AT },
           { path: "/faq", lastModified: DEMO_PUBLISHED_AT },
           { path: "/testimonials", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/quote", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/contact", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/privacy", lastModified: DEMO_PUBLISHED_AT },
         ],
       },
     });
@@ -149,6 +166,32 @@ function pageResponse(pathname, response) {
     "/testimonials": {
       type: "moving.testimonials",
       payload: structuredClone(MOVING_TESTIMONIALS_EXAMPLE),
+    },
+    "/quote": {
+      type: "moving.quote",
+      payload: structuredClone(MOVING_QUOTE_EXAMPLE),
+    },
+    "/contact": {
+      type: "moving.contact",
+      payload: structuredClone(MOVING_CONTACT_EXAMPLE),
+    },
+    "/privacy": {
+      type: "site.page",
+      payload: {
+        eyebrow: "Reference notice",
+        title: "Privacy notice for this demonstration.",
+        intro: "This fictional Northline Moving notice is provided only to demonstrate where deployment-specific privacy information belongs. It must be reviewed and replaced before a real site is launched.",
+        sections: [
+          {
+            heading: "How request information is used",
+            body: "Information sent through the quote or contact form is stored so the moving company can review and respond to that request. A real operator must document its own retention, access and deletion practices here.",
+          },
+          {
+            heading: "Deployment responsibility",
+            body: "This reference content is not legal advice and does not claim compliance with any law. The seller and deploying business remain responsible for an accurate notice.",
+          },
+        ],
+      },
     },
     "/invalid": { type: "site.page", payload: { intro: "No title" } },
     "/unsupported": { type: "something.else", payload: { title: "Unsupported" } },
@@ -222,6 +265,18 @@ function primaryNavigation() {
         destination: { kind: "internal", path: "/faq" },
         children: [],
       },
+      {
+        id: "quote",
+        label: "Quote",
+        destination: { kind: "internal", path: "/quote" },
+        children: [],
+      },
+      {
+        id: "contact",
+        label: "Contact",
+        destination: { kind: "internal", path: "/contact" },
+        children: [],
+      },
     ],
   };
 }
@@ -258,6 +313,24 @@ function footerNavigation() {
         id: "footer-testimonials",
         label: "Customer stories",
         destination: { kind: "internal", path: "/testimonials" },
+        children: [],
+      },
+      {
+        id: "footer-quote",
+        label: "Request a quote",
+        destination: { kind: "internal", path: "/quote" },
+        children: [],
+      },
+      {
+        id: "footer-contact",
+        label: "Contact",
+        destination: { kind: "internal", path: "/contact" },
+        children: [],
+      },
+      {
+        id: "footer-privacy",
+        label: "Privacy",
+        destination: { kind: "internal", path: "/privacy" },
         children: [],
       },
     ],
@@ -383,6 +456,97 @@ function svg(response, body) {
   response.end(body);
 }
 
+async function submissionResponse(request, response, state) {
+  if (state.submissionControl.mode === "rate-limited") return json(response, 429, failure("rate_limited"));
+  if (state.submissionControl.mode === "unavailable") return json(response, 503, failure("service_unavailable"));
+  if (state.submissionControl.mode === "authentication-failed") {
+    return json(response, 401, failure("upstream_authentication_failed"));
+  }
+  const body = await readRequestBody(request, 24 * 1_024);
+  const secret = decodeMockSecret(state.upstreamSecret);
+  if (secret === undefined || !authenticateMockSubmission(request, body, secret)) {
+    return json(response, 401, failure("upstream_authentication_failed"));
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return json(response, 400, failure("invalid_request"));
+  }
+  if (!plainObject(parsed) || !plainObject(parsed.payload) ||
+    !["moving.quote-request", "moving.contact-request"].includes(parsed.type)) {
+    return json(response, 400, failure("invalid_request"));
+  }
+  const idempotencyKey = request.headers["idempotency-key"];
+  if (typeof idempotencyKey !== "string") return json(response, 400, failure("invalid_request"));
+  const previous = state.idempotency.get(idempotencyKey);
+  if (previous !== undefined) {
+    if (previous.body !== body) return json(response, 409, failure("idempotency_conflict"));
+    state.submissionEvents.push(Object.freeze({ type: parsed.type, replayed: true }));
+    return json(response, 200, { data: { ...previous.receipt, replayed: true } });
+  }
+  const receipt = {
+    id: `mock-submission-${state.submissions.length + 1}`,
+    type: parsed.type,
+    status: "received",
+    createdAt: DEMO_PUBLISHED_AT,
+  };
+  const record = Object.freeze({
+    ...receipt,
+    payload: parsed.payload,
+    client: request.headers["core-submission-client"],
+    idempotencyKey,
+  });
+  state.submissions.push(record);
+  state.submissionEvents.push(Object.freeze({ type: parsed.type, replayed: false }));
+  state.idempotency.set(idempotencyKey, { body, receipt });
+  return json(response, 201, { data: { ...receipt, replayed: false } });
+}
+
+function authenticateMockSubmission(request, body, secret) {
+  const client = request.headers["core-submission-client"];
+  const timestamp = request.headers["core-submission-timestamp"];
+  const signature = request.headers["core-submission-signature"];
+  const idempotencyKey = request.headers["idempotency-key"];
+  if (typeof client !== "string" || !/^[A-Za-z0-9_-]{43}$/u.test(client) ||
+    typeof timestamp !== "string" || !/^[1-9][0-9]{0,9}$/u.test(timestamp) ||
+    typeof signature !== "string" || !/^v1=[0-9a-f]{64}$/u.test(signature) ||
+    typeof idempotencyKey !== "string") return false;
+  const bodyHash = createHash("sha256").update(body, "utf8").digest("hex");
+  const canonical = [
+    "core-cms-submission-upstream-v1", "POST", "/v1/submissions", timestamp, client,
+    `1:${idempotencyKey}`, bodyHash,
+  ].join("\n");
+  const expected = `v1=${createHmac("sha256", secret).update(canonical, "utf8").digest("hex")}`;
+  return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+
+function readRequestBody(request, limit) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    request.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > limit) reject(new Error("body too large"));
+      else chunks.push(chunk);
+    });
+    request.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    request.on("error", reject);
+  });
+}
+
+function decodeMockSecret(value) {
+  if (typeof value !== "string") return undefined;
+  const unpadded = value.replace(/=+$/u, "");
+  if (!/^[A-Za-z0-9_-]+$/u.test(unpadded)) return undefined;
+  const bytes = Buffer.from(unpadded, "base64url");
+  return bytes.length >= 32 && bytes.toString("base64url") === unpadded ? bytes : undefined;
+}
+
+function plainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function movingHomePayload() {
   return structuredClone(MOVING_HOME_EXAMPLE);
 }
@@ -431,6 +595,9 @@ function seoTitle(pathname) {
     "/areas/riverside": "Riverside Moving Support | Northline Moving",
     "/faq": "Moving Questions | Northline Moving",
     "/testimonials": "Customer Experiences | Northline Moving",
+    "/quote": "Request a Moving Quote | Northline Moving",
+    "/contact": "Contact Northline Moving",
+    "/privacy": "Privacy Notice | Northline Moving",
   };
   return titles[pathname] ?? "Northline Moving";
 }

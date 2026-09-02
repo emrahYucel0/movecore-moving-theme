@@ -63,7 +63,7 @@ describe("R2.4 explicit presentation dispatch", () => {
       ".moving-location-hero--without-media", "@media (max-width: 67.9375rem)",
       "@media (max-width: 47.9375rem)", "@media (max-width: 30rem)",
     ]) expect(theme).toContain(evidence);
-    const rules = theme.slice(theme.indexOf(".moving-inner"), theme.indexOf(".theme-error"));
+    const rules = theme.slice(theme.indexOf(".moving-inner"), theme.indexOf(".moving-conversion"));
     expect(rules).not.toMatch(/gradient|border-radius|box-shadow/u);
     expect(theme).toContain(".moving-inner-process::after");
   });
