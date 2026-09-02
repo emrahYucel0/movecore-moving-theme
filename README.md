@@ -63,6 +63,8 @@ MoveCore Moving & Logistics Theme R2.8
   -> bounded commercial collections and their editor profiles
 MoveCore Moving & Logistics Theme R2.9B
   -> server-authenticated quote and contact conversion into Core Submissions
+MoveCore Moving & Logistics Theme R2.9D
+  -> application-owned typed lead presentation in the generic Core Admin Inbox
 ```
 
 The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads and exposes only two explicit same-origin Moving submission endpoints. There is no generic proxy, Core package import, direct database access, Ege dependency or Admin API forwarding. Browser form data is validated by the Moving application before Nuxt signs a private `POST /v1/submissions` request.
@@ -126,7 +128,18 @@ Core Admin currently edits the Business Identity value as JSON. R2.7B adds the C
 
 Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for all ten supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code.
 
-Make `application/submission-definitions.json` available to Core and configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` with its absolute deployment path. Configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. Core learns only that `moving.quote-request` and `moving.contact-request` are enabled; their field contracts remain in this application. Core Admin shows accepted requests in its generic Submission Inbox. A typed Moving lead view is intentionally deferred.
+Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
+
+Deploy the four application metadata manifests together when their capabilities are used:
+
+```text
+CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
+CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definitions.json
+CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-definitions.json
+CORE_CMS_SUBMISSION_PRESENTATIONS_FILE=<absolute path>/application/submission-presentations.json
+```
+
+These JSON manifests contain no credentials. Keep them separate from the private Nuxt `NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET` and `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET` values. Core validates both submission manifests once at startup and fails closed if a presentation type has no corresponding definition.
 
 Files under `application/examples/` are static development/reference fixtures. They are not database seeds and are never written to Core automatically.
 
@@ -176,6 +189,14 @@ R2.9B adds explicit `moving.quote` and `moving.contact` page types around two ap
 
 Northline demo submission data is local-only and deterministic. The demo privacy page is reference content, not legal advice, and must be replaced for a real deployment. R2.9B does not send email, call a CRM, calculate prices, schedule moves or claim that the abuse-isolation identity eliminates spam.
 
+## R2.9D typed lead presentation
+
+R2.9D configures Core's generic Submission Presentation Profile capability without adding Moving vocabulary to Core. Quote rows show the customer and route; contact rows show the customer and both optional contact methods. Quote details group customer, move and additional-planning information, while contact details group customer and message information. Technical payload JSON remains a secondary Core disclosure and the generic `received`, `in_progress`, `resolved` lifecycle is unchanged.
+
+`requestedServices` deliberately remains outside the primary typed view in presentation v1. Its persisted values are stable application enum slugs, while Core's bounded `list` kind does not support per-item value-to-label mappings. The raw secondary disclosure retains the data. Adding a generic bounded mapped-list capability, if ever justified by multiple applications, is a separate Core enhancement rather than an R2.9D payload change.
+
+The Core Admin shell currently uses Turkish navigation and generic controls while the Northline demo and its application-owned presentation labels use English. R2.9D does not add global Admin localization or branded navigation; that mixed-language product-polish gap remains explicit.
+
 ## Known current limitations
 
 - Generic Core publication does not enforce these application-owned payload contracts; the server parser remains the fail-closed runtime boundary.
@@ -183,7 +204,7 @@ Northline demo submission data is local-only and deterministic. The demo privacy
 - Related-service and nearby-area links are textual href references, not relational entities.
 - `moving.location` is a bounded content record, not a geo database or bulk SEO system.
 - Media publication and content publication remain separate Core lifecycles rather than one atomic application transaction.
-- Core Admin's Submission Inbox remains generic; a Moving-friendly typed lead presentation is a later product milestone.
+- Core Admin navigation and surrounding controls remain generic and partly Turkish; R2.9D changes record presentation only and does not provide application-aware navigation or localization.
 - There is no email/CRM notification, CAPTCHA, pricing calculator, article model, service taxonomy or location hierarchy.
 - Demo imagery is deterministic illustration, not final commercial photography.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.

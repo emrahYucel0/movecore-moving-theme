@@ -19,6 +19,7 @@
     "test": "vitest run",
     "typecheck": "nuxt typecheck",
     "verify": "node scripts/verify.mjs",
+    "verify:core-presentations": "node scripts/verify-core-submission-presentations.mjs",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "presentations": [
+    {
+      "type": "moving.quote-request",
+      "label": "Quote requests",
+      "singularLabel": "Quote request",
+      "preview": [
+        {
+          "label": "Customer",
+          "path": "customer.name",
+          "kind": "text"
+        },
+        {
+          "label": "Moving from",
+          "path": "move.origin",
+          "kind": "text"
+        },
+        {
+          "label": "Moving to",
+          "path": "move.destination",
+          "kind": "text"
+        }
+      ],
+      "groups": [
+        {
+          "label": "Customer",
+          "fields": [
+            {
+              "label": "Name",
+              "path": "customer.name",
+              "kind": "text"
+            },
+            {
+              "label": "Phone",
+              "path": "customer.phone",
+              "kind": "phone"
+            },
+            {
+              "label": "Email",
+              "path": "customer.email",
+              "kind": "email"
+            }
+          ]
+        },
+        {
+          "label": "Move",
+          "fields": [
+            {
+              "label": "Moving from",
+              "path": "move.origin",
+              "kind": "text"
+            },
+            {
+              "label": "Moving to",
+              "path": "move.destination",
+              "kind": "text"
+            },
+            {
+              "label": "Move type",
+              "path": "move.moveType",
+              "kind": "enum",
+              "options": [
+                {
+                  "value": "home",
+                  "label": "Home move"
+                },
+                {
+                  "value": "office",
+                  "label": "Office move"
+                },
+                {
+                  "value": "small-move",
+                  "label": "Small move"
+                },
+                {
+                  "value": "other",
+                  "label": "Other"
+                }
+              ]
+            },
+            {
+              "label": "Preferred date",
+              "path": "move.preferredDate",
+              "kind": "date"
+            },
+            {
+              "label": "Property size",
+              "path": "move.propertySize",
+              "kind": "enum",
+              "options": [
+                {
+                  "value": "studio-one-bedroom",
+                  "label": "Studio or one bedroom"
+                },
+                {
+                  "value": "two-three-bedrooms",
+                  "label": "Two or three bedrooms"
+                },
+                {
+                  "value": "four-plus-bedrooms",
+                  "label": "Four or more bedrooms"
+                },
+                {
+                  "value": "small-office",
+                  "label": "Small office"
+                },
+                {
+                  "value": "large-office",
+                  "label": "Large office"
+                },
+                {
+                  "value": "other",
+                  "label": "Other"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Additional planning",
+          "fields": [
+            {
+              "label": "Additional notes",
+              "path": "message",
+              "kind": "multiline"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "moving.contact-request",
+      "label": "Contact requests",
+      "singularLabel": "Contact request",
+      "preview": [
+        {
+          "label": "Customer",
+          "path": "name",
+          "kind": "text"
+        },
+        {
+          "label": "Phone",
+          "path": "phone",
+          "kind": "phone"
+        },
+        {
+          "label": "Email",
+          "path": "email",
+          "kind": "email"
+        }
+      ],
+      "groups": [
+        {
+          "label": "Customer",
+          "fields": [
+            {
+              "label": "Name",
+              "path": "name",
+              "kind": "text"
+            },
+            {
+              "label": "Phone",
+              "path": "phone",
+              "kind": "phone"
+            },
+            {
+              "label": "Email",
+              "path": "email",
+              "kind": "email"
+            }
+          ]
+        },
+        {
+          "label": "Message",
+          "fields": [
+            {
+              "label": "Subject",
+              "path": "subject",
+              "kind": "text"
+            },
+            {
+              "label": "Message",
+              "path": "message",
+              "kind": "multiline"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
