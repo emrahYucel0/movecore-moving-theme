@@ -130,13 +130,14 @@ Make `application/editor-profiles.json` available to Core and configure `CORE_CM
 
 Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
 
-Deploy the four application metadata manifests together when their capabilities are used:
+Deploy the five application metadata manifests together when their capabilities are used:
 
 ```text
 CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
 CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definitions.json
 CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-definitions.json
 CORE_CMS_SUBMISSION_PRESENTATIONS_FILE=<absolute path>/application/submission-presentations.json
+CORE_CMS_ADMIN_SHELL_FILE=<absolute path>/application/admin-shell.json
 ```
 
 These JSON manifests contain no credentials. Keep them separate from the private Nuxt `NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET` and `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET` values. Core validates both submission manifests once at startup and fails closed if a presentation type has no corresponding definition.
@@ -195,7 +196,20 @@ R2.9D configures Core's generic Submission Presentation Profile capability witho
 
 `requestedServices` deliberately remains outside the primary typed view in presentation v1. Its persisted values are stable application enum slugs, while Core's bounded `list` kind does not support per-item value-to-label mappings. The raw secondary disclosure retains the data. Adding a generic bounded mapped-list capability, if ever justified by multiple applications, is a separate Core enhancement rather than an R2.9D payload change.
 
-The Core Admin shell currently uses Turkish navigation and generic controls while the Northline demo and its application-owned presentation labels use English. R2.9D does not add global Admin localization or branded navigation; that mixed-language product-polish gap remains explicit.
+## R2.10B.1 application-aware Admin shell
+
+Deploy all five manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing the manifest. No Core source changes are required.
+
+The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Settings truthfully opens the existing generic JSON workflow, not a typed Business Profile editor. Core continues to own routes, permissions and active-state behavior.
+
+The application shell and submission presentation labels use English; page-owned Core copy and controls may remain Turkish. This known localization/product-polish gap is not solved by the shell profile.
+
+Validate all five manifests with the actual already-built, read-only Core runtime loaders (no database connection):
+
+```powershell
+$env:MOVECORE_CORE_ROOT = 'C:\Users\monster\Desktop\MOVECORE\core-cms'
+node scripts/verify-core-admin-shell.mjs
+```
 
 ## Known current limitations
 
@@ -204,7 +218,7 @@ The Core Admin shell currently uses Turkish navigation and generic controls whil
 - Related-service and nearby-area links are textual href references, not relational entities.
 - `moving.location` is a bounded content record, not a geo database or bulk SEO system.
 - Media publication and content publication remain separate Core lifecycles rather than one atomic application transaction.
-- Core Admin navigation and surrounding controls remain generic and partly Turkish; R2.9D changes record presentation only and does not provide application-aware navigation or localization.
+- The Moving Admin shell is application-aware, but page-owned Core controls remain partly Turkish; global localization and typed Business Settings are still separate milestones.
 - There is no email/CRM notification, CAPTCHA, pricing calculator, article model, service taxonomy or location hierarchy.
 - Demo imagery is deterministic illustration, not final commercial photography.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.

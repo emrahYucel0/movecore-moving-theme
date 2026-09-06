@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "application": {
+    "name": "MoveCore Moving",
+    "descriptor": "Operations workspace"
+  },
+  "groups": [
+    { "id": "operations", "label": "Operations" },
+    { "id": "content", "label": "Content" },
+    { "id": "site", "label": "Site" },
+    { "id": "system", "label": "System" }
+  ],
+  "navigation": [
+    { "id": "overview", "label": "Overview", "group": "operations", "visible": true },
+    { "id": "submissions", "label": "Leads", "group": "operations", "visible": true },
+    { "id": "content", "label": "Content", "group": "content", "visible": true },
+    { "id": "media", "label": "Media", "group": "content", "visible": true },
+    { "id": "navigation", "label": "Navigation", "group": "site", "visible": true },
+    { "id": "settings", "label": "Settings", "group": "site", "visible": true },
+    { "id": "url-seo", "label": "SEO & URLs", "group": "site", "visible": true },
+    { "id": "audit", "label": "Audit", "group": "system", "visible": true }
+  ]
+}
