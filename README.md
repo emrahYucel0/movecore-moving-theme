@@ -124,7 +124,7 @@ NUXT_PUBLIC_SITE_URL=https://public.example.com
 
 Make `application/setting-definitions.json` available to Core and set `CORE_CMS_SETTING_DEFINITIONS_FILE` to its absolute deployment path. Include `moving` in `CORE_CMS_ADMIN_SETTING_NAMESPACES` so authorized Admin users can read and update this namespace. Core loads definitions on startup; a missing definition receives the manifest default, while an existing compatible setting keeps its customer-managed value across restarts. The included default is an example-safe placeholder and must be changed before a real launch.
 
-Core Admin currently edits the Business Identity value as JSON. R2.7B adds the Core-backed setting, strict Moving application validation and public shell consumption; it does not add the final typed, schema-driven Business Settings Admin form.
+Core Admin currently edits the Business Identity value as JSON. Fresh installations bootstrap canonical value contract v2; legacy v1 values remain readable but must be explicitly converted before the future typed Business Settings profile is enabled. See [`docs/business-setting-v2.md`](docs/business-setting-v2.md) for the persisted/runtime distinction and the dry conversion command.
 
 Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for all ten supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code.
 
@@ -203,6 +203,12 @@ Deploy all five manifests above together to the separate Core runtime. `applicat
 The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Settings truthfully opens the existing generic JSON workflow, not a typed Business Profile editor. Core continues to own routes, permissions and active-state behavior.
 
 The application shell and submission presentation labels use English; page-owned Core copy and controls may remain Turkish. This known localization/product-polish gap is not solved by the shell profile.
+
+## R2.10C.2A business Setting normalization
+
+The canonical `moving.business` v2 value stores buyer-editable sources rather than derived navigation values. A displayed phone derives its safe fixed-scheme `tel:` link, an email address derives `mailto:`, and an optional `whatsappUrl` creates the runtime WhatsApp action. A top-level `primaryPhoneDial` is retained only when display and dial values genuinely differ; `whatsappLabel` remains independent optional presentation copy. Opening hours and social links remain bounded ordered source collections, while `logoAssetId` remains a Core Media identity.
+
+`parseBusinessIdentity` is the single version boundary and continues to give every public component the unchanged runtime `BusinessIdentity` projection. It reads legacy v1 without mutation and canonical v2, while `business:convert-v2` performs a pure local conversion and writes JSON only to standard output. This normalization adds no Setting Editor Profile, Core change, database migration, public request or client-side behavior; the typed profile belongs to R2.10C.2B.
 
 Validate all five manifests with the actual already-built, read-only Core runtime loaders (no database connection):
 

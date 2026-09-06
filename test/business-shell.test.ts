@@ -11,8 +11,9 @@ describe("R2.7B commercial business shell", () => {
         key: "business",
         exposure: "public",
         value: {
+          schemaVersion: 2,
           companyName: "Example Moving Company",
-          primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
+          primaryPhone: "+1 202-555-0100",
           openingHours: [],
           socialLinks: [],
         },

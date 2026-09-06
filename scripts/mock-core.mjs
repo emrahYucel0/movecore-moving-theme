@@ -16,6 +16,7 @@ const MOVING_CONTACT_EXAMPLE = loadExample("moving-contact.json");
 export function createMockCoreServer(options = {}) {
   const mediaOrigin = options.mediaOrigin;
   const submissions = options.submissions ?? [];
+  const business = options.businessIdentity ?? businessIdentity();
   const idempotency = new Map();
   return createServer(async (request, response) => {
     try {
@@ -25,7 +26,7 @@ export function createMockCoreServer(options = {}) {
         idempotency,
         upstreamSecret: options.upstreamSecret,
         submissionControl: options.submissionControl ?? { mode: options.submissionMode },
-      });
+      }, business);
     } catch {
       json(response, 500, failure("service_unavailable"));
     }
@@ -52,7 +53,7 @@ export function createMockMediaServer() {
   });
 }
 
-async function handleRequest(request, response, mediaOrigin, submissionState) {
+async function handleRequest(request, response, mediaOrigin, submissionState, business) {
   const url = new URL(request.url ?? "/", "http://mock-core.invalid");
   if (request.method === "POST" && url.pathname === "/v1/submissions") {
     return submissionResponse(request, response, submissionState);
@@ -72,7 +73,7 @@ async function handleRequest(request, response, mediaOrigin, submissionState) {
       data: {
         namespace: "moving",
         key: "business",
-        value: businessIdentity(),
+        value: typeof business === "function" ? business() : business,
       },
     });
   }
@@ -339,20 +340,13 @@ function footerNavigation() {
 
 function businessIdentity() {
   return {
+    schemaVersion: 2,
     companyName: "Northline Moving",
     logoAssetId: "asset:demo-logo",
-    primaryPhone: {
-      display: "+1 202-555-0147",
-      href: "tel:+12025550147",
-    },
-    whatsapp: {
-      label: "Message on WhatsApp",
-      href: "https://wa.me/12025550147",
-    },
-    email: {
-      display: "hello@example.test",
-      href: "mailto:hello@example.test",
-    },
+    primaryPhone: "+1 202-555-0147",
+    whatsappUrl: "https://wa.me/12025550147",
+    whatsappLabel: "Message on WhatsApp",
+    email: "hello@example.test",
     address: "100 Example Avenue, Northline, EX 00000",
     openingHours: [
       { label: "Monday to Friday", value: "08:00 to 18:00" },

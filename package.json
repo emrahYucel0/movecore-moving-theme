@@ -16,10 +16,12 @@
     "preview": "nuxt preview",
     "perf:production": "node scripts/performance-smoke.mjs",
     "smoke:production": "node scripts/production-smoke.mjs",
+    "smoke:business-contract": "node scripts/business-contract-smoke.mjs",
     "test": "vitest run",
     "typecheck": "nuxt typecheck",
     "verify": "node scripts/verify.mjs",
     "verify:core-presentations": "node scripts/verify-core-submission-presentations.mjs",
+    "business:convert-v2": "node scripts/convert-business-setting-v2.mjs",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

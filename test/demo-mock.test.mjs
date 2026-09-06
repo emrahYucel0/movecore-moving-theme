@@ -111,11 +111,12 @@ describe("shared demo Core", () => {
       namespace: "moving",
       key: "business",
       value: {
+        schemaVersion: 2,
         companyName: "Northline Moving",
         logoAssetId: "asset:demo-logo",
-        primaryPhone: { href: "tel:+12025550147" },
-        whatsapp: { href: "https://wa.me/12025550147" },
-        email: { href: "mailto:hello@example.test" },
+        primaryPhone: "+1 202-555-0147",
+        whatsappUrl: "https://wa.me/12025550147",
+        email: "hello@example.test",
       },
     });
     const logo = await client.getMedia("asset:demo-logo");

@@ -86,6 +86,18 @@ describe("public business shell composition", () => {
     expect(getMedia).not.toHaveBeenCalled();
   });
 
+  it("projects equivalent legacy v1 and canonical v2 values to the same public business identity", async () => {
+    const legacy = completeLegacyValue();
+    const canonical = completeV2Value();
+    const compose = (value: unknown) => loadPublicSiteComposition(selectors(), () => ({
+      getNavigation: async (id) => id === "footer" ? footerNavigation : navigation,
+      getSetting: async () => ({ ...setting, value } as PublicSettingProjection),
+      getMedia: async () => logo,
+    }));
+
+    expect((await compose(legacy)).business).toEqual((await compose(canonical)).business);
+  });
+
   it.each([
     ["primary navigation missing", async () => null, async () => setting, async () => logo],
     ["setting missing", async () => navigation, async () => null, async () => logo],
@@ -174,13 +186,35 @@ function settingFixture(): PublicSettingProjection {
   return {
     namespace: "moving",
     key: "business",
-    value: {
-      companyName: "Example Moving",
-      logoAssetId: "asset:business-logo",
-      primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
-      openingHours: [],
-      socialLinks: [],
-    },
+    value: completeV2Value(),
+  };
+}
+
+function completeLegacyValue() {
+  return {
+    companyName: "Example Moving",
+    logoAssetId: "asset:business-logo",
+    primaryPhone: { display: "+1 202-555-0100", href: "tel:+12025550100" },
+    whatsapp: { label: "Message on WhatsApp", href: "https://wa.me/12025550100" },
+    email: { display: "hello@example.test", href: "mailto:hello@example.test" },
+    address: "100 Example Avenue",
+    openingHours: [{ label: "Monday to Friday", value: "08:00 to 18:00" }],
+    socialLinks: [{ label: "Instagram", href: "https://example.test/instagram" }],
+  };
+}
+
+function completeV2Value() {
+  return {
+    schemaVersion: 2,
+    companyName: "Example Moving",
+    logoAssetId: "asset:business-logo",
+    primaryPhone: "+1 202-555-0100",
+    whatsappUrl: "https://wa.me/12025550100",
+    whatsappLabel: "Message on WhatsApp",
+    email: "hello@example.test",
+    address: "100 Example Avenue",
+    openingHours: [{ label: "Monday to Friday", value: "08:00 to 18:00" }],
+    socialLinks: [{ label: "Instagram", href: "https://example.test/instagram" }],
   };
 }
 
