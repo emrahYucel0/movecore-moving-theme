@@ -18,8 +18,8 @@ export function usePublicPageSeo(page: PublicPage): void {
   }
 
   useSeoMeta({
-    title: () => page.seo.title,
-    description: () => page.seo.description,
+    title: () => page.seo.title ?? (page.type === "moving.article" ? page.content.title : undefined),
+    description: () => page.seo.description ?? (page.type === "moving.article" ? page.content.excerpt : undefined),
     robots: () => robotsDirective(page.seo.index, page.seo.follow),
   });
   useHead(() => ({

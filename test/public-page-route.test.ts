@@ -136,6 +136,36 @@ describe("public page application route", () => {
     expect(getMedia).not.toHaveBeenCalled();
   });
 
+  it("dispatches moving.article at its Core-resolved canonical path without media reads", async () => {
+    const getMedia = vi.fn();
+    const articlePage: PublicPageProjection = {
+      ...page,
+      content: {
+        ...page.content,
+        type: "moving.article",
+        payload: {
+          title: "A useful moving guide",
+          excerpt: "Practical context before moving day.",
+          body: [{ heading: "Prepare", paragraphs: [{ text: "Confirm access." }] }],
+        },
+      },
+      seo: { canonicalPath: "/advice/access", index: true, follow: true },
+    };
+    const result = await resolvePublicPageRoute("/advice/access", {
+      getMedia,
+      resolvePage: async () => ({ kind: "page", page: articlePage }),
+    });
+    expect(result).toMatchObject({
+      kind: "page",
+      page: {
+        type: "moving.article",
+        seo: { canonicalPath: "/advice/access" },
+        content: { title: "A useful moving guide", publishedAt: page.content.publishedAt },
+      },
+    });
+    expect(getMedia).not.toHaveBeenCalled();
+  });
+
   it.each([
     [301, "/new"],
     [302, "/temporary-target"],

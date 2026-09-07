@@ -79,6 +79,9 @@ describe("shared demo Core", () => {
     ["/testimonials", "moving.testimonials", "What a well-planned move feels like."],
     ["/quote", "moving.quote", "Tell us what needs to move and where it needs to go."],
     ["/contact", "moving.contact", "Start a straightforward conversation with the moving team."],
+    ["/articles/preparing-access-before-moving-day", "moving.article", "How to prepare access before moving day"],
+    ["/articles/practical-packing-timeline", "moving.article", "A practical packing timeline"],
+    ["/articles/moving-an-office", "moving.article", "What changes when moving an office"],
   ])("serves %s as %s", async (path, type, title) => {
     const result = await client.resolvePage(path);
     expect(result.kind).toBe("page");
@@ -97,6 +100,7 @@ describe("shared demo Core", () => {
         { label: "Services", destination: { kind: "internal", path: "/services" } },
         { label: "Areas", destination: { kind: "internal", path: "/areas" } },
         { label: "FAQ", destination: { kind: "internal", path: "/faq" } },
+        { label: "Articles", destination: { kind: "internal", path: "/articles" } },
         { label: "Quote", destination: { kind: "internal", path: "/quote" } },
         { label: "Contact", destination: { kind: "internal", path: "/contact" } },
       ],
@@ -162,11 +166,28 @@ describe("shared demo Core", () => {
         { path: "/areas/riverside" },
         { path: "/faq" },
         { path: "/testimonials" },
+        { path: "/articles/preparing-access-before-moving-day" },
+        { path: "/articles/practical-packing-timeline" },
+        { path: "/articles/moving-an-office" },
         { path: "/quote" },
         { path: "/contact" },
         { path: "/privacy" },
       ],
     });
+  });
+
+  it("provides exactly three routable published Articles through the generic collection", async () => {
+    const result = await client.listContent({ type: "moving.article", limit: 6 });
+    expect(result.items).toHaveLength(3);
+    expect(result.nextAfter).toBeUndefined();
+    expect(result.items.map((item) => item.content.type)).toEqual([
+      "moving.article", "moving.article", "moving.article",
+    ]);
+    expect(result.items.map((item) => item.seo.canonicalPath)).toEqual([
+      "/articles/preparing-access-before-moving-day",
+      "/articles/practical-packing-timeline",
+      "/articles/moving-an-office",
+    ]);
   });
 
   it("keeps every internal demo content link resolvable", async () => {

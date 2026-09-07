@@ -11,6 +11,7 @@ import {
   composeMovingTestimonials,
   composeMovingContact,
   composeMovingQuote,
+  composeMovingArticle,
   composeSitePage,
   PublicApplicationContentError,
 } from "./application-content";
@@ -130,6 +131,16 @@ export async function resolvePublicPageRoute(
           seo: result.page.seo,
           content: composeMovingContact(result.page),
           requestToken: submissionRequestToken,
+        },
+      };
+    }
+    if (result.page.content.type === "moving.article") {
+      return {
+        kind: "page",
+        page: {
+          type: "moving.article",
+          seo: result.page.seo,
+          content: composeMovingArticle(result.page),
         },
       };
     }

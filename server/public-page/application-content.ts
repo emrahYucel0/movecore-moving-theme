@@ -66,6 +66,11 @@ import {
   type MovingContactPage,
   type MovingQuotePage,
 } from "../../shared/content/moving-conversion";
+import {
+  MovingArticleContractError,
+  parseMovingArticlePayload,
+  type MovingArticleViewModel,
+} from "../../shared/content/moving-article";
 
 export class PublicApplicationContentError extends Error {
   public constructor() {
@@ -335,6 +340,19 @@ export function composeMovingContact(page: PublicPageProjection): MovingContactP
     parseMovingContactPayload,
     MovingContactContractError,
   );
+}
+
+export function composeMovingArticle(page: PublicPageProjection): MovingArticleViewModel {
+  if (page.content.type !== "moving.article") throw applicationContentError();
+  const content = parseApplicationPayload(
+    page.content.payload,
+    parseMovingArticlePayload,
+    MovingArticleContractError,
+  );
+  return Object.freeze({
+    ...content,
+    publishedAt: page.content.publishedAt,
+  });
 }
 
 async function resolveReferencedMedia(

@@ -11,7 +11,7 @@ describe("application Editor Profile manifest", () => {
     expect(Object.keys(manifest).sort()).toEqual(["profiles", "version"]);
     expect(manifest["version"]).toBe(1);
     const profiles = array(manifest["profiles"]);
-    expect(profiles).toHaveLength(10);
+    expect(profiles).toHaveLength(11);
 
     const profile = profileById(profiles, "site.page");
     expect(profile).toMatchObject({ id: "site.page", version: 1, contentType: "site.page" });
@@ -44,6 +44,7 @@ describe("application Editor Profile manifest", () => {
       "site.page", "moving.home", "moving.service", "moving.location",
       "moving.services", "moving.areas", "moving.faq", "moving.testimonials",
       "moving.quote", "moving.contact",
+      "moving.article",
     ]);
     const profile = profileById(profiles, "moving.home");
     expect(profile).toMatchObject({ id: "moving.home", version: 2, contentType: "moving.home" });
@@ -206,6 +207,26 @@ describe("application Editor Profile manifest", () => {
     expectActionFields(nested(finalAction, "secondaryAction", "group", false));
     expect(totalFields(fields)).toBe(43);
     expect(maximumDepth(fields)).toBe(3);
+  });
+
+  it("expresses a buyer-friendly moving.article profile aligned to the application parser", async () => {
+    const profiles = array((await loadManifest())["profiles"]);
+    const profile = profileById(profiles, "moving.article");
+    expect(profile).toMatchObject({
+      id: "moving.article",
+      version: 1,
+      contentType: "moving.article",
+      label: "Article",
+    });
+    const fields = array(profile["fields"]).map(record);
+    expect(fields.map((entry) => entry["key"])).toEqual(["title", "excerpt", "body"]);
+    expect(field(fields, "title")).toMatchObject({ kind: "text", required: true, maxLength: 180 });
+    expect(field(fields, "excerpt")).toMatchObject({ kind: "textarea", required: true, maxLength: 600 });
+    const sections = nested(fields, "body", "repeater", true);
+    expect(field(sections, "heading")).toMatchObject({ kind: "text", required: false, maxLength: 160 });
+    const paragraphs = nested(sections, "paragraphs", "repeater", true);
+    expect(field(paragraphs, "text")).toMatchObject({ kind: "textarea", required: true, maxLength: 2000 });
+    expect(JSON.stringify(profile)).not.toMatch(/media|author|categor|tags?|comments?|reading time/iu);
   });
 
   it.each(["site-page-home.json", "site-page-detail.json"])(

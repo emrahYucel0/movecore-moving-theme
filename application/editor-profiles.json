@@ -1211,6 +1211,62 @@
           ]
         }
       ]
+    },
+    {
+      "id": "moving.article",
+      "version": 1,
+      "contentType": "moving.article",
+      "label": "Article",
+      "description": "An editorial moving guide with a concise introduction and structured long-form sections.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Article title",
+          "kind": "text",
+          "description": "Write a clear, useful title for the reader.",
+          "required": true,
+          "maxLength": 180
+        },
+        {
+          "key": "excerpt",
+          "label": "Excerpt",
+          "kind": "textarea",
+          "description": "Summarize what the reader will learn. This appears in the Articles index.",
+          "required": true,
+          "maxLength": 600
+        },
+        {
+          "key": "body",
+          "label": "Article body",
+          "kind": "repeater",
+          "description": "Add sections in reading order. A section heading is optional; every section needs at least one paragraph.",
+          "required": true,
+          "fields": [
+            {
+              "key": "heading",
+              "label": "Section heading",
+              "kind": "text",
+              "required": false,
+              "maxLength": 160
+            },
+            {
+              "key": "paragraphs",
+              "label": "Paragraphs",
+              "kind": "repeater",
+              "required": true,
+              "fields": [
+                {
+                  "key": "text",
+                  "label": "Paragraph",
+                  "kind": "textarea",
+                  "required": true,
+                  "maxLength": 2000
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

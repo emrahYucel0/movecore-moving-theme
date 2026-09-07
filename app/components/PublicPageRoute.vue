@@ -9,6 +9,7 @@ import MovingFaqRenderer from "./content/MovingFaqRenderer.vue";
 import MovingTestimonialsRenderer from "./content/MovingTestimonialsRenderer.vue";
 import MovingContactRenderer from "./content/MovingContactRenderer.vue";
 import MovingQuoteRenderer from "./content/MovingQuoteRenderer.vue";
+import MovingArticleRenderer from "./content/MovingArticleRenderer.vue";
 
 const page = await useCorePublicPage();
 if (page !== undefined) usePublicPageSeo(page);
@@ -32,5 +33,9 @@ if (page !== undefined) usePublicPageSeo(page);
     v-else-if="page?.type === 'moving.contact'"
     :page="page.content"
     :request-token="page.requestToken"
+  />
+  <MovingArticleRenderer
+    v-else-if="page?.type === 'moving.article'"
+    :page="page.content"
   />
 </template>

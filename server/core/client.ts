@@ -1,5 +1,6 @@
 import {
   parsePublicContent,
+  parsePublicContentPage,
   parsePublicMedia,
   parsePublicNavigation,
   parsePublicPage,
@@ -7,6 +8,7 @@ import {
   parsePublicSetting,
   parsePublicSitemap,
   type PublicContentProjection,
+  type PublicContentPage,
   type PublicMediaProjection,
   type PublicNavigationProjection,
   type PublicPageProjection,
@@ -34,6 +36,12 @@ export interface ListSitemapOptions {
   readonly after?: string;
 }
 
+export interface ListContentOptions {
+  readonly type: string;
+  readonly limit: number;
+  readonly after?: string;
+}
+
 export type ResolvePageResult =
   | { readonly kind: "page"; readonly page: PublicPageProjection }
   | {
@@ -48,6 +56,7 @@ export type ResolvePageResult =
 export interface CorePublicClient {
   readonly resolvePage: (path: string) => Promise<ResolvePageResult>;
   readonly getContent: (contentId: string) => Promise<PublicContentProjection | null>;
+  readonly listContent: (options: ListContentOptions) => Promise<PublicContentPage>;
   readonly getSetting: (namespace: string, key: string) => Promise<PublicSettingProjection | null>;
   readonly getNavigation: (navigationId: string) => Promise<PublicNavigationProjection | null>;
   readonly listSitemap: (options?: ListSitemapOptions) => Promise<PublicSitemapPage>;
@@ -123,6 +132,16 @@ export function createCorePublicClient(options: CorePublicClientOptions): CorePu
       endpoint(baseUrl, "content", requiredInput(contentId)),
       parsePublicContent,
     ),
+    listContent: async (query: ListContentOptions): Promise<PublicContentPage> => {
+      const url = endpoint(baseUrl, "content");
+      url.searchParams.set("type", requiredInput(query.type));
+      url.searchParams.set("limit", String(parseLimit(query.limit)));
+      if (query.after !== undefined) url.searchParams.set("after", requiredInput(query.after));
+      const response = await request(url);
+      if (response.status === 200) return parsePublicContentPage(await readData(response));
+      const failure = await readError(response);
+      throw mappedFailure(response.status, failure.code);
+    },
     getSetting: (namespace: string, key: string) => resource(
       endpoint(baseUrl, "settings", requiredInput(namespace), requiredInput(key)),
       parsePublicSetting,

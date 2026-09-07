@@ -12,6 +12,9 @@ const MOVING_FAQ_EXAMPLE = loadExample("moving-faq.json");
 const MOVING_TESTIMONIALS_EXAMPLE = loadExample("moving-testimonials.json");
 const MOVING_QUOTE_EXAMPLE = loadExample("moving-quote.json");
 const MOVING_CONTACT_EXAMPLE = loadExample("moving-contact.json");
+const MOVING_ARTICLE_ACCESS_EXAMPLE = loadExample("moving-article-access.json");
+const MOVING_ARTICLE_PACKING_EXAMPLE = loadExample("moving-article-packing.json");
+const MOVING_ARTICLE_OFFICE_EXAMPLE = loadExample("moving-article-office.json");
 
 export function createMockCoreServer(options = {}) {
   const mediaOrigin = options.mediaOrigin;
@@ -65,6 +68,9 @@ async function handleRequest(request, response, mediaOrigin, submissionState, bu
   if (url.pathname === "/v1/navigation/primary") {
     return json(response, 200, { data: primaryNavigation() });
   }
+  if (url.pathname === "/v1/content") {
+    return articleCollectionResponse(url, response);
+  }
   if (url.pathname === "/v1/navigation/footer") {
     return json(response, 200, { data: footerNavigation() });
   }
@@ -100,6 +106,9 @@ async function handleRequest(request, response, mediaOrigin, submissionState, bu
           { path: "/areas/riverside", lastModified: DEMO_PUBLISHED_AT },
           { path: "/faq", lastModified: DEMO_PUBLISHED_AT },
           { path: "/testimonials", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/articles/preparing-access-before-moving-day", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/articles/practical-packing-timeline", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/articles/moving-an-office", lastModified: DEMO_PUBLISHED_AT },
           { path: "/quote", lastModified: DEMO_PUBLISHED_AT },
           { path: "/contact", lastModified: DEMO_PUBLISHED_AT },
           { path: "/privacy", lastModified: DEMO_PUBLISHED_AT },
@@ -175,6 +184,18 @@ function pageResponse(pathname, response) {
     "/contact": {
       type: "moving.contact",
       payload: structuredClone(MOVING_CONTACT_EXAMPLE),
+    },
+    "/articles/preparing-access-before-moving-day": {
+      type: "moving.article",
+      payload: structuredClone(MOVING_ARTICLE_ACCESS_EXAMPLE),
+    },
+    "/articles/practical-packing-timeline": {
+      type: "moving.article",
+      payload: structuredClone(MOVING_ARTICLE_PACKING_EXAMPLE),
+    },
+    "/articles/moving-an-office": {
+      type: "moving.article",
+      payload: structuredClone(MOVING_ARTICLE_OFFICE_EXAMPLE),
     },
     "/privacy": {
       type: "site.page",
@@ -267,6 +288,12 @@ function primaryNavigation() {
         children: [],
       },
       {
+        id: "articles",
+        label: "Articles",
+        destination: { kind: "internal", path: "/articles" },
+        children: [],
+      },
+      {
         id: "quote",
         label: "Quote",
         destination: { kind: "internal", path: "/quote" },
@@ -314,6 +341,12 @@ function footerNavigation() {
         id: "footer-testimonials",
         label: "Customer stories",
         destination: { kind: "internal", path: "/testimonials" },
+        children: [],
+      },
+      {
+        id: "footer-articles",
+        label: "Articles",
+        destination: { kind: "internal", path: "/articles" },
         children: [],
       },
       {
@@ -448,6 +481,38 @@ function svg(response, body) {
     "cache-control": "public, max-age=300",
   });
   response.end(body);
+}
+
+function articleCollectionResponse(url, response) {
+  const keys = [...url.searchParams.keys()];
+  if (keys.some((key) => !["type", "limit", "after"].includes(key))) {
+    return json(response, 400, failure("invalid_request"));
+  }
+  if (url.searchParams.get("type") !== "moving.article") {
+    return json(response, 400, failure("invalid_request"));
+  }
+  const limitText = url.searchParams.get("limit") ?? "100";
+  if (!/^[1-9][0-9]*$/u.test(limitText)) return json(response, 400, failure("invalid_request"));
+  const limit = Number(limitText);
+  if (!Number.isSafeInteger(limit) || limit > 100) return json(response, 400, failure("invalid_request"));
+
+  const all = [
+    publicPage("/articles/preparing-access-before-moving-day", "moving.article", structuredClone(MOVING_ARTICLE_ACCESS_EXAMPLE)),
+    publicPage("/articles/practical-packing-timeline", "moving.article", structuredClone(MOVING_ARTICLE_PACKING_EXAMPLE)),
+    publicPage("/articles/moving-an-office", "moving.article", structuredClone(MOVING_ARTICLE_OFFICE_EXAMPLE)),
+  ];
+  const after = url.searchParams.get("after");
+  const start = after === null ? 0 : all.findIndex((item) => item.content.contentId === after) + 1;
+  if (after !== null && start === 0) return json(response, 400, failure("invalid_request"));
+  const items = all.slice(start, start + limit);
+  const hasMore = start + items.length < all.length;
+  return json(response, 200, {
+    data: {
+      kind: "success",
+      items,
+      ...(hasMore ? { nextAfter: items.at(-1).content.contentId } : {}),
+    },
+  });
 }
 
 async function submissionResponse(request, response, state) {
@@ -592,6 +657,9 @@ function seoTitle(pathname) {
     "/quote": "Request a Moving Quote | Northline Moving",
     "/contact": "Contact Northline Moving",
     "/privacy": "Privacy Notice | Northline Moving",
+    "/articles/preparing-access-before-moving-day": "How to Prepare Access Before Moving Day | Northline Moving",
+    "/articles/practical-packing-timeline": "A Practical Packing Timeline | Northline Moving",
+    "/articles/moving-an-office": "What Changes When Moving an Office | Northline Moving",
   };
   return titles[pathname] ?? "Northline Moving";
 }

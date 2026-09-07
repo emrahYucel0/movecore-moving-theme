@@ -109,6 +109,54 @@ describe("Core Public HTTP client", () => {
     await expect(client.getContent("page-home")).resolves.toEqual(content);
   });
 
+  it("constructs and validates a bounded generic routable-content collection request", async () => {
+    const collectionPage = {
+      items: [{ ...page, content: { ...content, type: "moving.article" } }],
+      nextAfter: "article:cursor/next",
+    };
+    const { client, calls } = harness(() => json(200, {
+      data: { kind: "success", ...collectionPage },
+    }));
+    await expect(client.listContent({
+      type: "moving.article",
+      limit: 6,
+      after: "article:cursor/previous",
+    })).resolves.toEqual(collectionPage);
+    const url = new URL(calls[0]?.url ?? "");
+    expect(url.pathname).toBe("/v1/content");
+    expect([...url.searchParams.entries()]).toEqual([
+      ["type", "moving.article"],
+      ["limit", "6"],
+      ["after", "article:cursor/previous"],
+    ]);
+  });
+
+  it("encodes collection query values and rejects invalid bounds before fetching", async () => {
+    const { client, calls } = harness(() => json(200, {
+      data: { kind: "success", items: [] },
+    }));
+    await client.listContent({ type: "moving.article/field notes", limit: 1, after: "id + next" });
+    const url = new URL(calls[0]?.url ?? "");
+    expect(url.searchParams.get("type")).toBe("moving.article/field notes");
+    expect(url.searchParams.get("after")).toBe("id + next");
+    await expect(client.listContent({ type: "moving.article", limit: 101 }))
+      .rejects.toMatchObject({ kind: "invalid-request" });
+    await expect(client.listContent({ type: "", limit: 6 }))
+      .rejects.toMatchObject({ kind: "invalid-request" });
+    expect(calls).toHaveLength(1);
+  });
+
+  it.each([
+    { data: { items: [] } },
+    { data: { kind: "success", items: "not-an-array" } },
+    { data: { kind: "success", items: [], nextAfter: "" } },
+    { data: { kind: "success", items: [{ contentId: "incomplete" }] } },
+  ])("fails closed for malformed collection response %#", async (body) => {
+    const { client } = harness(() => json(200, body));
+    await expect(client.listContent({ type: "moving.article", limit: 6 }))
+      .rejects.toMatchObject({ kind: "protocol" });
+  });
+
   it("uses null consistently for a missing resource getter", async () => {
     const { client } = harness(() => failure(404, "not_found"));
     await expect(client.getContent("missing")).resolves.toBeNull();

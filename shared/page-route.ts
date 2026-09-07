@@ -8,6 +8,7 @@ import type { MovingAreasViewModel } from "./content/moving-areas";
 import type { MovingFaqViewModel } from "./content/moving-faq";
 import type { MovingTestimonialsViewModel } from "./content/moving-testimonials";
 import type { MovingContactPage, MovingQuotePage } from "./content/moving-conversion";
+import type { MovingArticleViewModel } from "./content/moving-article";
 
 export type PublicApplicationPage =
   | {
@@ -61,6 +62,11 @@ export type PublicApplicationPage =
     readonly seo: PublicSeoProjection;
     readonly content: MovingContactPage;
     readonly requestToken: string;
+  }
+  | {
+    readonly type: "moving.article";
+    readonly seo: PublicSeoProjection;
+    readonly content: MovingArticleViewModel;
   };
 
 export type PageRouteResult =

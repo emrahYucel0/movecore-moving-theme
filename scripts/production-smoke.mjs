@@ -59,6 +59,7 @@ try {
   await waitForRuntime(runtimeOrigin);
   await verifyRenderedPage(runtimeOrigin, coreOrigin);
   await verifyInnerPages(runtimeOrigin, coreOrigin);
+  await verifyArticles(runtimeOrigin, coreOrigin);
   await verifyConversionPages(runtimeOrigin, coreOrigin);
   await verifySubmissionBoundary(runtimeOrigin);
   await verifySiteComposition(runtimeOrigin, coreOrigin);
@@ -306,6 +307,39 @@ async function verifyConversionPages(runtimeOrigin, coreOrigin) {
   }
 }
 
+async function verifyArticles(runtimeOrigin, coreOrigin) {
+  const archiveResponse = await fetch(`${runtimeOrigin}/articles`, { redirect: "manual" });
+  assert.equal(archiveResponse.status, 200);
+  const archiveHtml = await archiveResponse.text();
+  for (const expected of [
+    "Useful thinking before moving day.",
+    "How to prepare access before moving day",
+    "A practical packing timeline",
+    "What changes when moving an office",
+    `href="${runtimeOrigin}/articles"`,
+  ]) assert.ok(archiveHtml.includes(expected), `/articles missing SSR evidence: ${expected}`);
+  assert.equal((archiveHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
+  assert.equal(archiveHtml.includes("<script"), false);
+
+  const detailPath = "/articles/preparing-access-before-moving-day";
+  const detailResponse = await fetch(`${runtimeOrigin}${detailPath}`, { redirect: "manual" });
+  assert.equal(detailResponse.status, 200);
+  const detailHtml = await detailResponse.text();
+  for (const expected of [
+    "How to prepare access before moving day",
+    "Walk the route before the van arrives",
+    "Reserve the parts you can control",
+    "30 August 2026",
+    `<link rel="canonical" href="${runtimeOrigin}${detailPath}">`,
+  ]) assert.ok(detailHtml.includes(expected), `${detailPath} missing SSR evidence: ${expected}`);
+  assert.equal((detailHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
+  assert.equal(detailHtml.includes("<script"), false);
+  for (const forbidden of [coreOrigin, PRIVATE_SENTINEL, "revisionId", '"payload":']) {
+    assert.equal(archiveHtml.includes(forbidden), false, `/articles leaked ${forbidden}`);
+    assert.equal(detailHtml.includes(forbidden), false, `${detailPath} leaked ${forbidden}`);
+  }
+}
+
 async function verifySubmissionBoundary(runtimeOrigin) {
   const quotePage = await loadForm(runtimeOrigin, "/quote");
   for (const endpoint of ["/api/moving/quote", "/api/moving/contact"]) {
@@ -520,6 +554,8 @@ async function verifySitemap(runtimeOrigin, coreOrigin) {
   for (const pathname of [
     "/", "/about", "/services", "/services/home-moving", "/services/office-relocation",
     "/areas", "/areas/north-district", "/areas/riverside", "/faq", "/testimonials",
+    "/articles/preparing-access-before-moving-day", "/articles/practical-packing-timeline",
+    "/articles/moving-an-office",
     "/quote", "/contact", "/privacy",
   ]) assert.ok(xml.includes(`<loc>${runtimeOrigin}${pathname}</loc>`), pathname);
   assert.equal(xml.includes(coreOrigin), false);

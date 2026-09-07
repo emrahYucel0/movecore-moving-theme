@@ -27,6 +27,11 @@ export interface PublicPageProjection {
   readonly seo: PublicSeoProjection;
 }
 
+export interface PublicContentPage {
+  readonly items: readonly PublicPageProjection[];
+  readonly nextAfter?: string;
+}
+
 export interface PublicSettingProjection {
   readonly namespace: string;
   readonly key: string;

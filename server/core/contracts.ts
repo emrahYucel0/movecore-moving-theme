@@ -2,6 +2,7 @@ import { CoreClientError } from "./errors";
 import type {
   JsonValue,
   PublicContentProjection,
+  PublicContentPage,
   PublicMediaObjectProjection,
   PublicMediaProjection,
   PublicNavigationDestination,
@@ -19,6 +20,7 @@ export type {
   JsonPrimitive,
   JsonValue,
   PublicContentProjection,
+  PublicContentPage,
   PublicMediaKind,
   PublicMediaObjectProjection,
   PublicMediaProjection,
@@ -43,6 +45,16 @@ export function parsePublicPage(value: unknown): PublicPageProjection {
     },
     content: parsePublicContent(record.content),
     seo: parsePublicSeo(record.seo),
+  };
+}
+
+export function parsePublicContentPage(value: unknown): PublicContentPage {
+  const record = requiredRecord(value);
+  if (record.kind !== "success") throw protocolError();
+  const nextAfter = optionalNonBlankString(record.nextAfter);
+  return {
+    items: parseArray(record.items, parsePublicPage),
+    ...(nextAfter === undefined ? {} : { nextAfter }),
   };
 }
 
@@ -220,6 +232,10 @@ function optionalString(value: unknown): string | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== "string") throw protocolError();
   return value;
+}
+
+function optionalNonBlankString(value: unknown): string | undefined {
+  return value === undefined ? undefined : requiredNonBlankString(value);
 }
 
 function requiredCanonicalPath(value: unknown): string {

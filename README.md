@@ -30,6 +30,8 @@ Demo routes:
 - `/areas`: typed `moving.areas` collection page
 - `/faq`: typed `moving.faq` collection page
 - `/testimonials`: typed `moving.testimonials` collection page
+- `/articles`: SSR Article archive backed only by Core's routable public collection
+- `/articles/preparing-access-before-moving-day`: one of three typed `moving.article` demo details
 - `/quote`: typed `moving.quote` page with the native quote-request form
 - `/contact`: typed `moving.contact` page with Business Identity and the native contact form
 - `/privacy`: replaceable reference privacy notice using `site.page`
@@ -65,11 +67,13 @@ MoveCore Moving & Logistics Theme R2.9B
   -> server-authenticated quote and contact conversion into Core Submissions
 MoveCore Moving & Logistics Theme R2.9D
   -> application-owned typed lead presentation in the generic Core Admin Inbox
+MoveCore Moving & Logistics Theme R2.11A
+  -> buyer-managed Articles with a public SSR archive and canonical detail routes
 ```
 
 The browser talks only to Nuxt. Nuxt server code calls fixed-purpose Core `/v1` reads and exposes only two explicit same-origin Moving submission endpoints. There is no generic proxy, Core package import, direct database access, Ege dependency or Admin API forwarding. Browser form data is validated by the Moving application before Nuxt signs a private `POST /v1/submissions` request.
 
-Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for interpreting and presenting the ten supported types: `site.page`, `moving.home`, `moving.service`, `moving.location`, `moving.services`, `moving.areas`, `moving.faq`, `moving.testimonials`, `moving.quote` and `moving.contact`.
+Core remains authoritative for canonical routes, redirects, SEO projections, navigation, settings, public media and sitemap inventory. This theme remains authoritative for interpreting and presenting the eleven supported types: `site.page`, `moving.home`, `moving.service`, `moving.location`, `moving.services`, `moving.areas`, `moving.faq`, `moving.testimonials`, `moving.quote`, `moving.contact` and `moving.article`.
 
 ## Theme visual direction
 
@@ -126,7 +130,7 @@ Make `application/setting-definitions.json` available to Core and set `CORE_CMS_
 
 Make `application/setting-editor-profiles.json` available to Core and set `CORE_CMS_SETTING_EDITOR_PROFILES_FILE` to its absolute deployment path. The **Business details** profile is the primary buyer-facing editor for `moving.business`; it preserves hidden `schemaVersion` and unknown safe data while exposing company, logo, contact, opening-hours and social fields. Raw JSON remains secondary and read-only for profiled values. Existing legacy v1 values must be explicitly converted before this profile is enabled; see [`docs/business-setting-v2.md`](docs/business-setting-v2.md) for the dry conversion command.
 
-Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for all ten supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code.
+Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains profiles for all eleven supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code. The `moving.article` profile exposes title, excerpt and bounded repeatable body sections without raw JSON.
 
 Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
 
@@ -165,7 +169,15 @@ R2.4 adds exactly two bounded Moving-specific types. `moving.service` models one
 
 The nested `/services/...` and `/areas/...` URLs are deterministic demo fixtures, not product policy. Core may resolve either type at a flat or differently nested canonical path. Related-service and nearby-area destinations are bounded textual href references, not database relations or automatic graph traversal.
 
-`moving.article` is deliberately deferred. A dedicated article type is not justified until publication date, author, taxonomy, listing, related-article and Article structured-data semantics are demonstrated. General editorial pages continue to use `site.page`; R2.4 adds no blog, geo hierarchy, bulk SEO generation, map, form, pricing, review or page-builder system.
+General editorial pages continue to use `site.page`; R2.4 adds no blog, geo hierarchy, bulk SEO generation, map, form, pricing, review or page-builder system. The later R2.11A capability adds `moving.article` without changing the service/location contracts.
+
+## R2.11A Articles
+
+`moving.article` is a focused editorial V1 with `title`, `excerpt` and bounded body sections containing optional headings and one or more plain-text paragraphs. It intentionally has no author, taxonomy, comments, scheduling, reading-time field or unsafe HTML. Cover media is also omitted: current Core content profiles can select Media IDs, but content revision writes do not yet maintain the generic Media usage-reference lifecycle required for safe deletion protection.
+
+`/articles` is an application-owned SSR archive. One displayed page contains at most six Articles and normally makes one `GET /v1/content?type=moving.article` request. URL-less rows can make Core return a short or empty page with `nextAfter`; the archive continues only until it has six display items, Core ends, or four collection requests have been made. It rejects repeated cursors and duplicate content/canonical identities, never scans the whole collection, and links only to each Core-projected `seo.canonicalPath`. Canonical Article detail requests continue through the existing Core path resolver and typed catch-all dispatch.
+
+The Articles navigation item stays visible when there are no published Articles because the archive has a deliberate service-oriented empty state. Demo mode provides exactly three published Articles and real canonical URL projections; `application/examples/` remains fixture-only and does not seed a production database. Article detail URLs participate in the existing Core sitemap rules, while the fixed archive route is not injected into Core's sitemap because this application currently has no separate static-route sitemap inventory.
 
 ## R2.5 performance and motion
 
@@ -226,6 +238,7 @@ node scripts/verify-core-admin-shell.mjs
 - `moving.location` is a bounded content record, not a geo database or bulk SEO system.
 - Media publication and content publication remain separate Core lifecycles rather than one atomic application transaction.
 - The Moving Admin shell and Business Settings profile are application-aware, but page-owned Core controls remain partly Turkish; global localization remains a separate milestone.
-- There is no email/CRM notification, CAPTCHA, pricing calculator, article model, service taxonomy or location hierarchy.
+- There is no email/CRM notification, CAPTCHA, pricing calculator, article taxonomy or location hierarchy.
+- Editor Profiles are presentation metadata, not an application schema publish guard; malformed published Article payloads fail closed at the Moving parser boundary.
 - Demo imagery is deterministic illustration, not final commercial photography.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.
