@@ -124,17 +124,18 @@ NUXT_PUBLIC_SITE_URL=https://public.example.com
 
 Make `application/setting-definitions.json` available to Core and set `CORE_CMS_SETTING_DEFINITIONS_FILE` to its absolute deployment path. Include `moving` in `CORE_CMS_ADMIN_SETTING_NAMESPACES` so authorized Admin users can read and update this namespace. Core loads definitions on startup; a missing definition receives the manifest default, while an existing compatible setting keeps its customer-managed value across restarts. The included default is an example-safe placeholder and must be changed before a real launch.
 
-Core Admin currently edits the Business Identity value as JSON. Fresh installations bootstrap canonical value contract v2; legacy v1 values remain readable but must be explicitly converted before the future typed Business Settings profile is enabled. See [`docs/business-setting-v2.md`](docs/business-setting-v2.md) for the persisted/runtime distinction and the dry conversion command.
+Make `application/setting-editor-profiles.json` available to Core and set `CORE_CMS_SETTING_EDITOR_PROFILES_FILE` to its absolute deployment path. The **Business details** profile is the primary buyer-facing editor for `moving.business`; it preserves hidden `schemaVersion` and unknown safe data while exposing company, logo, contact, opening-hours and social fields. Raw JSON remains secondary and read-only for profiled values. Existing legacy v1 values must be explicitly converted before this profile is enabled; see [`docs/business-setting-v2.md`](docs/business-setting-v2.md) for the dry conversion command.
 
 Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains version 1 profiles for all ten supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code.
 
 Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
 
-Deploy the five application metadata manifests together when their capabilities are used:
+Deploy the six application metadata manifests together when their capabilities are used:
 
 ```text
 CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
 CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definitions.json
+CORE_CMS_SETTING_EDITOR_PROFILES_FILE=<absolute path>/application/setting-editor-profiles.json
 CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-definitions.json
 CORE_CMS_SUBMISSION_PRESENTATIONS_FILE=<absolute path>/application/submission-presentations.json
 CORE_CMS_ADMIN_SHELL_FILE=<absolute path>/application/admin-shell.json
@@ -198,9 +199,9 @@ R2.9D configures Core's generic Submission Presentation Profile capability witho
 
 ## R2.10B.1 application-aware Admin shell
 
-Deploy all five manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing the manifest. No Core source changes are required.
+Deploy all six manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing the manifest. No Core source changes are required.
 
-The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Settings truthfully opens the existing generic JSON workflow, not a typed Business Profile editor. Core continues to own routes, permissions and active-state behavior.
+The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Business settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Business settings is truthful because `moving.business` is the only buyer-facing Setting and now has a complete typed profile. Core continues to own routes, permissions and active-state behavior.
 
 The application shell and submission presentation labels use English; page-owned Core copy and controls may remain Turkish. This known localization/product-polish gap is not solved by the shell profile.
 
@@ -208,9 +209,9 @@ The application shell and submission presentation labels use English; page-owned
 
 The canonical `moving.business` v2 value stores buyer-editable sources rather than derived navigation values. A displayed phone derives its safe fixed-scheme `tel:` link, an email address derives `mailto:`, and an optional `whatsappUrl` creates the runtime WhatsApp action. A top-level `primaryPhoneDial` is retained only when display and dial values genuinely differ; `whatsappLabel` remains independent optional presentation copy. Opening hours and social links remain bounded ordered source collections, while `logoAssetId` remains a Core Media identity.
 
-`parseBusinessIdentity` is the single version boundary and continues to give every public component the unchanged runtime `BusinessIdentity` projection. It reads legacy v1 without mutation and canonical v2, while `business:convert-v2` performs a pure local conversion and writes JSON only to standard output. This normalization adds no Setting Editor Profile, Core change, database migration, public request or client-side behavior; the typed profile belongs to R2.10C.2B.
+`parseBusinessIdentity` is the single version boundary and continues to give every public component the unchanged runtime `BusinessIdentity` projection. It reads legacy v1 without mutation and canonical v2, while `business:convert-v2` performs a pure local conversion and writes JSON only to standard output. `application/setting-editor-profiles.json` now maps every buyer-editable v2 source to current Core fields without exposing `schemaVersion`, derived `tel:`/`mailto:` values or raw asset IDs.
 
-Validate all five manifests with the actual already-built, read-only Core runtime loaders (no database connection):
+Validate all six manifests with the actual already-built, read-only Core runtime loaders (no database connection):
 
 ```powershell
 $env:MOVECORE_CORE_ROOT = 'C:\Users\monster\Desktop\MOVECORE\core-cms'
@@ -224,7 +225,7 @@ node scripts/verify-core-admin-shell.mjs
 - Related-service and nearby-area links are textual href references, not relational entities.
 - `moving.location` is a bounded content record, not a geo database or bulk SEO system.
 - Media publication and content publication remain separate Core lifecycles rather than one atomic application transaction.
-- The Moving Admin shell is application-aware, but page-owned Core controls remain partly Turkish; global localization and typed Business Settings are still separate milestones.
+- The Moving Admin shell and Business Settings profile are application-aware, but page-owned Core controls remain partly Turkish; global localization remains a separate milestone.
 - There is no email/CRM notification, CAPTCHA, pricing calculator, article model, service taxonomy or location hierarchy.
 - Demo imagery is deterministic illustration, not final commercial photography.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.

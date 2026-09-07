@@ -25,7 +25,7 @@ describe("Moving application shell intent", () => {
       { id: "content", label: "Content", group: "content", visible: true },
       { id: "media", label: "Media", group: "content", visible: true },
       { id: "navigation", label: "Navigation", group: "site", visible: true },
-      { id: "settings", label: "Settings", group: "site", visible: true },
+      { id: "settings", label: "Business settings", group: "site", visible: true },
       { id: "url-seo", label: "SEO & URLs", group: "site", visible: true },
       { id: "audit", label: "Audit", group: "system", visible: true },
     ]);

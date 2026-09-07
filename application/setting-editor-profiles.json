@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "namespace": "moving",
+      "key": "business",
+      "label": "Business details",
+      "description": "Manage the company identity and contact information shown across your website.",
+      "groups": [
+        {
+          "label": "Business identity",
+          "fields": [
+            {
+              "kind": "text",
+              "path": "companyName",
+              "label": "Company name",
+              "required": true,
+              "maxLength": 120
+            },
+            {
+              "kind": "media",
+              "path": "logoAssetId",
+              "label": "Logo",
+              "help": "Choose the logo used across the public website.",
+              "allowedKinds": ["image"]
+            }
+          ]
+        },
+        {
+          "label": "Contact",
+          "fields": [
+            {
+              "kind": "phone",
+              "path": "primaryPhone",
+              "label": "Primary phone",
+              "required": true,
+              "help": "Shown publicly as the main number customers can call.",
+              "maxLength": 120
+            },
+            {
+              "kind": "phone",
+              "path": "primaryPhoneDial",
+              "label": "Dialing number override",
+              "help": "Optional. Leave blank unless the number dialed should differ from the displayed phone number.",
+              "maxLength": 120
+            },
+            {
+              "kind": "url",
+              "path": "whatsappUrl",
+              "label": "WhatsApp link",
+              "help": "Optional. Use the full WhatsApp link customers should open.",
+              "maxLength": 2048
+            },
+            {
+              "kind": "text",
+              "path": "whatsappLabel",
+              "label": "WhatsApp button label",
+              "help": "Optional. Leave blank to use “WhatsApp”.",
+              "maxLength": 80
+            },
+            {
+              "kind": "email",
+              "path": "email",
+              "label": "Email",
+              "help": "Shown publicly as the main contact email.",
+              "maxLength": 254
+            },
+            {
+              "kind": "multiline",
+              "path": "address",
+              "label": "Address",
+              "help": "Enter the public business address as it should appear on the website.",
+              "maxLength": 500
+            }
+          ]
+        },
+        {
+          "label": "Opening hours",
+          "fields": [
+            {
+              "kind": "repeater",
+              "path": "openingHours",
+              "label": "Opening hours",
+              "help": "Add each public day or day range in the order it should appear.",
+              "minItems": 0,
+              "maxItems": 14,
+              "fields": [
+                {
+                  "kind": "text",
+                  "path": "label",
+                  "label": "Days",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "kind": "text",
+                  "path": "value",
+                  "label": "Opening hours",
+                  "required": true,
+                  "maxLength": 160
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Social links",
+          "fields": [
+            {
+              "kind": "repeater",
+              "path": "socialLinks",
+              "label": "Social profiles",
+              "help": "Add public social profiles in the order they should appear.",
+              "minItems": 0,
+              "maxItems": 8,
+              "fields": [
+                {
+                  "kind": "text",
+                  "path": "label",
+                  "label": "Platform or label",
+                  "required": true,
+                  "maxLength": 80
+                },
+                {
+                  "kind": "url",
+                  "path": "href",
+                  "label": "Profile URL",
+                  "required": true,
+                  "maxLength": 2048
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

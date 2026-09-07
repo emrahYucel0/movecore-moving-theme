@@ -12,9 +12,11 @@ export async function verifyCoreAdminShell(coreRoot) {
   }
   const runtime = (name) => import(pathToFileURL(path.join(coreRoot, "apps/runtime/dist", `${name}.js`)).href);
   const [{ parseCoreRuntimeConfig }, { loadAdminShellProjection }, { loadContentEditorProfiles },
-    { loadSettingDefinitions }, { loadSubmissionDefinitions }, { loadSubmissionPresentations }] = await Promise.all([
+    { loadSettingDefinitions }, { loadSettingEditorProfiles }, { loadSubmissionDefinitions },
+    { loadSubmissionPresentations }] = await Promise.all([
     runtime("config"), runtime("admin-shell"), runtime("editor-profiles"),
-    runtime("setting-definitions"), runtime("submission-definitions"), runtime("submission-presentations"),
+    runtime("setting-definitions"), runtime("setting-editor-profiles"), runtime("submission-definitions"),
+    runtime("submission-presentations"),
   ]);
   const manifest = (name) => path.join(movingRoot, "application", `${name}.json`);
   // Parse an isolated configuration rather than inheriting any local/production environment.
@@ -32,6 +34,7 @@ export async function verifyCoreAdminShell(coreRoot) {
     CORE_CMS_THROTTLE_SECRET: randomBytes(32).toString("base64url"),
     CORE_CMS_EDITOR_PROFILES_FILE: manifest("editor-profiles"),
     CORE_CMS_SETTING_DEFINITIONS_FILE: manifest("setting-definitions"),
+    CORE_CMS_SETTING_EDITOR_PROFILES_FILE: manifest("setting-editor-profiles"),
     CORE_CMS_SUBMISSION_DEFINITIONS_FILE: manifest("submission-definitions"),
     CORE_CMS_SUBMISSION_PRESENTATIONS_FILE: manifest("submission-presentations"),
     CORE_CMS_ADMIN_SHELL_FILE: manifest("admin-shell"),
@@ -39,29 +42,34 @@ export async function verifyCoreAdminShell(coreRoot) {
   const adminShell = await loadAdminShellProjection(config.adminShellFile);
   const editorProfiles = await loadContentEditorProfiles(config.editorProfilesFile);
   const settingDefinitions = await loadSettingDefinitions(config.settingDefinitionsFile);
+  const settingEditorProfiles = await loadSettingEditorProfiles(config.settingEditorProfilesFile, settingDefinitions);
   const submissionDefinitions = await loadSubmissionDefinitions(config.submissionDefinitionsFile);
   const submissionPresentations = await loadSubmissionPresentations(config.submissionPresentationsFile, submissionDefinitions);
   assert.deepEqual(adminShell.application, { name: "MoveCore Moving", descriptor: "Operations workspace" });
   assert.deepEqual(adminShell.navigation.map(({ id, label, group, visible }) => [id, label, group, visible]), [
     ["overview", "Overview", "operations", true], ["submissions", "Leads", "operations", true],
     ["content", "Content", "content", true], ["media", "Media", "content", true],
-    ["navigation", "Navigation", "site", true], ["settings", "Settings", "site", true],
+    ["navigation", "Navigation", "site", true], ["settings", "Business settings", "site", true],
     ["url-seo", "SEO & URLs", "site", true], ["audit", "Audit", "system", true],
   ]);
   assert.equal(editorProfiles.length, 10);
   assert.ok(settingDefinitions.some(({ namespace, key }) => namespace === "moving" && key === "business"));
+  assert.deepEqual(settingEditorProfiles.map(({ namespace, key, label }) => [namespace, key, label]), [
+    ["moving", "business", "Business details"],
+  ]);
   for (const records of [submissionDefinitions, submissionPresentations]) {
     assert.deepEqual(records.map(({ type }) => type).sort(), ["moving.contact-request", "moving.quote-request"]);
   }
-  return { adminShell, editorProfiles, settingDefinitions, submissionDefinitions, submissionPresentations };
+  return { adminShell, editorProfiles, settingDefinitions, settingEditorProfiles, submissionDefinitions, submissionPresentations };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
   const result = await verifyCoreAdminShell(process.env.MOVECORE_CORE_ROOT?.trim());
   process.stdout.write(`${JSON.stringify({
     status: "passed", application: result.adminShell.application,
-    manifests: 5, editorProfiles: result.editorProfiles.length,
+    manifests: 6, editorProfiles: result.editorProfiles.length,
     settingDefinitions: result.settingDefinitions.length,
+    settingEditorProfiles: result.settingEditorProfiles.length,
     submissionDefinitions: result.submissionDefinitions.length,
     submissionPresentations: result.submissionPresentations.length,
     capabilities: result.adminShell.navigation.length, databaseConnections: 0,

@@ -25,13 +25,13 @@
 
 The persisted model is not the public component model. `parseBusinessIdentity` reads legacy v1 or canonical v2 and returns the stable runtime `BusinessIdentity`: it derives the fixed `tel:` scheme, derives `mailto:` from the email address, and creates the optional WhatsApp action only when `whatsappUrl` exists. Header, footer and contact components remain version-unaware.
 
-Legacy v1 values remain readable without mutation. For an existing installation, export only the current `moving.business` JSON value to a local file, then run:
+Legacy v1 values remain readable without mutation, but the typed form intentionally targets canonical v2 only. For an existing installation, export only the current `moving.business` JSON value to a local file, then run:
 
 ```powershell
 npm run business:convert-v2 -- C:\safe\local\business-setting-v1.json
 ```
 
-The command validates the input and prints canonical v2 JSON to standard output; it never connects to Core or writes a database. Review the output and use the normal authenticated Settings workflow in the intended environment. Enable the future typed profile only after the persisted value has been explicitly converted.
+The command validates the input and prints canonical v2 JSON to standard output; it never connects to Core or writes a database. Review the output, update the value through an authorized controlled workflow, verify it, then enable `application/setting-editor-profiles.json`. An unconverted v1 value opens Core's non-destructive incompatible-data recovery state; the typed form never repairs or overwrites it automatically.
 
 ## Current Core editor compatibility
 
@@ -48,4 +48,15 @@ The command validates the input and prints canonical v2 JSON to standard output;
 | `openingHours` | `repeater` of required `label`/`value` text fields, maximum 14 | optional/empty |
 | `socialLinks` | `repeater` of required `label` text and `href` URL fields, maximum 8 | optional/empty |
 
-All optional values are top-level scalars. There is no optional nested-object lifecycle and no schema or Core migration. Fresh installations receive v2 directly from `application/setting-definitions.json`.
+All optional values are top-level scalars. There is no optional nested-object lifecycle and no schema or Core migration. Fresh installations receive v2 directly from `application/setting-definitions.json` and can load the typed form immediately.
+
+## Typed Business Settings integration
+
+Configure Core with both application-owned manifests:
+
+```text
+CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definitions.json
+CORE_CMS_SETTING_EDITOR_PROFILES_FILE=<absolute path>/application/setting-editor-profiles.json
+```
+
+The **Business details** form groups company identity, contact information, opening hours and social profiles. It never exposes `schemaVersion`, raw Media IDs, `tel:` or `mailto:` values. Core's complete-value copy-on-write editor preserves `schemaVersion` and unknown safe siblings, keeps repeater order, enforces optimistic concurrency, and applies its existing Settings and Media permissions. Selecting, changing or clearing the logo uses the existing image-only Media picker and Core's reliable media-usage lifecycle.
