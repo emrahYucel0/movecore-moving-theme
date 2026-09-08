@@ -1218,6 +1218,7 @@
       "contentType": "moving.article",
       "label": "Article",
       "description": "An editorial moving guide with a concise introduction and structured long-form sections.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "title",
@@ -1241,6 +1242,8 @@
           "kind": "repeater",
           "description": "Add sections in reading order. A section heading is optional; every section needs at least one paragraph.",
           "required": true,
+          "minItems": 1,
+          "maxItems": 24,
           "fields": [
             {
               "key": "heading",
@@ -1254,6 +1257,8 @@
               "label": "Paragraphs",
               "kind": "repeater",
               "required": true,
+              "minItems": 1,
+              "maxItems": 12,
               "fields": [
                 {
                   "key": "text",

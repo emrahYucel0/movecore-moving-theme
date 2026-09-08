@@ -1,8 +1,16 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
+import {
+  validateProfilePayloadForPublication,
+  type ContentEditorProfile,
+} from "../../core-cms/packages/admin-application/dist/index.js";
 import { MOVING_HOME_LIMITS, parseMovingHomePayload } from "../shared/content/moving-home";
 import { MOVING_SERVICE_LIMITS, parseMovingServicePayload } from "../shared/content/moving-service";
 import { MOVING_LOCATION_LIMITS, parseMovingLocationPayload } from "../shared/content/moving-location";
+import {
+  MOVING_ARTICLE_LIMITS,
+  parseMovingArticlePayload,
+} from "../shared/content/moving-article";
 import { parseSitePagePayload } from "../shared/content/site-page";
 
 describe("application Editor Profile manifest", () => {
@@ -211,22 +219,113 @@ describe("application Editor Profile manifest", () => {
 
   it("expresses a buyer-friendly moving.article profile aligned to the application parser", async () => {
     const profiles = array((await loadManifest())["profiles"]);
+    expect(profiles.map(record).filter((entry) => entry["enforceOnPublish"] === true)
+      .map((entry) => entry["contentType"]))
+      .toEqual(["moving.article"]);
     const profile = profileById(profiles, "moving.article");
     expect(profile).toMatchObject({
       id: "moving.article",
       version: 1,
       contentType: "moving.article",
       label: "Article",
+      enforceOnPublish: true,
     });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual(["title", "excerpt", "body"]);
     expect(field(fields, "title")).toMatchObject({ kind: "text", required: true, maxLength: 180 });
     expect(field(fields, "excerpt")).toMatchObject({ kind: "textarea", required: true, maxLength: 600 });
-    const sections = nested(fields, "body", "repeater", true);
+    const body = field(fields, "body");
+    expect(body).toMatchObject({
+      kind: "repeater",
+      required: true,
+      minItems: 1,
+      maxItems: MOVING_ARTICLE_LIMITS.bodySections,
+    });
+    const sections = array(body["fields"]).map(record);
     expect(field(sections, "heading")).toMatchObject({ kind: "text", required: false, maxLength: 160 });
-    const paragraphs = nested(sections, "paragraphs", "repeater", true);
+    const paragraphRepeater = field(sections, "paragraphs");
+    expect(paragraphRepeater).toMatchObject({
+      kind: "repeater",
+      required: true,
+      minItems: 1,
+      maxItems: MOVING_ARTICLE_LIMITS.paragraphsPerSection,
+    });
+    const paragraphs = array(paragraphRepeater["fields"]).map(record);
     expect(field(paragraphs, "text")).toMatchObject({ kind: "textarea", required: true, maxLength: 2000 });
     expect(JSON.stringify(profile)).not.toMatch(/media|author|categor|tags?|comments?|reading time/iu);
+  });
+
+  it("keeps the enforced moving.article profile equivalent to its public parser", async () => {
+    const profile = profileById(
+      array((await loadManifest())["profiles"]),
+      "moving.article",
+    ) as unknown as ContentEditorProfile;
+    const minimal = articlePayload();
+    const representative = {
+      ...minimal,
+      body: [
+        {
+          heading: "Prepare access",
+          paragraphs: [{ text: "Confirm loading access." }, { text: "Protect shared spaces." }],
+        },
+        { paragraphs: [{ text: "Keep essential items nearby." }] },
+      ],
+      futureRoot: { preserved: true },
+    };
+
+    for (const payload of [minimal, representative]) {
+      expect(() => parseMovingArticlePayload(payload)).not.toThrow();
+      expect(validateProfilePayloadForPublication(profile, payload).valid).toBe(true);
+    }
+
+    const invalidCases: readonly unknown[] = [
+      { excerpt: "Excerpt", body: [{ paragraphs: [{ text: "Copy" }] }] },
+      { ...minimal, title: "x".repeat(MOVING_ARTICLE_LIMITS.title + 1) },
+      { title: "Title", body: [{ paragraphs: [{ text: "Copy" }] }] },
+      { ...minimal, excerpt: "x".repeat(MOVING_ARTICLE_LIMITS.excerpt + 1) },
+      { ...minimal, body: [] },
+      { ...minimal, body: Array.from({ length: MOVING_ARTICLE_LIMITS.bodySections + 1 }, articleSection) },
+      { ...minimal, body: ["not-an-object"] },
+      { ...minimal, body: [{ paragraphs: [] }] },
+      {
+        ...minimal,
+        body: [{
+          paragraphs: Array.from(
+            { length: MOVING_ARTICLE_LIMITS.paragraphsPerSection + 1 },
+            articleParagraph,
+          ),
+        }],
+      },
+      { ...minimal, body: [{ paragraphs: ["not-an-object"] }] },
+      { ...minimal, body: [{ paragraphs: [{}] }] },
+      [],
+    ];
+    for (const payload of invalidCases) {
+      expect(() => parseMovingArticlePayload(payload)).toThrow();
+      expect(validateProfilePayloadForPublication(
+        profile,
+        payload as Parameters<typeof validateProfilePayloadForPublication>[1],
+      ).valid).toBe(false);
+    }
+  });
+
+  it("keeps all three deterministic Article fixtures valid for parser and enforced profile", async () => {
+    const profile = profileById(
+      array((await loadManifest())["profiles"]),
+      "moving.article",
+    ) as unknown as ContentEditorProfile;
+    for (const name of [
+      "moving-article-access.json",
+      "moving-article-packing.json",
+      "moving-article-office.json",
+    ] as const) {
+      const payload = JSON.parse(await readFile(
+        new URL(`../application/examples/${name}`, import.meta.url),
+        "utf8",
+      ));
+      expect(() => parseMovingArticlePayload(payload)).not.toThrow();
+      expect(validateProfilePayloadForPublication(profile, payload).valid).toBe(true);
+    }
   });
 
   it.each(["site-page-home.json", "site-page-detail.json"])(
@@ -264,6 +363,22 @@ async function loadManifest(): Promise<Readonly<Record<string, unknown>>> {
     new URL("../application/editor-profiles.json", import.meta.url),
     "utf8",
   )));
+}
+
+function articlePayload(): Readonly<Record<string, unknown>> {
+  return {
+    title: "A practical moving guide",
+    excerpt: "Useful preparation guidance.",
+    body: [articleSection()],
+  };
+}
+
+function articleSection(): Readonly<Record<string, unknown>> {
+  return { paragraphs: [articleParagraph()] };
+}
+
+function articleParagraph(): Readonly<Record<string, unknown>> {
+  return { text: "Prepare early." };
 }
 
 function profileById(
