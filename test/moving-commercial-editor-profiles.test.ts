@@ -16,8 +16,7 @@ describe("R2.8 commercial Editor Profiles", () => {
       ["moving.testimonials", ["hero", "featured", "items", "finalAction"], 27, 3],
     ] as const) {
       const profile = profileById(profiles, id);
-      expect(profile["version"]).toBe(1);
-      expect(profile["contentType"]).toBe(id);
+      expect(profile).toMatchObject({ version: 1, contentType: id, enforceOnPublish: true });
       const fields = array(profile["fields"]).map(record);
       expect(fields.map((field) => field["key"])).toEqual(keys);
       expect(totalFields(fields)).toBe(total);
@@ -31,20 +30,62 @@ describe("R2.8 commercial Editor Profiles", () => {
     const profiles = await loadProfiles();
     const services = fields(profileById(profiles, "moving.services"));
     const serviceItems = nested(nested(services, "portfolio"), "items");
+    expect(field(nested(services, "portfolio"), "items")).toMatchObject({
+      minItems: MOVING_SERVICES_LIMITS.servicesMinimum,
+      maxItems: MOVING_SERVICES_LIMITS.servicesMaximum,
+      uniqueBy: [{ fieldPaths: [["href"]], normalization: "exact" }],
+    });
     expect(field(serviceItems, "title")).toMatchObject({ maxLength: MOVING_SERVICES_LIMITS.itemTitle });
     expect(field(serviceItems, "description")).toMatchObject({ maxLength: MOVING_SERVICES_LIMITS.itemDescription });
-    expect(field(serviceItems, "href")).toMatchObject({ maxLength: MOVING_SERVICES_LIMITS.href });
+    expect(field(serviceItems, "href")).toMatchObject({
+      kind: "link",
+      maxLength: MOVING_SERVICES_LIMITS.href,
+      allowedDestinations: ["internal", "http", "https"],
+    });
+    expect(field(nested(services, "context"), "points")).toMatchObject({
+      minItems: MOVING_SERVICES_LIMITS.pointsMinimum,
+      maxItems: MOVING_SERVICES_LIMITS.pointsMaximum,
+    });
 
     const areas = fields(profileById(profiles, "moving.areas"));
     const areaItems = nested(nested(areas, "coverage"), "items");
+    expect(field(nested(areas, "coverage"), "items")).toMatchObject({
+      minItems: MOVING_AREAS_LIMITS.areasMinimum,
+      maxItems: MOVING_AREAS_LIMITS.areasMaximum,
+      uniqueBy: [{ fieldPaths: [["href"]], normalization: "exact" }],
+    });
     expect(field(areaItems, "description")).toMatchObject({ maxLength: MOVING_AREAS_LIMITS.itemDescription });
+    expect(field(nested(areas, "planning"), "points")).toMatchObject({
+      minItems: MOVING_AREAS_LIMITS.pointsMinimum,
+      maxItems: MOVING_AREAS_LIMITS.pointsMaximum,
+    });
 
     const faq = fields(profileById(profiles, "moving.faq"));
     const faqItems = nested(faq, "items");
+    expect(field(faq, "items")).toMatchObject({
+      minItems: MOVING_FAQ_LIMITS.itemsMinimum,
+      maxItems: MOVING_FAQ_LIMITS.itemsMaximum,
+      uniqueBy: [{ fieldPaths: [["question"]], normalization: "trim-lowercase-en" }],
+    });
     expect(field(faqItems, "question")).toMatchObject({ maxLength: MOVING_FAQ_LIMITS.question });
     expect(field(faqItems, "answer")).toMatchObject({ maxLength: MOVING_FAQ_LIMITS.answer });
 
     const testimonials = fields(profileById(profiles, "moving.testimonials"));
+    expect(field(testimonials, "items")).toMatchObject({
+      minItems: MOVING_TESTIMONIALS_LIMITS.itemsMinimum,
+      maxItems: MOVING_TESTIMONIALS_LIMITS.itemsMaximum,
+      uniqueBy: [{
+        fieldPaths: [["customerName"], ["quote"]],
+        normalization: "trim-lowercase-en",
+      }],
+    });
+    expect(profileById(profiles, "moving.testimonials")["groupRepeaterUniqueBy"]).toEqual([{
+      groupPath: ["featured"],
+      repeaterPath: ["items"],
+      groupFieldPaths: [["customerName"], ["quote"]],
+      repeaterFieldPaths: [["customerName"], ["quote"]],
+      normalization: "trim-lowercase-en",
+    }]);
     expect(field(nested(testimonials, "featured"), "quote"))
       .toMatchObject({ maxLength: MOVING_TESTIMONIALS_LIMITS.quote });
 

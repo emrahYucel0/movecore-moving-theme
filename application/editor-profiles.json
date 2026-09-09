@@ -7,6 +7,7 @@
       "contentType": "site.page",
       "label": "Site Page",
       "description": "Structured fields for a public site page.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "eyebrow",
@@ -55,6 +56,7 @@
           "label": "Sections",
           "kind": "repeater",
           "required": false,
+          "maxItems": 100,
           "fields": [
             {
               "key": "heading",
@@ -166,10 +168,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
+                  "kind": "link",
                   "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https", "tel", "mailto"]
                 }
               ]
             },
@@ -189,10 +192,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
+                  "kind": "link",
                   "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https", "tel", "mailto"]
                 }
               ]
             }
@@ -204,6 +208,8 @@
           "kind": "repeater",
           "description": "Add 2 to 6 operational proof statements.",
           "required": true,
+          "minItems": 2,
+          "maxItems": 6,
           "fields": [
             {
               "key": "value",
@@ -254,6 +260,8 @@
               "kind": "repeater",
               "description": "Add 3 to 8 service summaries.",
               "required": true,
+              "minItems": 3,
+              "maxItems": 8,
               "fields": [
                 {
                   "key": "title",
@@ -272,10 +280,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
-                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "kind": "link",
+                  "description": "Use an internal /path or HTTP(S) URL.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https"]
                 }
               ]
             }
@@ -314,6 +323,8 @@
               "kind": "repeater",
               "description": "Add 3 to 6 steps. List order is the editorial order.",
               "required": true,
+              "minItems": 3,
+              "maxItems": 6,
               "fields": [
                 {
                   "key": "title",
@@ -387,6 +398,8 @@
               "kind": "repeater",
               "description": "Add 2 to 6 care or handling points.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 {
                   "key": "text",
@@ -432,6 +445,8 @@
               "kind": "repeater",
               "description": "Add 3 to 12 homepage area links.",
               "required": true,
+              "minItems": 3,
+              "maxItems": 12,
               "fields": [
                 {
                   "key": "label",
@@ -443,10 +458,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
-                  "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
+                  "kind": "link",
+                  "description": "Use an internal /path or HTTP(S) URL.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https"]
                 }
               ]
             }
@@ -479,6 +495,14 @@
               "kind": "repeater",
               "description": "Add 1 to 3 supporting stories. Use only editorially approved customer wording.",
               "required": true,
+              "minItems": 1,
+              "maxItems": 3,
+              "uniqueBy": [
+                {
+                  "fieldPaths": [["customerName"], ["quote"]],
+                  "normalization": "trim-lowercase-en"
+                }
+              ],
               "fields": [
                 { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
                 { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
@@ -493,7 +517,7 @@
               "required": false,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             }
           ]
@@ -513,6 +537,14 @@
               "kind": "repeater",
               "description": "Add 2 to 5 questions in editorial order.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 5,
+              "uniqueBy": [
+                {
+                  "fieldPaths": [["question"]],
+                  "normalization": "trim-lowercase-en"
+                }
+              ],
               "fields": [
                 { "key": "question", "label": "Question", "kind": "text", "required": true, "maxLength": 200 },
                 { "key": "answer", "label": "Answer", "kind": "textarea", "required": true, "maxLength": 1200 }
@@ -525,7 +557,7 @@
               "required": false,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             }
           ]
@@ -573,10 +605,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
+                  "kind": "link",
                   "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https", "tel", "mailto"]
                 }
               ]
             },
@@ -596,10 +629,11 @@
                 {
                   "key": "href",
                   "label": "Destination",
-                  "kind": "text",
+                  "kind": "link",
                   "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.",
                   "required": true,
-                  "maxLength": 2048
+                  "maxLength": 2048,
+                  "allowedDestinations": ["internal", "http", "https", "tel", "mailto"]
                 }
               ]
             }
@@ -613,6 +647,7 @@
       "contentType": "moving.service",
       "label": "Moving Service",
       "description": "Structured content for one focused moving service page.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero",
@@ -640,7 +675,7 @@
               "required": true,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             }
           ]
@@ -659,6 +694,8 @@
               "kind": "repeater",
               "description": "Add 2 to 6 practical service points.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
               ]
@@ -680,6 +717,8 @@
               "kind": "repeater",
               "description": "Add 3 to 8 inclusions in editorial order.",
               "required": true,
+              "minItems": 3,
+              "maxItems": 8,
               "fields": [
                 { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 400 }
@@ -702,6 +741,8 @@
               "kind": "repeater",
               "description": "Add 3 to 6 steps. List order owns visible numbering.",
               "required": true,
+              "minItems": 3,
+              "maxItems": 6,
               "fields": [
                 { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 100 },
                 { "key": "description", "label": "Description", "kind": "textarea", "required": true, "maxLength": 320 }
@@ -723,10 +764,12 @@
               "kind": "repeater",
               "description": "Add 2 to 6 summary links.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 400 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path or HTTP(S) URL.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https"] }
               ]
             }
           ]
@@ -747,7 +790,7 @@
               "required": true,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             },
             {
@@ -757,7 +800,7 @@
               "required": false,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             }
           ]
@@ -770,6 +813,7 @@
       "contentType": "moving.location",
       "label": "Moving Location",
       "description": "Structured content for one useful moving location page, not a geographic database.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero",
@@ -806,6 +850,8 @@
               "kind": "repeater",
               "description": "Add 2 to 6 genuinely useful location points.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 { "key": "text", "label": "Highlight", "kind": "text", "required": true, "maxLength": 240 }
               ]
@@ -827,10 +873,12 @@
               "kind": "repeater",
               "description": "Add 2 to 8 relevant service links.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 8,
               "fields": [
                 { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Description", "kind": "textarea", "required": false, "maxLength": 500 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path or HTTP(S) URL.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https"] }
               ]
             }
           ]
@@ -850,6 +898,8 @@
               "kind": "repeater",
               "description": "Add 2 to 6 useful local considerations.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Description", "kind": "textarea", "required": true, "maxLength": 500 }
@@ -871,9 +921,11 @@
               "kind": "repeater",
               "description": "Add 2 to 8 navigational area links.",
               "required": true,
+              "minItems": 2,
+              "maxItems": 8,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path or HTTP(S) URL.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https"] }
               ]
             }
           ]
@@ -894,7 +946,7 @@
               "required": true,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             },
             {
@@ -904,7 +956,7 @@
               "required": false,
               "fields": [
                 { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-                { "key": "href", "label": "Destination", "kind": "text", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Destination", "kind": "link", "description": "Use an internal /path, HTTP(S) URL, tel: number, or mailto: address.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
               ]
             }
           ]
@@ -917,6 +969,7 @@
       "contentType": "moving.services",
       "label": "Services Overview",
       "description": "A commercial overview of the moving services offered by the business.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero", "label": "Services introduction", "kind": "group", "required": true,
@@ -941,10 +994,15 @@
             {
               "key": "items", "label": "Services", "kind": "repeater", "required": true,
               "description": "Add 2 to 10 services with a unique destination for each entry.",
+              "minItems": 2,
+              "maxItems": 10,
+              "uniqueBy": [
+                { "fieldPaths": [["href"]], "normalization": "exact" }
+              ],
               "fields": [
                 { "key": "title", "label": "Service name", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Short description", "kind": "textarea", "required": true, "maxLength": 600 },
-                { "key": "href", "label": "Service page", "kind": "text", "description": "Use an internal /path or another safe public destination.", "required": true, "maxLength": 2048 },
+                { "key": "href", "label": "Service page", "kind": "link", "description": "Use an internal /path or HTTP(S) URL.", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https"] },
                 {
                   "key": "media", "label": "Service media", "kind": "group", "required": false,
                   "fields": [
@@ -964,6 +1022,8 @@
             {
               "key": "points", "label": "Planning points", "kind": "repeater", "required": true,
               "description": "Add 2 to 6 practical points.",
+              "minItems": 2,
+              "maxItems": 6,
               "fields": [
                 { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
               ]
@@ -978,11 +1038,11 @@
             { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
             { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] },
             { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] }
           ]
         }
@@ -994,6 +1054,7 @@
       "contentType": "moving.areas",
       "label": "Service Areas Overview",
       "description": "An editorial overview of the areas served and the local planning context.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero", "label": "Service areas introduction", "kind": "group", "required": true,
@@ -1015,10 +1076,15 @@
             {
               "key": "items", "label": "Curated areas", "kind": "repeater", "required": true,
               "description": "Add 2 to 12 useful area entries with a unique destination for each.",
+              "minItems": 2,
+              "maxItems": 12,
+              "uniqueBy": [
+                { "fieldPaths": [["href"]], "normalization": "exact" }
+              ],
               "fields": [
                 { "key": "title", "label": "Area name", "kind": "text", "required": true, "maxLength": 120 },
                 { "key": "description", "label": "Local context", "kind": "textarea", "required": true, "maxLength": 600 },
-                { "key": "href", "label": "Area page", "kind": "text", "required": true, "maxLength": 2048 }
+                { "key": "href", "label": "Area page", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https"] }
               ]
             }
           ]
@@ -1028,7 +1094,7 @@
           "fields": [
             { "key": "title", "label": "Title", "kind": "text", "required": true, "maxLength": 180 },
             { "key": "body", "label": "Body", "kind": "textarea", "required": true, "maxLength": 1600 },
-            { "key": "points", "label": "Planning points", "kind": "repeater", "required": true, "description": "Add 2 to 6 practical local considerations.", "fields": [
+            { "key": "points", "label": "Planning points", "kind": "repeater", "required": true, "description": "Add 2 to 6 practical local considerations.", "minItems": 2, "maxItems": 6, "fields": [
               { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
             ] }
           ]
@@ -1041,11 +1107,11 @@
             { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
             { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] },
             { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] }
           ]
         }
@@ -1057,6 +1123,7 @@
       "contentType": "moving.faq",
       "label": "Moving FAQ",
       "description": "Practical customer questions and answers for planning a move.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero", "label": "FAQ introduction", "kind": "group", "required": true,
@@ -1073,6 +1140,11 @@
         {
           "key": "items", "label": "Questions and answers", "kind": "repeater", "required": true,
           "description": "Add 3 to 18 distinct questions in editorial order.",
+          "minItems": 3,
+          "maxItems": 18,
+          "uniqueBy": [
+            { "fieldPaths": [["question"]], "normalization": "trim-lowercase-en" }
+          ],
           "fields": [
             { "key": "question", "label": "Question", "kind": "text", "required": true, "maxLength": 200 },
             { "key": "answer", "label": "Answer", "kind": "textarea", "required": true, "maxLength": 1200 }
@@ -1086,11 +1158,11 @@
             { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
             { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] },
             { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] }
           ]
         }
@@ -1102,6 +1174,7 @@
       "contentType": "moving.testimonials",
       "label": "Customer Stories",
       "description": "Editorial customer proof without external review-platform claims.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero", "label": "Customer stories introduction", "kind": "group", "required": true,
@@ -1127,6 +1200,14 @@
         {
           "key": "items", "label": "Supporting customer stories", "kind": "repeater", "required": true,
           "description": "Add 2 to 10 distinct, editorially approved customer stories.",
+          "minItems": 2,
+          "maxItems": 10,
+          "uniqueBy": [
+            {
+              "fieldPaths": [["customerName"], ["quote"]],
+              "normalization": "trim-lowercase-en"
+            }
+          ],
           "fields": [
             { "key": "quote", "label": "Quote", "kind": "textarea", "required": true, "maxLength": 600 },
             { "key": "customerName", "label": "Customer display name", "kind": "text", "required": true, "maxLength": 100 },
@@ -1142,13 +1223,22 @@
             { "key": "body", "label": "Body", "kind": "textarea", "required": false, "maxLength": 800 },
             { "key": "primaryAction", "label": "Primary action", "kind": "group", "required": true, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] },
             { "key": "secondaryAction", "label": "Secondary action", "kind": "group", "required": false, "fields": [
               { "key": "label", "label": "Label", "kind": "text", "required": true, "maxLength": 80 },
-              { "key": "href", "label": "Destination", "kind": "text", "required": true, "maxLength": 2048 }
+              { "key": "href", "label": "Destination", "kind": "link", "required": true, "maxLength": 2048, "allowedDestinations": ["internal", "http", "https", "tel", "mailto"] }
             ] }
           ]
+        }
+      ],
+      "groupRepeaterUniqueBy": [
+        {
+          "groupPath": ["featured"],
+          "repeaterPath": ["items"],
+          "groupFieldPaths": [["customerName"], ["quote"]],
+          "repeaterFieldPaths": [["customerName"], ["quote"]],
+          "normalization": "trim-lowercase-en"
         }
       ]
     },
@@ -1170,6 +1260,8 @@
             {
               "key": "points", "label": "Reassurance points", "kind": "repeater", "required": true,
               "description": "Add 2 to 5 short, accurate expectations.",
+              "minItems": 2,
+              "maxItems": 5,
               "fields": [
                 { "key": "text", "label": "Point", "kind": "text", "required": true, "maxLength": 240 }
               ]

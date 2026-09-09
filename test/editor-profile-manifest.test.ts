@@ -22,7 +22,9 @@ describe("application Editor Profile manifest", () => {
     expect(profiles).toHaveLength(11);
 
     const profile = profileById(profiles, "site.page");
-    expect(profile).toMatchObject({ id: "site.page", version: 1, contentType: "site.page" });
+    expect(profile).toMatchObject({
+      id: "site.page", version: 1, contentType: "site.page", enforceOnPublish: true,
+    });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((field) => field["key"])).toEqual([
       "eyebrow", "title", "intro", "heroMedia", "sections",
@@ -36,7 +38,7 @@ describe("application Editor Profile manifest", () => {
     expectMediaFields(array(hero["fields"]).map(record));
 
     const sections = field(fields, "sections");
-    expect(sections).toMatchObject({ kind: "repeater", required: false });
+    expect(sections).toMatchObject({ kind: "repeater", required: false, maxItems: 100 });
     const sectionFields = array(sections["fields"]).map(record);
     expect(field(sectionFields, "heading")).toMatchObject({ kind: "text", required: true, maxLength: 160 });
     expect(field(sectionFields, "body")).toMatchObject({ kind: "textarea", required: false, maxLength: 2000 });
@@ -56,6 +58,7 @@ describe("application Editor Profile manifest", () => {
     ]);
     const profile = profileById(profiles, "moving.home");
     expect(profile).toMatchObject({ id: "moving.home", version: 2, contentType: "moving.home" });
+    expect(profile["enforceOnPublish"]).toBeUndefined();
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual([
       "hero", "proof", "services", "process", "assurance", "serviceAreas",
@@ -79,12 +82,14 @@ describe("application Editor Profile manifest", () => {
     expectActionFields(nested(hero, "secondaryAction", "group", false));
 
     const proof = nested(fields, "proof", "repeater", true);
+    expect(field(fields, "proof")).toMatchObject({ minItems: 2, maxItems: 6 });
     expect(field(proof, "value")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.proofValue });
     expect(field(proof, "label")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.proofLabel });
 
     const services = nested(fields, "services", "group", true);
     expectSectionCopyFields(services);
     const serviceItems = nested(services, "items", "repeater", true);
+    expect(field(services, "items")).toMatchObject({ minItems: 3, maxItems: 8 });
     expect(field(serviceItems, "title")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.itemTitle });
     expect(field(serviceItems, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_HOME_LIMITS.itemDescription });
     expectHrefField(field(serviceItems, "href"));
@@ -92,6 +97,7 @@ describe("application Editor Profile manifest", () => {
     const process = nested(fields, "process", "group", true);
     expectSectionCopyFields(process);
     const steps = nested(process, "steps", "repeater", true);
+    expect(field(process, "steps")).toMatchObject({ minItems: 3, maxItems: 6 });
     expect(field(steps, "title")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.itemTitle });
     expect(field(steps, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_HOME_LIMITS.itemDescription });
 
@@ -100,10 +106,12 @@ describe("application Editor Profile manifest", () => {
     expectMediaFields(nested(assurance, "media", "group", false));
     expect(field(nested(assurance, "points", "repeater", true), "text"))
       .toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.assurancePoint });
+    expect(field(assurance, "points")).toMatchObject({ minItems: 2, maxItems: 6 });
 
     const areas = nested(fields, "serviceAreas", "group", true);
     expectSectionCopyFields(areas);
     const areaItems = nested(areas, "areas", "repeater", true);
+    expect(field(areas, "areas")).toMatchObject({ minItems: 3, maxItems: 12 });
     expect(field(areaItems, "label")).toMatchObject({ kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.areaLabel });
     expectHrefField(field(areaItems, "href"));
 
@@ -112,12 +120,25 @@ describe("application Editor Profile manifest", () => {
     expect(nested(proofSection, "items", "repeater", true).map((entry) => entry["key"])).toEqual([
       "quote", "customerName", "context", "serviceLabel",
     ]);
+    expect(field(proofSection, "items")).toMatchObject({
+      minItems: 1,
+      maxItems: 3,
+      uniqueBy: [{
+        fieldPaths: [["customerName"], ["quote"]],
+        normalization: "trim-lowercase-en",
+      }],
+    });
     expectActionFields(nested(proofSection, "action", "group", false));
 
     const faqSection = nested(fields, "frequentQuestions", "group", false);
     expect(nested(faqSection, "items", "repeater", true).map((entry) => entry["key"])).toEqual([
       "question", "answer",
     ]);
+    expect(field(faqSection, "items")).toMatchObject({
+      minItems: 2,
+      maxItems: 5,
+      uniqueBy: [{ fieldPaths: [["question"]], normalization: "trim-lowercase-en" }],
+    });
     expectActionFields(nested(faqSection, "action", "group", false));
 
     const finalAction = nested(fields, "finalAction", "group", true);
@@ -132,7 +153,9 @@ describe("application Editor Profile manifest", () => {
   it("expresses moving.service v1 with explicit parser-aligned groups", async () => {
     const profiles = array((await loadManifest())["profiles"]);
     const profile = profileById(profiles, "moving.service");
-    expect(profile).toMatchObject({ id: "moving.service", version: 1, contentType: "moving.service" });
+    expect(profile).toMatchObject({
+      id: "moving.service", version: 1, contentType: "moving.service", enforceOnPublish: true,
+    });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual([
       "hero", "overview", "included", "process", "relatedServices", "finalAction",
@@ -152,6 +175,7 @@ describe("application Editor Profile manifest", () => {
     expect(field(overview, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_SERVICE_LIMITS.overviewBody });
     expect(field(nested(overview, "points", "repeater", true), "text"))
       .toMatchObject({ kind: "text", required: true, maxLength: MOVING_SERVICE_LIMITS.point });
+    expect(field(overview, "points")).toMatchObject({ minItems: 2, maxItems: 6 });
 
     for (const key of ["included", "process"] as const) {
       const section = nested(fields, key, "group", true);
@@ -160,14 +184,19 @@ describe("application Editor Profile manifest", () => {
       expect(field(section, "intro")).toMatchObject({ kind: "textarea", required: false, maxLength: 700 });
     }
     const includedItems = nested(nested(fields, "included", "group", true), "items", "repeater", true);
+    expect(field(nested(fields, "included", "group", true), "items"))
+      .toMatchObject({ minItems: 3, maxItems: 8 });
     expect(field(includedItems, "title")).toMatchObject({ kind: "text", required: true, maxLength: 120 });
     expect(field(includedItems, "description")).toMatchObject({ kind: "textarea", required: false, maxLength: 400 });
     const steps = nested(nested(fields, "process", "group", true), "steps", "repeater", true);
+    expect(field(nested(fields, "process", "group", true), "steps"))
+      .toMatchObject({ minItems: 3, maxItems: 6 });
     expect(field(steps, "title")).toMatchObject({ kind: "text", required: true, maxLength: 100 });
     expect(field(steps, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: 320 });
 
     const related = nested(fields, "relatedServices", "group", true);
     const relatedItems = nested(related, "items", "repeater", true);
+    expect(field(related, "items")).toMatchObject({ minItems: 2, maxItems: 6 });
     expect(field(relatedItems, "title")).toMatchObject({ kind: "text", required: true, maxLength: 120 });
     expectHrefField(field(relatedItems, "href"));
 
@@ -181,7 +210,9 @@ describe("application Editor Profile manifest", () => {
   it("expresses moving.location v1 with explicit parser-aligned groups", async () => {
     const profiles = array((await loadManifest())["profiles"]);
     const profile = profileById(profiles, "moving.location");
-    expect(profile).toMatchObject({ id: "moving.location", version: 1, contentType: "moving.location" });
+    expect(profile).toMatchObject({
+      id: "moving.location", version: 1, contentType: "moving.location", enforceOnPublish: true,
+    });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual([
       "hero", "overview", "services", "localDetails", "nearbyAreas", "finalAction",
@@ -197,19 +228,27 @@ describe("application Editor Profile manifest", () => {
     expect(field(overview, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.overviewBody });
     expect(field(nested(overview, "highlights", "repeater", true), "text"))
       .toMatchObject({ kind: "text", required: true, maxLength: MOVING_LOCATION_LIMITS.highlight });
+    expect(field(overview, "highlights")).toMatchObject({ minItems: 2, maxItems: 6 });
 
     const services = nested(fields, "services", "group", true);
     const serviceItems = nested(services, "items", "repeater", true);
+    expect(field(services, "items")).toMatchObject({ minItems: 2, maxItems: 8 });
     expect(field(serviceItems, "description")).toMatchObject({ kind: "textarea", required: false, maxLength: MOVING_LOCATION_LIMITS.itemDescription });
     expectHrefField(field(serviceItems, "href"));
 
     const details = nested(fields, "localDetails", "group", true);
     expect(field(details, "body")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.overviewBody });
     const detailItems = nested(details, "items", "repeater", true);
+    expect(field(details, "items")).toMatchObject({ minItems: 2, maxItems: 6 });
     expect(field(detailItems, "description")).toMatchObject({ kind: "textarea", required: true, maxLength: MOVING_LOCATION_LIMITS.itemDescription });
 
     const nearby = nested(fields, "nearbyAreas", "group", true);
-    expectActionFields(nested(nearby, "items", "repeater", true));
+    expect(field(nearby, "items")).toMatchObject({ minItems: 2, maxItems: 8 });
+    const nearbyItems = nested(nearby, "items", "repeater", true);
+    expect(field(nearbyItems, "label")).toMatchObject({
+      kind: "text", required: true, maxLength: MOVING_LOCATION_LIMITS.actionLabel,
+    });
+    expectHrefField(field(nearbyItems, "href"));
     const finalAction = nested(fields, "finalAction", "group", true);
     expectActionFields(nested(finalAction, "primaryAction", "group", true));
     expectActionFields(nested(finalAction, "secondaryAction", "group", false));
@@ -221,7 +260,16 @@ describe("application Editor Profile manifest", () => {
     const profiles = array((await loadManifest())["profiles"]);
     expect(profiles.map(record).filter((entry) => entry["enforceOnPublish"] === true)
       .map((entry) => entry["contentType"]))
-      .toEqual(["moving.article"]);
+      .toEqual([
+        "site.page",
+        "moving.service",
+        "moving.location",
+        "moving.services",
+        "moving.areas",
+        "moving.faq",
+        "moving.testimonials",
+        "moving.article",
+      ]);
     const profile = profileById(profiles, "moving.article");
     expect(profile).toMatchObject({
       id: "moving.article",
@@ -406,12 +454,20 @@ function expectActionFields(fields: readonly Readonly<Record<string, unknown>>[]
   expect(field(fields, "label")).toMatchObject({
     kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.actionLabel,
   });
-  expectHrefField(field(fields, "href"));
+  expect(field(fields, "href")).toMatchObject({
+    kind: "link",
+    required: true,
+    maxLength: MOVING_HOME_LIMITS.href,
+    allowedDestinations: ["internal", "http", "https", "tel", "mailto"],
+  });
 }
 
 function expectHrefField(entry: Readonly<Record<string, unknown>>): void {
   expect(entry).toMatchObject({
-    kind: "text", required: true, maxLength: MOVING_HOME_LIMITS.href,
+    kind: "link",
+    required: true,
+    maxLength: MOVING_HOME_LIMITS.href,
+    allowedDestinations: ["internal", "http", "https"],
   });
   expect(entry["description"]).toContain("internal /path");
 }
