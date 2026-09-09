@@ -21,12 +21,15 @@ type Parser = (payload: unknown) => unknown;
 
 const ENFORCED_TYPES = [
   "site.page",
+  "moving.home",
   "moving.service",
   "moving.location",
   "moving.services",
   "moving.areas",
   "moving.faq",
   "moving.testimonials",
+  "moving.quote",
+  "moving.contact",
   "moving.article",
 ] as const;
 
@@ -40,8 +43,14 @@ const NEWLY_ENFORCED = [
   ["moving.testimonials", "moving-testimonials.json", parseMovingTestimonialsPayload],
 ] as const satisfies readonly (readonly [string, string, Parser])[];
 
-describe("R2.12D Moving publication integrity adoption", () => {
-  it("loads the complete manifest in committed Core and enforces only proven profiles", async () => {
+const FINAL_ADOPTION = [
+  ["moving.home", "moving-home.json", parseMovingHomePayload],
+  ["moving.quote", "moving-quote.json", parseMovingQuotePayload],
+  ["moving.contact", "moving-contact.json", parseMovingContactPayload],
+] as const satisfies readonly (readonly [string, string, Parser])[];
+
+describe("R2.12F final Moving publication integrity adoption", () => {
+  it("loads the complete manifest in committed Core and enforces every public parser-backed profile", async () => {
     const profiles = defineContentEditorProfiles(await profilesFromManifest());
     expect(profiles.map((profile) => profile.contentType)).toEqual([
       "site.page", "moving.home", "moving.service", "moving.location", "moving.services",
@@ -51,9 +60,7 @@ describe("R2.12D Moving publication integrity adoption", () => {
     expect(profiles.filter((profile) => profile.enforceOnPublish === true)
       .map((profile) => profile.contentType)).toEqual(ENFORCED_TYPES);
     expect(profiles.filter((profile) => profile.enforceOnPublish !== true)
-      .map((profile) => profile.contentType)).toEqual([
-      "moving.home", "moving.quote", "moving.contact",
-    ]);
+      .map((profile) => profile.contentType)).toEqual([]);
   });
 
   it.each(NEWLY_ENFORCED)(
@@ -106,37 +113,143 @@ describe("R2.12D Moving publication integrity adoption", () => {
     }
   });
 
-  it("documents the optional-parent home cross-structure blocker without weakening the parser", async () => {
-    const payload = await fixture("moving-home.json");
-    const customerProof = object(payload, "customerProof");
-    const items = array(customerProof, "items");
-    items[0] = structuredClone(customerProof["featured"]);
-    expect(() => parseMovingHomePayload(payload)).toThrow();
-    expect(validateProfilePayloadForPublication(await loadProfile("moving.home"), payload).valid).toBe(true);
+  it.each(FINAL_ADOPTION)(
+    "%s accepts minimum and representative parser-valid payloads",
+    async (type, name, parse) => {
+      const representative = await fixture(name);
+      for (const payload of [finalMinimumPayload(type, representative), representative]) {
+        expect(() => parse(payload)).not.toThrow();
+        expect(validateProfilePayloadForPublication(await loadProfile(type), payload)).toEqual({
+          valid: true,
+          reasons: [],
+        });
+      }
+    },
+  );
 
-    const home = structuredClone(await loadProfile("moving.home")) as ContentEditorProfile;
-    expect(() => defineContentEditorProfiles([{
-      ...home,
-      groupRepeaterUniqueBy: [{
-        groupPath: ["customerProof", "featured"],
-        repeaterPath: ["customerProof", "items"],
-        groupFieldPaths: [["customerName"], ["quote"]],
-        repeaterFieldPaths: [["customerName"], ["quote"]],
-        normalization: "trim-lowercase-en",
-      }],
-    }])).toThrow(/source path must traverse required declared groups/u);
+  it.each(FINAL_ADOPTION)(
+    "%s rejects every profile-representable source invariant in both boundaries",
+    async (type, name, parse) => {
+      for (const payload of finalInvalidPayloads(type, await fixture(name))) {
+        expect(() => parse(payload)).toThrow();
+        expect(validateProfilePayloadForPublication(await loadProfile(type), payload).valid).toBe(false);
+      }
+    },
+  );
+
+  it("matches optional moving.home customer proof and both uniqueness scopes", async () => {
+    const profile = await loadProfile("moving.home");
+    const withoutProof = await fixture("moving-home.json");
+    delete withoutProof["customerProof"];
+    expect(() => parseMovingHomePayload(withoutProof)).not.toThrow();
+    expect(validateProfilePayloadForPublication(profile, withoutProof).valid).toBe(true);
+
+    const representative = await fixture("moving-home.json");
+    expect(() => parseMovingHomePayload(representative)).not.toThrow();
+    expect(validateProfilePayloadForPublication(profile, representative).valid).toBe(true);
+
+    for (const payload of [
+      changed(representative, (value) => {
+        const items = array(object(value, "customerProof"), "items");
+        items[1] = structuredClone(items[0]);
+      }),
+      changed(representative, (value) => {
+        const proof = object(value, "customerProof");
+        const item = objectAt(array(proof, "items"), 0);
+        const featured = object(proof, "featured");
+        item["customerName"] = ` ${String(featured["customerName"]).toUpperCase()} `;
+        item["quote"] = ` ${String(featured["quote"]).toUpperCase()} `;
+      }),
+      changed(representative, (value) => { value["customerProof"] = {}; }),
+    ]) {
+      expect(() => parseMovingHomePayload(payload)).toThrow();
+      expect(validateProfilePayloadForPublication(profile, payload).valid).toBe(false);
+    }
   });
 
   it.each([
-    ["moving.quote", "moving-quote.json", parseMovingQuotePayload],
-    ["moving.contact", "moving-contact.json", parseMovingContactPayload],
-  ] as const)("keeps %s unenforced because its parser rejects unknown keys", async (type, name, parse) => {
-    const payload = await fixture(name);
-    payload["futureRoot"] = { preserved: true };
-    expect(() => parse(payload)).toThrow();
-    expect(validateProfilePayloadForPublication(await loadProfile(type), payload).valid).toBe(true);
+    ["moving.quote", "moving-quote.json", parseMovingQuotePayload, "reassurance"],
+    ["moving.contact", "moving-contact.json", parseMovingContactPayload, "directContact"],
+  ] as const)("enforces %s exact-record semantics without mutating malformed drafts", async (
+    type, name, parse, nestedKey,
+  ) => {
+    const profile = await loadProfile(type);
+    const valid = await fixture(name);
+    expect(() => parse(valid)).not.toThrow();
+    expect(validateProfilePayloadForPublication(profile, valid).valid).toBe(true);
+    for (const payload of [
+      changed(valid, (value) => { value["futureRoot"] = { preserved: true }; }),
+      changed(valid, (value) => { object(value, nestedKey)["futureNested"] = "preserved"; }),
+    ]) {
+      const before = structuredClone(payload);
+      expect(() => parse(payload)).toThrow();
+      expect(validateProfilePayloadForPublication(profile, payload).valid).toBe(false);
+      expect(payload).toEqual(before);
+    }
+  });
+
+  it("keeps every canonical fixture parser-valid and valid under its final enforced profile", async () => {
+    const fixtures = [
+      ["site.page", "site-page-detail.json", parseSitePagePayload],
+      ["site.page", "site-page-home.json", parseSitePagePayload],
+      ["moving.home", "moving-home.json", parseMovingHomePayload],
+      ["moving.service", "moving-service.json", parseMovingServicePayload],
+      ["moving.location", "moving-location.json", parseMovingLocationPayload],
+      ["moving.services", "moving-services.json", parseMovingServicesPayload],
+      ["moving.areas", "moving-areas.json", parseMovingAreasPayload],
+      ["moving.faq", "moving-faq.json", parseMovingFaqPayload],
+      ["moving.testimonials", "moving-testimonials.json", parseMovingTestimonialsPayload],
+      ["moving.quote", "moving-quote.json", parseMovingQuotePayload],
+      ["moving.contact", "moving-contact.json", parseMovingContactPayload],
+      ["moving.article", "moving-article-access.json", parseMovingArticlePayload],
+      ["moving.article", "moving-article-packing.json", parseMovingArticlePayload],
+      ["moving.article", "moving-article-office.json", parseMovingArticlePayload],
+    ] as const satisfies readonly (readonly [string, string, Parser])[];
+    for (const [type, name, parse] of fixtures) {
+      const payload = await fixture(name);
+      expect(() => parse(payload)).not.toThrow();
+      expect(validateProfilePayloadForPublication(await loadProfile(type), payload).valid).toBe(true);
+    }
   });
 });
+
+function finalMinimumPayload(type: string, source: JsonObject): JsonObject {
+  const payload = structuredClone(source);
+  delete payload["eyebrow"];
+  if (type === "moving.home") delete payload["customerProof"];
+  if (type === "moving.quote") delete payload["planning"];
+  return payload;
+}
+
+function finalInvalidPayloads(type: string, source: JsonObject): readonly JsonObject[] {
+  if (type === "moving.home") return [
+    changed(source, (payload) => { object(payload, "hero")["title"] = "x".repeat(10_000); }),
+    changed(source, (payload) => { object(payload, "customerProof")["items"] = []; }),
+    changed(source, (payload) => { object(object(payload, "hero"), "primaryAction")["href"] = "javascript:alert(1)"; }),
+    changed(source, (payload) => {
+      const items = array(object(payload, "customerProof"), "items");
+      items[1] = structuredClone(items[0]);
+    }),
+    changed(source, (payload) => {
+      const proof = object(payload, "customerProof");
+      objectAt(array(proof, "items"), 0)["customerName"] = object(proof, "featured")["customerName"];
+      objectAt(array(proof, "items"), 0)["quote"] = object(proof, "featured")["quote"];
+    }),
+  ];
+  if (type === "moving.quote") return [
+    changed(source, (payload) => { payload["title"] = "x".repeat(181); }),
+    changed(source, (payload) => { object(payload, "reassurance")["points"] = [{ text: "Only one" }]; }),
+    changed(source, (payload) => { payload["futureRoot"] = true; }),
+    changed(source, (payload) => { object(payload, "reassurance")["futureNested"] = true; }),
+    changed(source, (payload) => { objectAt(array(object(payload, "reassurance"), "points"), 0)["futureNested"] = true; }),
+  ];
+  return [
+    changed(source, (payload) => { payload["title"] = "x".repeat(181); }),
+    changed(source, (payload) => { delete object(payload, "directContact")["title"]; }),
+    changed(source, (payload) => { payload["futureRoot"] = true; }),
+    changed(source, (payload) => { object(payload, "directContact")["futureNested"] = true; }),
+  ];
+}
 
 function minimumPayload(type: string, source: JsonObject): JsonObject {
   const payload = structuredClone(source);

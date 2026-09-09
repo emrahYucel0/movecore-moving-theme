@@ -57,8 +57,9 @@ describe("application Editor Profile manifest", () => {
       "moving.article",
     ]);
     const profile = profileById(profiles, "moving.home");
-    expect(profile).toMatchObject({ id: "moving.home", version: 2, contentType: "moving.home" });
-    expect(profile["enforceOnPublish"]).toBeUndefined();
+    expect(profile).toMatchObject({
+      id: "moving.home", version: 2, contentType: "moving.home", enforceOnPublish: true,
+    });
     const fields = array(profile["fields"]).map(record);
     expect(fields.map((entry) => entry["key"])).toEqual([
       "hero", "proof", "services", "process", "assurance", "serviceAreas",
@@ -129,6 +130,13 @@ describe("application Editor Profile manifest", () => {
       }],
     });
     expectActionFields(nested(proofSection, "action", "group", false));
+    expect(profile["groupRepeaterUniqueBy"]).toEqual([{
+      groupPath: ["customerProof", "featured"],
+      repeaterPath: ["customerProof", "items"],
+      groupFieldPaths: [["customerName"], ["quote"]],
+      repeaterFieldPaths: [["customerName"], ["quote"]],
+      normalization: "trim-lowercase-en",
+    }]);
 
     const faqSection = nested(fields, "frequentQuestions", "group", false);
     expect(nested(faqSection, "items", "repeater", true).map((entry) => entry["key"])).toEqual([
@@ -262,12 +270,15 @@ describe("application Editor Profile manifest", () => {
       .map((entry) => entry["contentType"]))
       .toEqual([
         "site.page",
+        "moving.home",
         "moving.service",
         "moving.location",
         "moving.services",
         "moving.areas",
         "moving.faq",
         "moving.testimonials",
+        "moving.quote",
+        "moving.contact",
         "moving.article",
       ]);
     const profile = profileById(profiles, "moving.article");

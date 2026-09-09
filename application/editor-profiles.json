@@ -103,6 +103,7 @@
       "contentType": "moving.home",
       "label": "Moving Homepage",
       "description": "Structured homepage content for a moving and logistics public application.",
+      "enforceOnPublish": true,
       "fields": [
         {
           "key": "hero",
@@ -638,6 +639,15 @@
               ]
             }
           ]
+        }
+      ],
+      "groupRepeaterUniqueBy": [
+        {
+          "groupPath": ["customerProof", "featured"],
+          "repeaterPath": ["customerProof", "items"],
+          "groupFieldPaths": [["customerName"], ["quote"]],
+          "repeaterFieldPaths": [["customerName"], ["quote"]],
+          "normalization": "trim-lowercase-en"
         }
       ]
     },
@@ -1248,6 +1258,8 @@
       "contentType": "moving.quote",
       "label": "Quote Request Page",
       "description": "Page messaging and planning reassurance around the application quote request form.",
+      "enforceOnPublish": true,
+      "unknownFieldPolicy": "reject",
       "fields": [
         { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
         { "key": "title", "label": "Page title", "kind": "text", "required": true, "maxLength": 180 },
@@ -1283,6 +1295,8 @@
       "contentType": "moving.contact",
       "label": "Contact Page",
       "description": "Page messaging around business contact details and the general enquiry form.",
+      "enforceOnPublish": true,
+      "unknownFieldPolicy": "reject",
       "fields": [
         { "key": "eyebrow", "label": "Eyebrow", "kind": "text", "required": false, "maxLength": 80 },
         { "key": "title", "label": "Page title", "kind": "text", "required": true, "maxLength": 180 },

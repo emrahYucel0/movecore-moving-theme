@@ -40,7 +40,7 @@ const reliable = await PrismaMysqlReliableAdminMutations.connect({
   clock: { now: () => now },
   contentClock: { now: () => now },
   contentPublicationGuard: guard,
-  auditEventIds: { generate: () => `r212d:durable:${runId}:${++durableSequence}` },
+  auditEventIds: { generate: () => `r212f:durable:${runId}:${++durableSequence}` },
 });
 const delivery = await PrismaMysqlAuditDelivery.connect({
   databaseUrl: database.databaseUrl,
@@ -51,22 +51,25 @@ try {
   const content = new ContentService(contentStore, guard, { now: () => now });
   const audit = new CoreAdminAuditSink(
     new AuditRecorder(auditStore, { now: () => now }),
-    { generate: () => `r212d:failure:${runId}:${++failureSequence}` },
+    { generate: () => `r212f:failure:${runId}:${++failureSequence}` },
   );
   const admin = adminHandler(new AdminContentService(content, audit, reliable));
   const publicHttp = publicHandler(new PublicContentService(contentStore));
 
   const matrix = [
     ["site.page", "site-page-detail.json", (value) => { delete value.title; }],
+    ["moving.home", "moving-home.json", duplicateHomeFeatured, correctHome],
     ["moving.service", "moving-service.json", (value) => { value.overview.points = []; }],
     ["moving.location", "moving-location.json", (value) => { value.services.items = []; }],
     ["moving.services", "moving-services.json", duplicateHref("portfolio")],
     ["moving.areas", "moving-areas.json", duplicateHref("coverage")],
     ["moving.faq", "moving-faq.json", duplicateFaq],
     ["moving.testimonials", "moving-testimonials.json", duplicateFeatured],
+    ["moving.quote", "moving-quote.json", addUnknownRoot, correctQuote],
+    ["moving.contact", "moving-contact.json", addUnknownNestedContact, correctContact],
   ];
 
-  for (const [type, fixtureName, invalidate] of matrix) {
+  for (const [type, fixtureName, invalidate, correct] of matrix) {
     const valid = await fixture(fixtureName);
     const contentId = id(`lifecycle:${type}`);
     await expectStatus(adminRequest(admin, "/content", {
@@ -85,11 +88,13 @@ try {
       expectedLatestRevisionId: `${contentId}:r1`,
       payload: invalid,
     }), 201);
+    assert.deepEqual((await content.getRevision(`${contentId}:r2`)).payload, invalid);
     await expectGenericRejection(publish(admin, contentId, `${contentId}:r2`));
     assert.equal((await publicRead(publicHttp, contentId)).data.revisionId, `${contentId}:r1`);
 
     const corrected = structuredClone(valid);
-    corrected.integrityRoundTrip = "corrected-r3";
+    if (correct === undefined) corrected.integrityRoundTrip = "corrected-r3";
+    else correct(corrected);
     await expectStatus(adminRequest(admin, `/content/${encodeURIComponent(contentId)}/revisions`, {
       revisionId: `${contentId}:r3`,
       expectedLatestRevisionId: `${contentId}:r2`,
@@ -99,11 +104,25 @@ try {
     assert.equal((await publicRead(publicHttp, contentId)).data.revisionId, `${contentId}:r3`);
   }
 
+  const homeWithoutProof = await fixture("moving-home.json");
+  delete homeWithoutProof.customerProof;
+  const noProofContentId = id("home-without-customer-proof");
+  await expectStatus(adminRequest(admin, "/content", {
+    contentId: noProofContentId,
+    type: "moving.home",
+    revisionId: `${noProofContentId}:r1`,
+    payload: homeWithoutProof,
+  }), 201);
+  await expectStatus(publish(admin, noProofContentId, `${noProofContentId}:r1`), 200);
+  assert.equal((await publicRead(publicHttp, noProofContentId)).data.revisionId, `${noProofContentId}:r1`);
+
   const firstInvalid = [
     ["moving.services", "moving-services.json", duplicateHref("portfolio")],
     ["moving.testimonials", "moving-testimonials.json", duplicateFeatured],
     ["moving.testimonials", "moving-testimonials.json", duplicateTestimonialItems],
     ["moving.service", "moving-service.json", unsafeServiceLink],
+    ["moving.home", "moving-home.json", duplicateHomeFeatured],
+    ["moving.quote", "moving-quote.json", addUnknownRoot],
   ];
   for (const [index, [type, fixtureName, invalidate]] of firstInvalid.entries()) {
     const invalid = await fixture(fixtureName);
@@ -131,7 +150,22 @@ try {
     });
     assert.deepEqual(events.map((event) => event.outcome).sort(), ["failed", "success", "success"]);
   }
-  process.stdout.write(`R2.12D MySQL publication matrix PASS (${matrix.length} lifecycle profiles)\n`);
+  const noProofEvents = await auditStore.query({
+    limit: 20,
+    target: { type: "content", id: noProofContentId },
+    action: "content.publish",
+  });
+  assert.deepEqual(noProofEvents.map((event) => event.outcome), ["success"]);
+  for (const [index, [type]] of firstInvalid.entries()) {
+    const contentId = id(`first-invalid:${type}:${index}`);
+    const events = await auditStore.query({
+      limit: 20,
+      target: { type: "content", id: contentId },
+      action: "content.publish",
+    });
+    assert.deepEqual(events.map((event) => event.outcome), ["failed"]);
+  }
+  process.stdout.write(`R2.12F MySQL publication matrix PASS (${matrix.length} lifecycle profiles)\n`);
 } finally {
   await delivery.disconnect();
   await reliable.disconnect();
@@ -156,6 +190,31 @@ function duplicateTestimonialItems(value) {
   value.items[1] = structuredClone(value.items[0]);
 }
 
+function duplicateHomeFeatured(value) {
+  value.customerProof.items[0].customerName = ` ${value.customerProof.featured.customerName.toUpperCase()} `;
+  value.customerProof.items[0].quote = ` ${value.customerProof.featured.quote.toUpperCase()} `;
+}
+
+function addUnknownRoot(value) {
+  value.futureRoot = { preserved: true };
+}
+
+function addUnknownNestedContact(value) {
+  value.directContact.futureNested = "preserved";
+}
+
+function correctHome(value) {
+  value.hero.title = `${value.hero.title} — corrected`;
+}
+
+function correctQuote(value) {
+  value.title = `${value.title} — corrected`;
+}
+
+function correctContact(value) {
+  value.title = `${value.title} — corrected`;
+}
+
 function unsafeServiceLink(value) {
   value.relatedServices.items[0].href = "javascript:alert(1)";
 }
@@ -165,19 +224,19 @@ async function fixture(name) {
 }
 
 function id(suffix) {
-  return `r212d:${suffix}:${runId}`;
+  return `r212f:${suffix}:${runId}`;
 }
 
 function adminHandler(content) {
   const principal = createAuthenticatedPrincipal({
-    actor: { kind: "human", id: `actor:r212d:${runId}` },
+    actor: { kind: "human", id: `actor:r212f:${runId}` },
     permissions: ["content.read", "content.edit", "content.publish"],
   });
   return new AdminHttpHandler({
     authentication: {
       login: async () => { throw new Error("not called"); },
       logout: async () => undefined,
-      resolveSession: async () => ({ accountId: `account:r212d:${runId}`, principal }),
+      resolveSession: async () => ({ accountId: `account:r212f:${runId}`, principal }),
     },
     content,
     settings: { update: async () => { throw new Error("not called"); } },
