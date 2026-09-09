@@ -98,6 +98,7 @@ async function handleRequest(request, response, mediaOrigin, submissionState, bu
         items: [
           { path: "/", lastModified: DEMO_PUBLISHED_AT },
           { path: "/about", lastModified: DEMO_PUBLISHED_AT },
+          { path: "/articles" },
           { path: "/services", lastModified: DEMO_PUBLISHED_AT },
           { path: "/services/home-moving", lastModified: DEMO_PUBLISHED_AT },
           { path: "/services/office-relocation", lastModified: DEMO_PUBLISHED_AT },

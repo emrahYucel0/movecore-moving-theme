@@ -554,10 +554,12 @@ async function verifySitemap(runtimeOrigin, coreOrigin) {
   for (const pathname of [
     "/", "/about", "/services", "/services/home-moving", "/services/office-relocation",
     "/areas", "/areas/north-district", "/areas/riverside", "/faq", "/testimonials",
+    "/articles",
     "/articles/preparing-access-before-moving-day", "/articles/practical-packing-timeline",
     "/articles/moving-an-office",
     "/quote", "/contact", "/privacy",
   ]) assert.ok(xml.includes(`<loc>${runtimeOrigin}${pathname}</loc>`), pathname);
+  assert.equal(xml.split(`<loc>${runtimeOrigin}/articles</loc>`).length - 1, 1);
   assert.equal(xml.includes(coreOrigin), false);
   assert.equal(xml.includes(PRIVATE_SENTINEL), false);
 }

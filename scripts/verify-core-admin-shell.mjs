@@ -13,14 +13,14 @@ export async function verifyCoreAdminShell(coreRoot) {
   const runtime = (name) => import(pathToFileURL(path.join(coreRoot, "apps/runtime/dist", `${name}.js`)).href);
   const [{ parseCoreRuntimeConfig }, { loadAdminShellProjection }, { loadContentEditorProfiles },
     { loadSettingDefinitions }, { loadSettingEditorProfiles }, { loadSubmissionDefinitions },
-    { loadSubmissionPresentations }] = await Promise.all([
+    { loadSubmissionPresentations }, { loadApplicationSitemapRoutes }] = await Promise.all([
     runtime("config"), runtime("admin-shell"), runtime("editor-profiles"),
     runtime("setting-definitions"), runtime("setting-editor-profiles"), runtime("submission-definitions"),
-    runtime("submission-presentations"),
+    runtime("submission-presentations"), runtime("sitemap-routes"),
   ]);
   const manifest = (name) => path.join(movingRoot, "application", `${name}.json`);
   // Parse an isolated configuration rather than inheriting any local/production environment.
-  // This reserved invalid hostname is never connected to; only the five pure loaders run.
+  // This reserved invalid hostname is never connected to; only pure manifest loaders run.
   const config = parseCoreRuntimeConfig({
     CORE_CMS_ENV: "development",
     CORE_CMS_DATABASE_URL: "mysql://fixture:fixture@database.invalid/never_connected",
@@ -38,6 +38,7 @@ export async function verifyCoreAdminShell(coreRoot) {
     CORE_CMS_SUBMISSION_DEFINITIONS_FILE: manifest("submission-definitions"),
     CORE_CMS_SUBMISSION_PRESENTATIONS_FILE: manifest("submission-presentations"),
     CORE_CMS_ADMIN_SHELL_FILE: manifest("admin-shell"),
+    CORE_CMS_SITEMAP_ROUTES_FILE: manifest("sitemap-routes"),
   });
   const adminShell = await loadAdminShellProjection(config.adminShellFile);
   const editorProfiles = await loadContentEditorProfiles(config.editorProfilesFile);
@@ -45,6 +46,7 @@ export async function verifyCoreAdminShell(coreRoot) {
   const settingEditorProfiles = await loadSettingEditorProfiles(config.settingEditorProfilesFile, settingDefinitions);
   const submissionDefinitions = await loadSubmissionDefinitions(config.submissionDefinitionsFile);
   const submissionPresentations = await loadSubmissionPresentations(config.submissionPresentationsFile, submissionDefinitions);
+  const sitemapRoutes = await loadApplicationSitemapRoutes(config.sitemapRoutesFile);
   assert.deepEqual(adminShell.application, { name: "MoveCore Moving", descriptor: "Operations workspace" });
   assert.deepEqual(adminShell.navigation.map(({ id, label, group, visible }) => [id, label, group, visible]), [
     ["overview", "Overview", "operations", true], ["submissions", "Leads", "operations", true],
@@ -52,7 +54,7 @@ export async function verifyCoreAdminShell(coreRoot) {
     ["navigation", "Navigation", "site", true], ["settings", "Business settings", "site", true],
     ["url-seo", "SEO & URLs", "site", true], ["audit", "Audit", "system", true],
   ]);
-  assert.equal(editorProfiles.length, 10);
+  assert.equal(editorProfiles.length, 11);
   assert.ok(settingDefinitions.some(({ namespace, key }) => namespace === "moving" && key === "business"));
   assert.deepEqual(settingEditorProfiles.map(({ namespace, key, label }) => [namespace, key, label]), [
     ["moving", "business", "Business details"],
@@ -60,18 +62,23 @@ export async function verifyCoreAdminShell(coreRoot) {
   for (const records of [submissionDefinitions, submissionPresentations]) {
     assert.deepEqual(records.map(({ type }) => type).sort(), ["moving.contact-request", "moving.quote-request"]);
   }
-  return { adminShell, editorProfiles, settingDefinitions, settingEditorProfiles, submissionDefinitions, submissionPresentations };
+  assert.deepEqual(sitemapRoutes, [{ path: "/articles" }]);
+  return {
+    adminShell, editorProfiles, settingDefinitions, settingEditorProfiles,
+    submissionDefinitions, submissionPresentations, sitemapRoutes,
+  };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
   const result = await verifyCoreAdminShell(process.env.MOVECORE_CORE_ROOT?.trim());
   process.stdout.write(`${JSON.stringify({
     status: "passed", application: result.adminShell.application,
-    manifests: 6, editorProfiles: result.editorProfiles.length,
+    manifests: 7, editorProfiles: result.editorProfiles.length,
     settingDefinitions: result.settingDefinitions.length,
     settingEditorProfiles: result.settingEditorProfiles.length,
     submissionDefinitions: result.submissionDefinitions.length,
     submissionPresentations: result.submissionPresentations.length,
+    sitemapRoutes: result.sitemapRoutes.length,
     capabilities: result.adminShell.navigation.length, databaseConnections: 0,
   })}\n`);
 }

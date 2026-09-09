@@ -134,7 +134,9 @@ Make `application/editor-profiles.json` available to Core and configure `CORE_CM
 
 Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
 
-Deploy the six application metadata manifests together when their capabilities are used:
+Make `application/sitemap-routes.json` available to Core and set `CORE_CMS_SITEMAP_ROUTES_FILE` to its absolute deployment path. It declares the application-owned `/articles` archive exactly once; resource-backed pages and Article details continue to enter the sitemap through Core URL/SEO records.
+
+Deploy the seven application metadata manifests together when their capabilities are used:
 
 ```text
 CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
@@ -143,6 +145,7 @@ CORE_CMS_SETTING_EDITOR_PROFILES_FILE=<absolute path>/application/setting-editor
 CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-definitions.json
 CORE_CMS_SUBMISSION_PRESENTATIONS_FILE=<absolute path>/application/submission-presentations.json
 CORE_CMS_ADMIN_SHELL_FILE=<absolute path>/application/admin-shell.json
+CORE_CMS_SITEMAP_ROUTES_FILE=<absolute path>/application/sitemap-routes.json
 ```
 
 These JSON manifests contain no credentials. Keep them separate from the private Nuxt `NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET` and `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET` values. Core validates both submission manifests once at startup and fails closed if a presentation type has no corresponding definition.
@@ -177,7 +180,7 @@ General editorial pages continue to use `site.page`; R2.4 adds no blog, geo hier
 
 `/articles` is an application-owned SSR archive. One displayed page contains at most six Articles and normally makes one `GET /v1/content?type=moving.article` request. URL-less rows can make Core return a short or empty page with `nextAfter`; the archive continues only until it has six display items, Core ends, or four collection requests have been made. It rejects repeated cursors and duplicate content/canonical identities, never scans the whole collection, and links only to each Core-projected `seo.canonicalPath`. Canonical Article detail requests continue through the existing Core path resolver and typed catch-all dispatch.
 
-The Articles navigation item stays visible when there are no published Articles because the archive has a deliberate service-oriented empty state. Demo mode provides exactly three published Articles and real canonical URL projections; `application/examples/` remains fixture-only and does not seed a production database. Article detail URLs participate in the existing Core sitemap rules, while the fixed archive route is not injected into Core's sitemap because this application currently has no separate static-route sitemap inventory.
+The Articles navigation item stays visible when there are no published Articles because the archive has a deliberate service-oriented empty state. Demo mode provides exactly three published Articles and real canonical URL projections; `application/examples/` remains fixture-only and does not seed a production database. Article detail URLs participate in the existing Core sitemap rules, while `application/sitemap-routes.json` contributes the fixed `/articles` archive through Core's generic application-route inventory.
 
 ## R2.5 performance and motion
 
@@ -211,7 +214,7 @@ R2.9D configures Core's generic Submission Presentation Profile capability witho
 
 ## R2.10B.1 application-aware Admin shell
 
-Deploy all six manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing the manifest. No Core source changes are required.
+Deploy all seven manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing a manifest. No Core source changes are required.
 
 The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Business settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Business settings is truthful because `moving.business` is the only buyer-facing Setting and now has a complete typed profile. Core continues to own routes, permissions and active-state behavior.
 
@@ -223,7 +226,7 @@ The canonical `moving.business` v2 value stores buyer-editable sources rather th
 
 `parseBusinessIdentity` is the single version boundary and continues to give every public component the unchanged runtime `BusinessIdentity` projection. It reads legacy v1 without mutation and canonical v2, while `business:convert-v2` performs a pure local conversion and writes JSON only to standard output. `application/setting-editor-profiles.json` now maps every buyer-editable v2 source to current Core fields without exposing `schemaVersion`, derived `tel:`/`mailto:` values or raw asset IDs.
 
-Validate all six manifests with the actual already-built, read-only Core runtime loaders (no database connection):
+Validate all seven manifests with the actual already-built, read-only Core runtime loaders (no database connection):
 
 ```powershell
 $env:MOVECORE_CORE_ROOT = 'C:\Users\monster\Desktop\MOVECORE\core-cms'

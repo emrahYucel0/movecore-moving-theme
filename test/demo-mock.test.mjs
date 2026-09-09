@@ -158,6 +158,7 @@ describe("shared demo Core", () => {
       items: [
         { path: "/" },
         { path: "/about" },
+        { path: "/articles" },
         { path: "/services" },
         { path: "/services/home-moving" },
         { path: "/services/office-relocation" },
