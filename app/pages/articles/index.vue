@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MovingArticleArchivePage } from "~~/server/articles/archive";
+import { articleArchiveCanonicalUrl } from "~~/shared/article-archive-seo";
 import { formatMovingArticleDate } from "~~/shared/content/moving-article";
-import { absolutePublicUrl } from "~~/shared/public-site-url";
 
 definePageMeta({ key: (route) => route.fullPath });
 
@@ -23,7 +23,7 @@ const articlePage = archive.value;
 const config = useRuntimeConfig();
 let canonical: string;
 try {
-  canonical = absolutePublicUrl(config.public.siteUrl, "/articles");
+  canonical = articleArchiveCanonicalUrl(config.public.siteUrl, after.value);
 } catch {
   throw createError({ statusCode: 503, statusMessage: "Public site configuration unavailable", fatal: true });
 }

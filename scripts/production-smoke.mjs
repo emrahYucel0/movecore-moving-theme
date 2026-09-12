@@ -65,6 +65,7 @@ try {
   await verifySiteComposition(runtimeOrigin, coreOrigin);
   await verifyApplicationFailures(runtimeOrigin, coreOrigin);
   await verifyRouteRegressions(runtimeOrigin, coreOrigin);
+  await verifyRobots(runtimeOrigin, coreOrigin);
   await verifySitemap(runtimeOrigin, coreOrigin);
   await verifySentinelRuntimeLeak();
   process.stdout.write("R2.5_PRODUCTION_SMOKE=PASS\n");
@@ -124,6 +125,7 @@ async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
     "Instagram",
     "Footer navigation",
   ]) assert.ok(html.includes(expected), `Missing SSR evidence: ${expected}`);
+  assert.match(html, /<html\b[^>]*\blang="en"/u);
   assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
   assert.ok((html.match(/<h2(?:\s|>)/gu) ?? []).length >= 5);
   for (const forbidden of [
@@ -320,6 +322,17 @@ async function verifyArticles(runtimeOrigin, coreOrigin) {
   ]) assert.ok(archiveHtml.includes(expected), `/articles missing SSR evidence: ${expected}`);
   assert.equal((archiveHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
   assert.equal(archiveHtml.includes("<script"), false);
+
+  const cursor = "page:/articles/preparing-access-before-moving-day";
+  const query = new URLSearchParams({ after: cursor, utm_source: "ignored" });
+  const paginatedResponse = await fetch(`${runtimeOrigin}/articles?${query}`, { redirect: "manual" });
+  assert.equal(paginatedResponse.status, 200);
+  const paginatedHtml = await paginatedResponse.text();
+  const encodedCursor = new URLSearchParams({ after: cursor }).toString();
+  assert.ok(paginatedHtml.includes(
+    `<link rel="canonical" href="${runtimeOrigin}/articles?${encodedCursor}">`,
+  ));
+  assert.equal(paginatedHtml.includes("utm_source"), false);
 
   const detailPath = "/articles/preparing-access-before-moving-day";
   const detailResponse = await fetch(`${runtimeOrigin}${detailPath}`, { redirect: "manual" });
@@ -544,7 +557,22 @@ async function verifyRouteRegressions(runtimeOrigin, coreOrigin) {
     const body = await response.text();
     assert.ok(body.includes(heading));
     assert.equal(body.includes(coreOrigin), false);
+    if (status === 404) assert.equal(body.includes('rel="canonical"'), false);
   }
+}
+
+async function verifyRobots(runtimeOrigin, coreOrigin) {
+  const response = await fetch(`${runtimeOrigin}/robots.txt`, { redirect: "manual" });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/plain\b/iu);
+  const body = await response.text();
+  assert.equal(body, [
+    "User-agent: *",
+    "Disallow: /api/",
+    `Sitemap: ${runtimeOrigin}/sitemap.xml`,
+    "",
+  ].join("\n"));
+  assert.equal(body.includes(coreOrigin), false);
 }
 
 async function verifySitemap(runtimeOrigin, coreOrigin) {

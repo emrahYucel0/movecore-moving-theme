@@ -20,7 +20,7 @@ describe("Moving fixed sitemap route adoption", () => {
     const publicPageRoute = source("../server/public-page/route.ts");
 
     expect(archivePage).toContain("/api/_movecore/articles");
-    expect(archivePage).toContain('absolutePublicUrl(config.public.siteUrl, "/articles")');
+    expect(archivePage).toContain("articleArchiveCanonicalUrl(config.public.siteUrl, after.value)");
     expect(archiveProjection).toContain('type: "moving.article"');
     expect(archiveProjection).toContain("client.listContent");
     expect(archiveProjection).not.toMatch(/resolvePage|UrlResource/u);

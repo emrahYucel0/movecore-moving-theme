@@ -1,4 +1,5 @@
 import type { PageRouteResult } from "~~/shared/page-route";
+import { composeMovingPageSeo } from "~~/shared/moving-page-seo";
 import { absolutePublicUrl } from "~~/shared/public-site-url";
 import { robotsDirective } from "~~/shared/public-seo";
 
@@ -6,6 +7,7 @@ type PublicPage = Extract<PageRouteResult, { readonly kind: "page" }>["page"];
 
 export function usePublicPageSeo(page: PublicPage): void {
   const config = useRuntimeConfig();
+  const presentation = composeMovingPageSeo(page);
   let canonical: string;
   try {
     canonical = absolutePublicUrl(config.public.siteUrl, page.seo.canonicalPath);
@@ -18,8 +20,8 @@ export function usePublicPageSeo(page: PublicPage): void {
   }
 
   useSeoMeta({
-    title: () => page.seo.title ?? (page.type === "moving.article" ? page.content.title : undefined),
-    description: () => page.seo.description ?? (page.type === "moving.article" ? page.content.excerpt : undefined),
+    title: () => presentation.title,
+    description: () => presentation.description,
     robots: () => robotsDirective(page.seo.index, page.seo.follow),
   });
   useHead(() => ({

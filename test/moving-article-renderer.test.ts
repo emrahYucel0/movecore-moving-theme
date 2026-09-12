@@ -23,7 +23,7 @@ describe("Moving Article public presentation", () => {
     const seo = await source("../app/composables/use-public-page-seo.ts");
     expect(archive).toContain(":to=\"item.canonicalPath\"");
     expect(archive).not.toMatch(/slug|contentId.*to/iu);
-    expect(seo).toContain('page.seo.title ?? (page.type === "moving.article" ? page.content.title');
+    expect(seo).toContain("composeMovingPageSeo(page)");
     expect(seo).toContain("page.seo.canonicalPath");
   });
 });

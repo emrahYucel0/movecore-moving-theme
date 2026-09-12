@@ -3,6 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2026-08-30",
   ssr: true,
+  app: {
+    head: {
+      htmlAttrs: { lang: "en" },
+    },
+  },
   devtools: { enabled: false },
   features: { noScripts: "production" },
   runtimeConfig: {

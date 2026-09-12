@@ -20,6 +20,7 @@ export function createMockCoreServer(options = {}) {
   const mediaOrigin = options.mediaOrigin;
   const submissions = options.submissions ?? [];
   const business = options.businessIdentity ?? businessIdentity();
+  const seoProjection = options.seoProjection ?? defaultSeoProjection;
   const idempotency = new Map();
   return createServer(async (request, response) => {
     try {
@@ -29,7 +30,7 @@ export function createMockCoreServer(options = {}) {
         idempotency,
         upstreamSecret: options.upstreamSecret,
         submissionControl: options.submissionControl ?? { mode: options.submissionMode },
-      }, business);
+      }, business, seoProjection);
     } catch {
       json(response, 500, failure("service_unavailable"));
     }
@@ -56,20 +57,20 @@ export function createMockMediaServer() {
   });
 }
 
-async function handleRequest(request, response, mediaOrigin, submissionState, business) {
+async function handleRequest(request, response, mediaOrigin, submissionState, business, seoProjection) {
   const url = new URL(request.url ?? "/", "http://mock-core.invalid");
   if (request.method === "POST" && url.pathname === "/v1/submissions") {
     return submissionResponse(request, response, submissionState);
   }
   if (request.method !== "GET") return json(response, 405, failure("method_not_allowed"));
   if (url.pathname === "/v1/pages/resolve") {
-    return pageResponse(url.searchParams.get("path"), response);
+    return pageResponse(url.searchParams.get("path"), response, seoProjection);
   }
   if (url.pathname === "/v1/navigation/primary") {
     return json(response, 200, { data: primaryNavigation() });
   }
   if (url.pathname === "/v1/content") {
-    return articleCollectionResponse(url, response);
+    return articleCollectionResponse(url, response, seoProjection);
   }
   if (url.pathname === "/v1/navigation/footer") {
     return json(response, 200, { data: footerNavigation() });
@@ -120,7 +121,7 @@ async function handleRequest(request, response, mediaOrigin, submissionState, bu
   return json(response, 404, failure("not_found"));
 }
 
-function pageResponse(pathname, response) {
+function pageResponse(pathname, response, seoProjection) {
   if (pathname === "/old") return redirect(response, 301, "/old", "/about");
   if (pathname === "/temporary") return redirect(response, 302, "/temporary", "/about");
   if (pathname === "/missing") return json(response, 404, failure("not_found"));
@@ -225,7 +226,9 @@ function pageResponse(pathname, response) {
   };
   const scenario = scenarios[pathname];
   if (scenario === undefined) return json(response, 404, failure("not_found"));
-  return json(response, 200, { data: publicPage(pathname, scenario.type, scenario.payload) });
+  return json(response, 200, {
+    data: publicPage(pathname, scenario.type, scenario.payload, seoProjection),
+  });
 }
 
 function primaryNavigation() {
@@ -400,7 +403,7 @@ function mediaPage(assetId) {
   };
 }
 
-function publicPage(pathname, type, payload) {
+function publicPage(pathname, type, payload, seoProjection = defaultSeoProjection) {
   return {
     resource: { type: "content", id: `page:${pathname}` },
     content: {
@@ -411,13 +414,7 @@ function publicPage(pathname, type, payload) {
       payload,
       publishedAt: DEMO_PUBLISHED_AT,
     },
-    seo: {
-      title: seoTitle(pathname),
-      description: seoDescription(pathname),
-      canonicalPath: pathname,
-      index: true,
-      follow: true,
-    },
+    seo: seoProjection(pathname),
   };
 }
 
@@ -484,7 +481,7 @@ function svg(response, body) {
   response.end(body);
 }
 
-function articleCollectionResponse(url, response) {
+function articleCollectionResponse(url, response, seoProjection) {
   const keys = [...url.searchParams.keys()];
   if (keys.some((key) => !["type", "limit", "after"].includes(key))) {
     return json(response, 400, failure("invalid_request"));
@@ -498,9 +495,9 @@ function articleCollectionResponse(url, response) {
   if (!Number.isSafeInteger(limit) || limit > 100) return json(response, 400, failure("invalid_request"));
 
   const all = [
-    publicPage("/articles/preparing-access-before-moving-day", "moving.article", structuredClone(MOVING_ARTICLE_ACCESS_EXAMPLE)),
-    publicPage("/articles/practical-packing-timeline", "moving.article", structuredClone(MOVING_ARTICLE_PACKING_EXAMPLE)),
-    publicPage("/articles/moving-an-office", "moving.article", structuredClone(MOVING_ARTICLE_OFFICE_EXAMPLE)),
+    publicPage("/articles/preparing-access-before-moving-day", "moving.article", structuredClone(MOVING_ARTICLE_ACCESS_EXAMPLE), seoProjection),
+    publicPage("/articles/practical-packing-timeline", "moving.article", structuredClone(MOVING_ARTICLE_PACKING_EXAMPLE), seoProjection),
+    publicPage("/articles/moving-an-office", "moving.article", structuredClone(MOVING_ARTICLE_OFFICE_EXAMPLE), seoProjection),
   ];
   const after = url.searchParams.get("after");
   const start = after === null ? 0 : all.findIndex((item) => item.content.contentId === after) + 1;
@@ -669,6 +666,16 @@ function seoDescription(pathname) {
   return pathname === "/"
     ? "Professional packing, transport and placement for carefully planned residential and commercial moves."
     : "Careful moving support shaped around clear planning, practical access and a useful handoff.";
+}
+
+function defaultSeoProjection(pathname) {
+  return {
+    title: seoTitle(pathname),
+    description: seoDescription(pathname),
+    canonicalPath: pathname,
+    index: true,
+    follow: true,
+  };
 }
 
 function loadExample(name) {
