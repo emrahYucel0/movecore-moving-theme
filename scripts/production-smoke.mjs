@@ -79,6 +79,7 @@ try {
   if (runtime !== undefined) await stopRuntime(runtime);
   await close(mockCore);
 }
+process.exit(0);
 
 async function verifyRenderedPage(runtimeOrigin, coreOrigin) {
   const response = await fetch(`${runtimeOrigin}/`, { redirect: "manual" });
@@ -155,6 +156,10 @@ async function verifySiteComposition(runtimeOrigin, coreOrigin) {
   assert.equal(composition.business.primaryPhone.href, "tel:+12025550147");
   assert.equal(composition.business.logo.assetId, "asset:demo-logo");
   assert.equal(composition.business.logo.publicUrl, `${MEDIA_ORIGIN}/demo-media/logo.svg`);
+  assert.equal(composition.seo.articleArchiveTitle, "Northline moving articles and practical guides");
+  assert.equal(composition.seo.articleArchiveDescription, "Buyer-managed field notes for planning a careful, well-prepared move.");
+  assert.equal(composition.seo.defaultSocialImage.publicUrl, `${MEDIA_ORIGIN}/demo-media/section.svg`);
+  assert.equal(composition.seo.businessLogoUrl, `${MEDIA_ORIGIN}/demo-media/logo.svg`);
   assert.equal(JSON.stringify(composition).includes(coreOrigin), false);
   assert.equal(JSON.stringify(composition).includes("namespace"), false);
   assert.equal(JSON.stringify(composition).includes("logoAssetId"), false);
@@ -303,9 +308,10 @@ async function verifyConversionPages(runtimeOrigin, coreOrigin) {
     const html = await response.text();
     for (const expected of evidence) assert.ok(html.includes(expected), `${pathname}: ${expected}`);
     assert.equal((html.match(/<h1(?:\s|>)/gu) ?? []).length, 1, pathname);
-    for (const forbidden of [coreOrigin, "Core-Submission-Signature", "revisionId", "\"payload\":", "<script"]) {
+    for (const forbidden of [coreOrigin, "Core-Submission-Signature", "revisionId", "\"payload\":"]) {
       assert.equal(html.includes(forbidden), false, `${pathname} leaked ${forbidden}`);
     }
+    assertOnlyJsonLdScript(html, pathname);
   }
 }
 
@@ -321,7 +327,7 @@ async function verifyArticles(runtimeOrigin, coreOrigin) {
     `href="${runtimeOrigin}/articles"`,
   ]) assert.ok(archiveHtml.includes(expected), `/articles missing SSR evidence: ${expected}`);
   assert.equal((archiveHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
-  assert.equal(archiveHtml.includes("<script"), false);
+  assertOnlyJsonLdScript(archiveHtml, "/articles");
 
   const cursor = "page:/articles/preparing-access-before-moving-day";
   const query = new URLSearchParams({ after: cursor, utm_source: "ignored" });
@@ -346,7 +352,7 @@ async function verifyArticles(runtimeOrigin, coreOrigin) {
     `<link rel="canonical" href="${runtimeOrigin}${detailPath}">`,
   ]) assert.ok(detailHtml.includes(expected), `${detailPath} missing SSR evidence: ${expected}`);
   assert.equal((detailHtml.match(/<h1(?:\s|>)/gu) ?? []).length, 1);
-  assert.equal(detailHtml.includes("<script"), false);
+  assertOnlyJsonLdScript(detailHtml, detailPath);
   for (const forbidden of [coreOrigin, PRIVATE_SENTINEL, "revisionId", '"payload":']) {
     assert.equal(archiveHtml.includes(forbidden), false, `/articles leaked ${forbidden}`);
     assert.equal(detailHtml.includes(forbidden), false, `${detailPath} leaked ${forbidden}`);
@@ -511,6 +517,12 @@ function postForm(runtimeOrigin, pathname, cookie, body, extraHeaders = {}) {
   });
 }
 
+function assertOnlyJsonLdScript(html, pathname) {
+  const scripts = [...html.matchAll(/<script\b[^>]*>/gu)].map((match) => match[0]);
+  assert.equal(scripts.length, 1, `${pathname} emitted an unexpected executable script`);
+  assert.match(scripts[0], /\btype="application\/ld\+json"/u, pathname);
+}
+
 async function verifyApplicationFailures(runtimeOrigin, coreOrigin) {
   const expectations = [
     ["/invalid", 500, "Page unavailable", ["No title"]],
@@ -667,12 +679,28 @@ async function listen(server) {
 
 async function close(server) {
   if (!server.listening) return;
-  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  server.close();
+  server.closeAllConnections?.();
+  server.unref();
 }
 
 async function stopRuntime(child) {
   if (child.exitCode !== null) return;
   const exited = new Promise((resolve) => child.once("exit", resolve));
+  if (process.platform === "win32") {
+    await new Promise((resolve) => {
+      const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      killer.once("error", resolve);
+      killer.once("exit", resolve);
+    });
+    await Promise.race([exited, delay(3_000)]);
+    child.stdout?.destroy();
+    child.stderr?.destroy();
+    return;
+  }
   child.kill("SIGTERM");
   const stopped = await Promise.race([exited.then(() => true), delay(3_000).then(() => false)]);
   if (!stopped && child.exitCode === null) {

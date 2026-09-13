@@ -13,6 +13,8 @@ export const BUSINESS_IDENTITY_LIMITS = Object.freeze({
   hoursValue: 160,
   openingHours: 14,
   socialLinks: 8,
+  articleArchiveSeoTitle: 160,
+  articleArchiveSeoDescription: 300,
 });
 
 export interface MovingBusinessSettingV2 {
@@ -29,6 +31,9 @@ export interface MovingBusinessSettingV2 {
   readonly address?: string;
   readonly openingHours: readonly BusinessOpeningHours[];
   readonly socialLinks: readonly BusinessSocialLink[];
+  readonly articleArchiveSeoTitle?: string;
+  readonly articleArchiveSeoDescription?: string;
+  readonly defaultSocialImageAssetId?: string;
 }
 
 export interface BusinessPhone {
@@ -54,6 +59,12 @@ export interface BusinessOpeningHours {
 export interface BusinessSocialLink {
   readonly label: string;
   readonly href: string;
+}
+
+export interface MovingSiteSeoSetting {
+  readonly articleArchiveSeoTitle?: string;
+  readonly articleArchiveSeoDescription?: string;
+  readonly defaultSocialImageAssetId?: string;
 }
 
 /** Runtime-only projection consumed by public components. */
@@ -96,6 +107,28 @@ export function parseBusinessIdentity(input: unknown): BusinessIdentity {
   return projectLegacy(parseLegacyBusinessSettingV1(source));
 }
 
+/** Reads application-owned SEO values without exposing them as business identity. */
+export function parseMovingSiteSeoSetting(input: unknown): MovingSiteSeoSetting {
+  const source = dataRecord(input);
+  if (source["schemaVersion"] === MOVING_BUSINESS_SETTING_VERSION) {
+    const setting = parseMovingBusinessSettingV2(source);
+    return Object.freeze({
+      ...(setting.articleArchiveSeoTitle === undefined
+        ? {}
+        : { articleArchiveSeoTitle: setting.articleArchiveSeoTitle }),
+      ...(setting.articleArchiveSeoDescription === undefined
+        ? {}
+        : { articleArchiveSeoDescription: setting.articleArchiveSeoDescription }),
+      ...(setting.defaultSocialImageAssetId === undefined
+        ? {}
+        : { defaultSocialImageAssetId: setting.defaultSocialImageAssetId }),
+    });
+  }
+  if (Object.hasOwn(source, "schemaVersion")) throw contractError();
+  parseLegacyBusinessSettingV1(source);
+  return Object.freeze({});
+}
+
 /** Parses canonical persisted v2 data without exposing persistence details to components. */
 export function parseMovingBusinessSettingV2(input: unknown): MovingBusinessSettingV2 {
   const source = dataRecord(input);
@@ -112,6 +145,15 @@ export function parseMovingBusinessSettingV2(input: unknown): MovingBusinessSett
   const socialLinks = source["socialLinks"] === undefined
     ? Object.freeze([])
     : parseBoundedArray(source["socialLinks"], BUSINESS_IDENTITY_LIMITS.socialLinks, parseV2SocialLink);
+  const articleArchiveSeoTitle = optionalNormalizedSeoText(
+    source["articleArchiveSeoTitle"],
+    BUSINESS_IDENTITY_LIMITS.articleArchiveSeoTitle,
+  );
+  const articleArchiveSeoDescription = optionalNormalizedSeoText(
+    source["articleArchiveSeoDescription"],
+    BUSINESS_IDENTITY_LIMITS.articleArchiveSeoDescription,
+  );
+  const defaultSocialImageAssetId = optionalAssetId(source["defaultSocialImageAssetId"]);
 
   return Object.freeze({
     schemaVersion: MOVING_BUSINESS_SETTING_VERSION,
@@ -125,6 +167,9 @@ export function parseMovingBusinessSettingV2(input: unknown): MovingBusinessSett
     ...(address === undefined ? {} : { address }),
     openingHours,
     socialLinks,
+    ...(articleArchiveSeoTitle === undefined ? {} : { articleArchiveSeoTitle }),
+    ...(articleArchiveSeoDescription === undefined ? {} : { articleArchiveSeoDescription }),
+    ...(defaultSocialImageAssetId === undefined ? {} : { defaultSocialImageAssetId }),
   });
 }
 
@@ -377,6 +422,13 @@ function optionalCoreText(value: unknown, maximum: number, multiline: boolean): 
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value) ||
     (!multiline && /[\r\n\t]/u.test(value))) throw contractError();
   return value;
+}
+
+function optionalNormalizedSeoText(value: unknown, maximum: number): string | undefined {
+  const source = optionalCoreText(value, maximum, true);
+  if (source === undefined) return undefined;
+  const normalized = source.replace(/\s+/gu, " ").trim();
+  return normalized.length === 0 ? undefined : normalized;
 }
 
 function optionalAssetId(value: unknown): string | undefined {

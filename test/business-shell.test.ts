@@ -14,6 +14,8 @@ describe("R2.7B commercial business shell", () => {
           schemaVersion: 2,
           companyName: "Example Moving Company",
           primaryPhone: "+1 202-555-0100",
+          articleArchiveSeoTitle: "Moving articles and practical guides",
+          articleArchiveSeoDescription: "Clear field notes for preparing access, packing well and planning a considered move.",
           openingHours: [],
           socialLinks: [],
         },

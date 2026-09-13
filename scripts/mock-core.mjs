@@ -385,6 +385,9 @@ function businessIdentity() {
     whatsappLabel: "Message on WhatsApp",
     email: "hello@example.test",
     address: "100 Example Avenue, Northline, EX 00000",
+    articleArchiveSeoTitle: "Northline moving articles and practical guides",
+    articleArchiveSeoDescription: "Buyer-managed field notes for planning a careful, well-prepared move.",
+    defaultSocialImageAssetId: "asset:demo-social",
     openingHours: [
       { label: "Monday to Friday", value: "08:00 to 18:00" },
       { label: "Saturday", value: "09:00 to 14:00" },

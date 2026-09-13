@@ -75,6 +75,32 @@
           ]
         },
         {
+          "label": "SEO and social sharing",
+          "fields": [
+            {
+              "kind": "text",
+              "path": "articleArchiveSeoTitle",
+              "label": "Article archive SEO title",
+              "help": "Used for the browser and social-sharing title on /articles.",
+              "maxLength": 160
+            },
+            {
+              "kind": "multiline",
+              "path": "articleArchiveSeoDescription",
+              "label": "Article archive SEO description",
+              "help": "Used for the search and social-sharing description on /articles.",
+              "maxLength": 300
+            },
+            {
+              "kind": "media",
+              "path": "defaultSocialImageAssetId",
+              "label": "Default social preview image",
+              "help": "Optional. Used by Open Graph and Twitter previews across the public site.",
+              "allowedKinds": ["image"]
+            }
+          ]
+        },
+        {
           "label": "Opening hours",
           "fields": [
             {

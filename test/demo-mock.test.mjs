@@ -121,6 +121,9 @@ describe("shared demo Core", () => {
         primaryPhone: "+1 202-555-0147",
         whatsappUrl: "https://wa.me/12025550147",
         email: "hello@example.test",
+        articleArchiveSeoTitle: "Northline moving articles and practical guides",
+        articleArchiveSeoDescription: "Buyer-managed field notes for planning a careful, well-prepared move.",
+        defaultSocialImageAssetId: "asset:demo-social",
       },
     });
     const logo = await client.getMedia("asset:demo-logo");

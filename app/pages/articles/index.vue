@@ -19,6 +19,7 @@ if (error.value !== undefined || archive.value === undefined) {
   throw createError({ statusCode: responseStatus(error.value), statusMessage: "Article archive unavailable", fatal: true });
 }
 const articlePage = archive.value;
+const site = await useCorePublicSite();
 
 const config = useRuntimeConfig();
 let canonical: string;
@@ -28,12 +29,13 @@ try {
   throw createError({ statusCode: 503, statusMessage: "Public site configuration unavailable", fatal: true });
 }
 
-useSeoMeta({
-  title: "Moving articles and practical guides",
-  description: "Clear field notes for preparing access, packing well and planning a considered move.",
+useMovingSeoMetadata({
+  title: site.seo.articleArchiveTitle,
+  description: site.seo.articleArchiveDescription,
   robots: "index,follow",
+  canonicalUrl: canonical,
+  site,
 });
-useHead({ link: [{ rel: "canonical", href: canonical }] });
 
 function responseStatus(value: unknown): 400 | 500 | 502 | 503 {
   if (typeof value !== "object" || value === null) return 502;

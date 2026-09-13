@@ -12,6 +12,9 @@
   "whatsappLabel": "Message on WhatsApp",
   "email": "hello@example.test",
   "address": "100 Example Avenue",
+  "articleArchiveSeoTitle": "Moving articles and practical guides",
+  "articleArchiveSeoDescription": "Practical guidance for planning a considered move.",
+  "defaultSocialImageAssetId": "asset:default-social-image",
   "openingHours": [
     { "label": "Monday to Friday", "value": "08:00 to 18:00" }
   ],
@@ -45,6 +48,9 @@ The command validates the input and prints canonical v2 JSON to standard output;
 | `whatsappLabel` | `text` | optional |
 | `email` | `email` | optional |
 | `address` | `multiline` | optional |
+| `articleArchiveSeoTitle` | `text`, maximum 160 | optional; source fallback when absent |
+| `articleArchiveSeoDescription` | `multiline`, maximum 300 | optional; source fallback when absent |
+| `defaultSocialImageAssetId` | `media`, image only | optional; omitted social image metadata when absent/unavailable |
 | `openingHours` | `repeater` of required `label`/`value` text fields, maximum 14 | optional/empty |
 | `socialLinks` | `repeater` of required `label` text and `href` URL fields, maximum 8 | optional/empty |
 
@@ -59,4 +65,6 @@ CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definition
 CORE_CMS_SETTING_EDITOR_PROFILES_FILE=<absolute path>/application/setting-editor-profiles.json
 ```
 
-The **Business details** form groups company identity, contact information, opening hours and social profiles. It never exposes `schemaVersion`, raw Media IDs, `tel:` or `mailto:` values. Core's complete-value copy-on-write editor preserves `schemaVersion` and unknown safe siblings, keeps repeater order, enforces optimistic concurrency, and applies its existing Settings and Media permissions. Selecting, changing or clearing the logo uses the existing image-only Media picker and Core's reliable media-usage lifecycle.
+The **Business details** form groups company identity, contact information, Article archive SEO, the optional default social preview image, opening hours and social profiles. It never exposes `schemaVersion`, raw Media IDs, `tel:` or `mailto:` values. Core's complete-value copy-on-write editor preserves `schemaVersion` and unknown safe siblings, keeps repeater order, enforces optimistic concurrency, and applies its existing Settings and Media permissions. Selecting, changing or clearing either image uses the existing image-only Media picker and Core's reliable media-usage lifecycle.
+
+The Article archive fields own only the fixed `/articles` title and description; resource-backed page SEO remains managed in Core's URL/SEO editor. The default social image is site-wide V1 metadata and is never inferred from Article body or hero media.

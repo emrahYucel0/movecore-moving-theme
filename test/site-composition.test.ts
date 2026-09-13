@@ -16,6 +16,7 @@ const navigation = navigationFixture("primary");
 const footerNavigation = navigationFixture("footer");
 const setting = settingFixture();
 const logo = mediaFixture();
+const socialImage = mediaFixture("asset:social-image", "https://cdn.example.test/social.jpg");
 
 describe("public business shell composition", () => {
   it("fails closed before creating a client when required selectors are absent or partial", async () => {
@@ -31,7 +32,7 @@ describe("public business shell composition", () => {
   it("fetches public setting and navigation server-side, then resolves the configured logo", async () => {
     const getNavigation = vi.fn(async (id: string) => id === "footer" ? footerNavigation : navigation);
     const getSetting = vi.fn(async () => setting);
-    const getMedia = vi.fn(async () => logo);
+    const getMedia = vi.fn(async (assetId: string) => assetId === socialImage.assetId ? socialImage : logo);
 
     const result = await loadPublicSiteComposition(selectors(), () => ({
       getNavigation,
@@ -43,6 +44,7 @@ describe("public business shell composition", () => {
     expect(getNavigation).toHaveBeenNthCalledWith(2, "footer");
     expect(getSetting).toHaveBeenCalledWith("moving", "business");
     expect(getMedia).toHaveBeenCalledWith("asset:business-logo");
+    expect(getMedia).toHaveBeenCalledWith("asset:social-image");
     expect(result).toMatchObject({
       navigation: { id: "primary" },
       footerNavigation: { id: "footer" },
@@ -56,6 +58,12 @@ describe("public business shell composition", () => {
           width: 640,
           height: 180,
         },
+      },
+      seo: {
+        articleArchiveTitle: "Buyer-managed articles",
+        articleArchiveDescription: "Buyer-managed article guidance.",
+        defaultSocialImage: { publicUrl: "https://cdn.example.test/social.jpg" },
+        businessLogoUrl: "https://cdn.example.test/logo.svg",
       },
     });
     const transport = JSON.stringify(result);
@@ -84,6 +92,41 @@ describe("public business shell composition", () => {
     expect(result.footerNavigation).toBe(result.navigation);
     expect(getNavigation).toHaveBeenCalledTimes(1);
     expect(getMedia).not.toHaveBeenCalled();
+    expect(result.seo).toEqual({
+      articleArchiveTitle: "Moving articles and practical guides",
+      articleArchiveDescription: "Clear field notes for preparing access, packing well and planning a considered move.",
+    });
+  });
+
+  it.each([
+    ["missing", null],
+    ["non-image", { ...socialImage, kind: "document" as const }],
+    ["private Core origin", mediaFixture("asset:social-image", "http://127.0.0.1:4800/media/private")],
+    ["unsafe protocol", mediaFixture("asset:social-image", "file:///private/social.jpg")],
+  ])("safely omits an optional %s social image", async (_case, candidate) => {
+    const getMedia = vi.fn(async (assetId: string) => assetId === "asset:social-image" ? candidate : logo);
+    const result = await loadPublicSiteComposition({
+      ...selectors(),
+      privateCoreOrigin: "http://127.0.0.1:4800",
+    }, () => ({
+      getNavigation: async (id) => id === "footer" ? footerNavigation : navigation,
+      getSetting: async () => setting,
+      getMedia,
+    }));
+    expect(result.seo.defaultSocialImage).toBeUndefined();
+    expect(result.business.logo?.publicUrl).toBe("https://cdn.example.test/logo.svg");
+  });
+
+  it("does not fail the site when optional social media lookup fails", async () => {
+    const result = await loadPublicSiteComposition(selectors(), () => ({
+      getNavigation: async (id) => id === "footer" ? footerNavigation : navigation,
+      getSetting: async () => setting,
+      getMedia: async (assetId) => {
+        if (assetId === "asset:social-image") throw new CoreClientError("unavailable");
+        return logo;
+      },
+    }));
+    expect(result.seo.defaultSocialImage).toBeUndefined();
   });
 
   it("projects equivalent legacy v1 and canonical v2 values to the same public business identity", async () => {
@@ -167,6 +210,7 @@ function selectors() {
     footerNavigationId: "footer",
     settingNamespace: "moving",
     settingKey: "business",
+    privateCoreOrigin: "http://127.0.0.1:4800",
   };
 }
 
@@ -215,18 +259,24 @@ function completeV2Value() {
     address: "100 Example Avenue",
     openingHours: [{ label: "Monday to Friday", value: "08:00 to 18:00" }],
     socialLinks: [{ label: "Instagram", href: "https://example.test/instagram" }],
+    articleArchiveSeoTitle: "Buyer-managed articles",
+    articleArchiveSeoDescription: "Buyer-managed article guidance.",
+    defaultSocialImageAssetId: "asset:social-image",
   };
 }
 
-function mediaFixture(): PublicMediaProjection {
+function mediaFixture(
+  assetId = "asset:business-logo",
+  publicUrl = "https://cdn.example.test/logo.svg",
+): PublicMediaProjection {
   return {
-    assetId: "asset:business-logo",
+    assetId,
     kind: "image",
     original: {
       mimeType: "image/svg+xml",
       format: "svg",
       byteSize: 1_024,
-      publicUrl: "https://cdn.example.test/logo.svg",
+      publicUrl,
       width: 640,
       height: 180,
       aspectRatio: 640 / 180,

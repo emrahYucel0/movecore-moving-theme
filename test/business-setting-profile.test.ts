@@ -27,6 +27,7 @@ describe("Moving Business Settings profile", () => {
     expect(profile.groups.map(({ label }: { label: string }) => label)).toEqual([
       "Business identity",
       "Contact",
+      "SEO and social sharing",
       "Opening hours",
       "Social links",
     ]);
@@ -42,8 +43,15 @@ describe("Moving Business Settings profile", () => {
       ["whatsappLabel", "WhatsApp button label", "text", false, 80],
       ["email", "Email", "email", false, 254],
       ["address", "Address", "multiline", false, 500],
+      ["articleArchiveSeoTitle", "Article archive SEO title", "text", false, 160],
+      ["articleArchiveSeoDescription", "Article archive SEO description", "multiline", false, 300],
+      ["defaultSocialImageAssetId", "Default social preview image", "media", false, undefined],
     ]);
     expect(fields.find(({ path }: { path: string }) => path === "logoAssetId")).toMatchObject({
+      kind: "media",
+      allowedKinds: ["image"],
+    });
+    expect(fields.find(({ path }: { path: string }) => path === "defaultSocialImageAssetId")).toMatchObject({
       kind: "media",
       allowedKinds: ["image"],
     });

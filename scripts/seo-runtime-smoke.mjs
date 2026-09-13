@@ -15,6 +15,7 @@ const mockMedia = createMockMediaServer();
 let mockCore;
 let runtime;
 let runtimeOutput = "";
+let expectedSocialImage;
 
 const resourceCases = [
   ["/", "Moving handled with care, from door to door.", "A planned moving service for homes and businesses, with careful packing, coordinated transport and a clear handoff at every stage."],
@@ -33,6 +34,7 @@ const resourceCases = [
 
 try {
   const mediaPort = await listen(mockMedia);
+  expectedSocialImage = `http://${HOST}:${mediaPort}/demo-media/section.svg`;
   mockCore = createMockCoreServer({
     mediaOrigin: `http://${HOST}:${mediaPort}`,
     upstreamSecret: coreSubmissionUpstreamSecret,
@@ -95,8 +97,8 @@ try {
   const archive = await fetch(`${runtimeOrigin}/articles`, { redirect: "manual" });
   assert.equal(archive.status, 200);
   assertPageHead(await archive.text(), {
-    title: "Moving articles and practical guides",
-    description: "Clear field notes for preparing access, packing well and planning a considered move.",
+    title: "Northline moving articles and practical guides",
+    description: "Buyer-managed field notes for planning a careful, well-prepared move.",
     canonical: `${PUBLIC_SITE_ORIGIN}/articles`,
   });
 
@@ -105,8 +107,8 @@ try {
   const paginated = await fetch(`${runtimeOrigin}/articles?${cursorQuery}`, { redirect: "manual" });
   assert.equal(paginated.status, 200);
   assertPageHead(await paginated.text(), {
-    title: "Moving articles and practical guides",
-    description: "Clear field notes for preparing access, packing well and planning a considered move.",
+    title: "Northline moving articles and practical guides",
+    description: "Buyer-managed field notes for planning a careful, well-prepared move.",
     canonical: `${PUBLIC_SITE_ORIGIN}/articles?after=${encodeCursor(cursor)}`,
   });
 
@@ -138,6 +140,9 @@ try {
   const missingHtml = await missing.text();
   assert.match(missingHtml, /<html\b[^>]*\blang="en"/u);
   assert.equal(tagsWithAttribute(missingHtml, "link", "rel", "canonical").length, 0);
+  assert.equal(tagsWithAttributePrefix(missingHtml, "meta", "property", "og:").length, 0);
+  assert.equal(tagsWithAttributePrefix(missingHtml, "meta", "name", "twitter:").length, 0);
+  assert.equal(missingHtml.includes("application/ld+json"), false);
   assert.equal(missingHtml.includes(coreOrigin), false);
 
   const sitemap = await fetch(`${runtimeOrigin}/sitemap.xml`, { redirect: "manual" });
@@ -159,6 +164,7 @@ try {
   await close(mockCore);
   await close(mockMedia);
 }
+process.exit(0);
 
 function assertPageHead(html, expected) {
   assert.match(html, /<html\b[^>]*\blang="en"/u);
@@ -174,9 +180,40 @@ function assertPageHead(html, expected) {
   const robots = tagsWithAttribute(html, "meta", "name", "robots");
   assert.equal(robots.length, 1);
   assert.equal(attribute(robots[0], "content"), "index,follow");
-  assert.equal(tagsWithAttributePrefix(html, "meta", "property", "og:").length, 0);
-  assert.equal(tagsWithAttributePrefix(html, "meta", "name", "twitter:").length, 0);
-  assert.equal(html.includes("application/ld+json"), false);
+  assertMeta(html, "property", "og:title", expected.title);
+  assertMeta(html, "property", "og:description", expected.description);
+  assertMeta(html, "property", "og:url", expected.canonical);
+  assertMeta(html, "property", "og:type", "website");
+  assertMeta(html, "property", "og:site_name", "Northline Moving");
+  assertMeta(html, "property", "og:image", expectedSocialImage);
+  assertMeta(html, "name", "twitter:card", "summary_large_image");
+  assertMeta(html, "name", "twitter:title", expected.title);
+  assertMeta(html, "name", "twitter:description", expected.description);
+  assertMeta(html, "name", "twitter:image", expectedSocialImage);
+  const jsonLdTags = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/gu)];
+  assert.equal(jsonLdTags.length, 1);
+  const jsonLd = JSON.parse(jsonLdTags[0]?.[1] ?? "");
+  assert.deepEqual(jsonLd, {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": `${PUBLIC_SITE_ORIGIN}/#business`,
+    name: "Northline Moving",
+    url: `${PUBLIC_SITE_ORIGIN}/`,
+    telephone: "+1 202-555-0147",
+    email: "hello@example.test",
+    address: "100 Example Avenue, Northline, EX 00000",
+    logo: expectedSocialImage.replace("section.svg", "logo.svg"),
+    sameAs: [
+      "https://example.test/northline-instagram",
+      "https://example.test/northline-facebook",
+    ],
+  });
+}
+
+function assertMeta(html, attributeName, key, expectedValue) {
+  const matches = tagsWithAttribute(html, "meta", attributeName, key);
+  assert.equal(matches.length, 1, `${key} must occur exactly once`);
+  assert.equal(attribute(matches[0], "content"), expectedValue, key);
 }
 
 function tagsWithAttribute(html, tag, name, value) {
@@ -237,12 +274,16 @@ async function waitForRuntime(origin) {
 
 function close(server) {
   if (server === undefined || !server.listening) return Promise.resolve();
-  return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  server.close();
+  server.closeAllConnections?.();
+  server.unref();
+  return Promise.resolve();
 }
 
 async function stopRuntime(child) {
   if (child.exitCode !== null) return;
   if (process.platform === "win32") {
+    const exited = new Promise((resolve) => child.once("exit", resolve));
     await new Promise((resolve) => {
       const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
         stdio: "ignore",
@@ -251,6 +292,9 @@ async function stopRuntime(child) {
       killer.once("error", resolve);
       killer.once("exit", resolve);
     });
+    await Promise.race([exited, delay(3_000)]);
+    child.stdout?.destroy();
+    child.stderr?.destroy();
     return;
   }
   const exited = new Promise((resolve) => child.once("exit", resolve));

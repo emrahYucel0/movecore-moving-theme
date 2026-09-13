@@ -13,8 +13,20 @@ export interface PublicBusinessIdentity extends Omit<BusinessIdentity, "logoAsse
   readonly logo?: BusinessLogo;
 }
 
+export interface PublicSocialImage {
+  readonly publicUrl: string;
+}
+
+export interface PublicSiteSeo {
+  readonly articleArchiveTitle: string;
+  readonly articleArchiveDescription: string;
+  readonly defaultSocialImage?: PublicSocialImage;
+  readonly businessLogoUrl?: string;
+}
+
 export interface PublicSiteComposition {
   readonly business: PublicBusinessIdentity;
+  readonly seo: PublicSiteSeo;
   readonly navigation: PublicNavigationProjection;
   readonly footerNavigation: PublicNavigationProjection;
 }

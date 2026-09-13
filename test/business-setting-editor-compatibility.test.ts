@@ -24,6 +24,9 @@ const buyerFields: readonly EditorFieldMapping[] = [
   { path: "whatsappLabel", kind: "text", required: false },
   { path: "email", kind: "email", required: false },
   { path: "address", kind: "multiline", required: false },
+  { path: "articleArchiveSeoTitle", kind: "text", required: false },
+  { path: "articleArchiveSeoDescription", kind: "multiline", required: false },
+  { path: "defaultSocialImageAssetId", kind: "media", required: false, allowedKinds: ["image"] },
 ] as const;
 
 const repeaters: readonly RepeaterMapping[] = [
@@ -58,8 +61,12 @@ describe("canonical Moving business v2 Core editor compatibility", () => {
       ["whatsappLabel", "text", false],
       ["email", "email", false],
       ["address", "multiline", false],
+      ["articleArchiveSeoTitle", "text", false],
+      ["articleArchiveSeoDescription", "multiline", false],
+      ["defaultSocialImageAssetId", "media", false],
     ]);
     expect(buyerFields.find(({ path }) => path === "logoAssetId")?.allowedKinds).toEqual(["image"]);
+    expect(buyerFields.find(({ path }) => path === "defaultSocialImageAssetId")?.allowedKinds).toEqual(["image"]);
     expect(buyerFields.every(({ path }) => !path.includes("."))).toBe(true);
   });
 
@@ -90,6 +97,6 @@ describe("canonical Moving business v2 Core editor compatibility", () => {
   it("keeps the discriminator non-editable and has no optional nested object", () => {
     expect(buyerFields.some(({ path }) => path === "schemaVersion")).toBe(false);
     expect(repeaters.some(({ path }) => path === "schemaVersion")).toBe(false);
-    expect(new Set([...buyerFields.map(({ path }) => path), ...repeaters.map(({ path }) => path)]).size).toBe(10);
+    expect(new Set([...buyerFields.map(({ path }) => path), ...repeaters.map(({ path }) => path)]).size).toBe(13);
   });
 });

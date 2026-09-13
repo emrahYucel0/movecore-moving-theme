@@ -12,7 +12,8 @@ import MovingQuoteRenderer from "./content/MovingQuoteRenderer.vue";
 import MovingArticleRenderer from "./content/MovingArticleRenderer.vue";
 
 const page = await useCorePublicPage();
-if (page !== undefined) usePublicPageSeo(page);
+const site = await useCorePublicSite();
+if (page !== undefined) usePublicPageSeo(page, site);
 </script>
 
 <template>

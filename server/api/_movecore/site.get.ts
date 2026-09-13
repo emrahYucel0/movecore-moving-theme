@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
       footerNavigationId: config.coreFooterNavigationId,
       settingNamespace: config.coreSiteSettingNamespace,
       settingKey: config.coreSiteSettingKey,
+      privateCoreOrigin: config.coreBaseUrl,
     }, () => useCorePublicClient());
   } catch (error: unknown) {
     if (error instanceof PublicSiteCompositionError) {

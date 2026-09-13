@@ -5,6 +5,7 @@ import {
   convertBusinessSettingToV2,
   parseBusinessIdentity,
   parseMovingBusinessSettingV2,
+  parseMovingSiteSeoSetting,
   toMailtoHref,
   toTelHref,
 } from "../shared/business-identity";
@@ -84,6 +85,24 @@ describe("moving business identity persistence and runtime boundary", () => {
     expect(identity.logoAssetId).toBeUndefined();
     expect(identity.whatsapp).toBeUndefined();
     expect(identity.email).toBeUndefined();
+  });
+
+  it("normalizes bounded archive SEO and keeps it outside the public business identity", () => {
+    const source = {
+      ...minimalV2(),
+      articleArchiveSeoTitle: "  Buyer\n managed   articles  ",
+      articleArchiveSeoDescription: " Clear\t planning   guidance. ",
+      defaultSocialImageAssetId: "asset:social",
+    };
+    expect(parseMovingSiteSeoSetting(source)).toEqual({
+      articleArchiveSeoTitle: "Buyer managed articles",
+      articleArchiveSeoDescription: "Clear planning guidance.",
+      defaultSocialImageAssetId: "asset:social",
+    });
+    expect(parseBusinessIdentity(source)).not.toHaveProperty("articleArchiveSeoTitle");
+    expect(parseMovingSiteSeoSetting(minimalLegacy())).toEqual({});
+    rejected({ ...minimalV2(), articleArchiveSeoTitle: "x".repeat(161) });
+    rejected({ ...minimalV2(), articleArchiveSeoDescription: "x".repeat(301) });
   });
 
   it("accepts every bounded phone primitive safely and fixes derived schemes", () => {
