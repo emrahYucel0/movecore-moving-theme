@@ -13,10 +13,10 @@ export async function verifyCoreAdminShell(coreRoot) {
   const runtime = (name) => import(pathToFileURL(path.join(coreRoot, "apps/runtime/dist", `${name}.js`)).href);
   const [{ parseCoreRuntimeConfig }, { loadAdminShellProjection }, { loadContentEditorProfiles },
     { loadSettingDefinitions }, { loadSettingEditorProfiles }, { loadSubmissionDefinitions },
-    { loadSubmissionPresentations }, { loadApplicationSitemapRoutes }] = await Promise.all([
+    { loadSubmissionPresentations }, { loadApplicationSitemapRoutes }, { loadContentCollections }] = await Promise.all([
     runtime("config"), runtime("admin-shell"), runtime("editor-profiles"),
     runtime("setting-definitions"), runtime("setting-editor-profiles"), runtime("submission-definitions"),
-    runtime("submission-presentations"), runtime("sitemap-routes"),
+    runtime("submission-presentations"), runtime("sitemap-routes"), runtime("content-collections"),
   ]);
   const manifest = (name) => path.join(movingRoot, "application", `${name}.json`);
   // Parse an isolated configuration rather than inheriting any local/production environment.
@@ -39,6 +39,7 @@ export async function verifyCoreAdminShell(coreRoot) {
     CORE_CMS_SUBMISSION_PRESENTATIONS_FILE: manifest("submission-presentations"),
     CORE_CMS_ADMIN_SHELL_FILE: manifest("admin-shell"),
     CORE_CMS_SITEMAP_ROUTES_FILE: manifest("sitemap-routes"),
+    CORE_CMS_CONTENT_COLLECTIONS_FILE: manifest("content-collections"),
   });
   const adminShell = await loadAdminShellProjection(config.adminShellFile);
   const editorProfiles = await loadContentEditorProfiles(config.editorProfilesFile);
@@ -47,6 +48,7 @@ export async function verifyCoreAdminShell(coreRoot) {
   const submissionDefinitions = await loadSubmissionDefinitions(config.submissionDefinitionsFile);
   const submissionPresentations = await loadSubmissionPresentations(config.submissionPresentationsFile, submissionDefinitions);
   const sitemapRoutes = await loadApplicationSitemapRoutes(config.sitemapRoutesFile);
+  const contentCollections = await loadContentCollections(config.contentCollectionsFile);
   assert.deepEqual(adminShell.application, { name: "MoveCore Moving", descriptor: "Operations workspace" });
   assert.deepEqual(adminShell.navigation.map(({ id, label, group, visible }) => [id, label, group, visible]), [
     ["overview", "Overview", "operations", true], ["submissions", "Leads", "operations", true],
@@ -63,9 +65,15 @@ export async function verifyCoreAdminShell(coreRoot) {
     assert.deepEqual(records.map(({ type }) => type).sort(), ["moving.contact-request", "moving.quote-request"]);
   }
   assert.deepEqual(sitemapRoutes, [{ path: "/articles" }]);
+  assert.equal(contentCollections.version, 2);
+  assert.deepEqual(contentCollections.collections.map(({ contentType }) => contentType), [
+    "moving.home", "site.page", "moving.services", "moving.service", "moving.areas",
+    "moving.location", "moving.article", "moving.faq", "moving.testimonials",
+    "moving.quote", "moving.contact",
+  ]);
   return {
     adminShell, editorProfiles, settingDefinitions, settingEditorProfiles,
-    submissionDefinitions, submissionPresentations, sitemapRoutes,
+    submissionDefinitions, submissionPresentations, sitemapRoutes, contentCollections,
   };
 }
 
@@ -73,12 +81,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.met
   const result = await verifyCoreAdminShell(process.env.MOVECORE_CORE_ROOT?.trim());
   process.stdout.write(`${JSON.stringify({
     status: "passed", application: result.adminShell.application,
-    manifests: 7, editorProfiles: result.editorProfiles.length,
+    manifests: 8, editorProfiles: result.editorProfiles.length,
     settingDefinitions: result.settingDefinitions.length,
     settingEditorProfiles: result.settingEditorProfiles.length,
     submissionDefinitions: result.submissionDefinitions.length,
     submissionPresentations: result.submissionPresentations.length,
     sitemapRoutes: result.sitemapRoutes.length,
+    contentCollections: result.contentCollections.collections.length,
     capabilities: result.adminShell.navigation.length, databaseConnections: 0,
   })}\n`);
 }

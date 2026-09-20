@@ -7,6 +7,7 @@
       "contentType": "site.page",
       "label": "Site Page",
       "description": "Structured fields for a public site page.",
+      "displayTitle": { "fieldPath": ["title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -103,6 +104,7 @@
       "contentType": "moving.home",
       "label": "Moving Homepage",
       "description": "Structured homepage content for a moving and logistics public application.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -657,6 +659,7 @@
       "contentType": "moving.service",
       "label": "Moving Service",
       "description": "Structured content for one focused moving service page.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -823,6 +826,7 @@
       "contentType": "moving.location",
       "label": "Moving Location",
       "description": "Structured content for one useful moving location page, not a geographic database.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -979,6 +983,7 @@
       "contentType": "moving.services",
       "label": "Services Overview",
       "description": "A commercial overview of the moving services offered by the business.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -1064,6 +1069,7 @@
       "contentType": "moving.areas",
       "label": "Service Areas Overview",
       "description": "An editorial overview of the areas served and the local planning context.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -1133,6 +1139,7 @@
       "contentType": "moving.faq",
       "label": "Moving FAQ",
       "description": "Practical customer questions and answers for planning a move.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -1184,6 +1191,7 @@
       "contentType": "moving.testimonials",
       "label": "Customer Stories",
       "description": "Editorial customer proof without external review-platform claims.",
+      "displayTitle": { "fieldPath": ["hero", "title"] },
       "enforceOnPublish": true,
       "fields": [
         {
@@ -1258,6 +1266,7 @@
       "contentType": "moving.quote",
       "label": "Quote Request Page",
       "description": "Page messaging and planning reassurance around the application quote request form.",
+      "displayTitle": { "fieldPath": ["title"] },
       "enforceOnPublish": true,
       "unknownFieldPolicy": "reject",
       "fields": [
@@ -1295,6 +1304,7 @@
       "contentType": "moving.contact",
       "label": "Contact Page",
       "description": "Page messaging around business contact details and the general enquiry form.",
+      "displayTitle": { "fieldPath": ["title"] },
       "enforceOnPublish": true,
       "unknownFieldPolicy": "reject",
       "fields": [
@@ -1324,6 +1334,7 @@
       "contentType": "moving.article",
       "label": "Article",
       "description": "An editorial moving guide with a concise introduction and structured long-form sections.",
+      "displayTitle": { "fieldPath": ["title"] },
       "enforceOnPublish": true,
       "fields": [
         {

@@ -132,14 +132,19 @@ Make `application/setting-editor-profiles.json` available to Core and set `CORE_
 
 Make `application/editor-profiles.json` available to Core and configure `CORE_CMS_EDITOR_PROFILES_FILE` with its absolute deployment path. The manifest remains application-owned and contains profiles for all eleven supported content types. The `moving.quote` and `moving.contact` profiles edit only surrounding page messaging; form labels, field semantics, validation and payload mapping remain application code. The `moving.article` profile exposes title, excerpt and bounded repeatable body sections without raw JSON.
 
+Make `application/content-collections.json` available to Core and configure `CORE_CMS_CONTENT_COLLECTIONS_FILE` with its absolute deployment path. Its v2 buyer Content IA presents seven fixed-ID pages and four repeatable collections in a deliberate application-owned order. Fixed IDs are resolved only inside Core and are not exposed in the Admin session projection. Repeatable content continues to receive server-allocated IDs; creating either kind starts a draft and does not assign a public URL or publish it.
+
+This v2 manifest adoption was verified against the committed Core capability baseline `430353a9631c859b36124d7bfd2b2499c5035890`. Deploy against that revision or a deliberately verified compatible successor.
+
 Make `application/submission-definitions.json` and `application/submission-presentations.json` available to Core. Configure `CORE_CMS_SUBMISSION_DEFINITIONS_FILE` and `CORE_CMS_SUBMISSION_PRESENTATIONS_FILE` with their absolute deployment paths, then configure the public Moving origin in `CORE_CMS_SUBMISSION_ORIGINS`. The definitions remain authoritative for which public types Core accepts. The presentation manifest adds only application-owned labels, bounded preview paths, detail groups and enum display mappings; it does not validate creation or change stored payloads.
 
 Make `application/sitemap-routes.json` available to Core and set `CORE_CMS_SITEMAP_ROUTES_FILE` to its absolute deployment path. It declares the application-owned `/articles` archive exactly once; resource-backed pages and Article details continue to enter the sitemap through Core URL/SEO records.
 
-Deploy the seven application metadata manifests together when their capabilities are used:
+Deploy the eight application metadata manifests together when their capabilities are used:
 
 ```text
 CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
+CORE_CMS_CONTENT_COLLECTIONS_FILE=<absolute path>/application/content-collections.json
 CORE_CMS_SETTING_DEFINITIONS_FILE=<absolute path>/application/setting-definitions.json
 CORE_CMS_SETTING_EDITOR_PROFILES_FILE=<absolute path>/application/setting-editor-profiles.json
 CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-definitions.json
@@ -150,7 +155,11 @@ CORE_CMS_SITEMAP_ROUTES_FILE=<absolute path>/application/sitemap-routes.json
 
 These JSON manifests contain no credentials. Keep them separate from the private Nuxt `NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET` and `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET` values. Core validates both submission manifests once at startup and fails closed if a presentation type has no corresponding definition.
 
-Files under `application/examples/` are static development/reference fixtures. They are not database seeds and are never written to Core automatically.
+Files under `application/examples/` are static development/reference fixtures. They are not database seeds and are never written to Core automatically. Existing installations are not renamed, duplicated or seeded by the Content IA manifest; their current IDs and records remain unchanged.
+
+The Moving Content landing order is Homepage, Pages, Services Page, Service Pages, Areas Page, Area Pages, Articles, FAQ, Testimonials, Quote Page and Contact Page. Homepage, the two overview pages, FAQ, Testimonials, Quote Page and Contact Page are fixed-identity singleton concepts (`moving:home`, `moving:services`, `moving:areas`, `moving:faq`, `moving:testimonials`, `moving:quote`, `moving:contact`). Pages, Service Pages, Area Pages and Articles remain repeatable collections with Core-allocated `content:<uuid>` identities. These identities are internal and are neither slugs nor public paths.
+
+A fresh database contains none of the singleton records: Admin truthfully shows each as absent until a buyer creates it. Creation produces only a draft; URL assignment, publication, SEO and sitemap inclusion remain explicit later actions. If an existing database has a same-type record under another identity, Core does not adopt, delete or migrate it: the configured singleton stays absent, the legacy record remains available under `/content/all`, and an operator must reconcile the records. An archived configured singleton remains blocked in Core's operator state and is not silently replaced. No production seed or adoption migration is included.
 
 Moving action destinations use profile `text` fields deliberately. Core rc.2's `url` editor validates only HTTP(S), while these application contracts also permit internal absolute paths, `tel:` and `mailto:`. The server-side Moving parsers are the authoritative safe-href boundary.
 
@@ -214,7 +223,7 @@ R2.9D configures Core's generic Submission Presentation Profile capability witho
 
 ## R2.10B.1 application-aware Admin shell
 
-Deploy all seven manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing a manifest. No Core source changes are required.
+Deploy all eight manifests above together to the separate Core runtime. `application/admin-shell.json` uses Core's v1 data-only shell contract; it is deployment metadata, not a Nuxt secret or a database setting. Restart Core after changing a manifest. No Core source changes are required.
 
 The stable **MoveCore Moving / Operations workspace** identity names the application, not the editable `moving.business.companyName` or the fictional Northline demo company. Operations (Overview, Leads) comes first, followed by Content (Content, Media), Site (Navigation, Business settings, SEO & URLs), and System (Audit). All eight capabilities remain visible. Leads covers existing Quote and Contact requests, not a CRM; record labels remain exclusively in `submission-presentations.json`. Business settings is truthful because `moving.business` is the only buyer-facing Setting and now has a complete typed profile. Core continues to own routes, permissions and active-state behavior.
 
@@ -226,7 +235,7 @@ The canonical `moving.business` v2 value stores buyer-editable sources rather th
 
 `parseBusinessIdentity` is the single version boundary and continues to give every public component the unchanged runtime `BusinessIdentity` projection. It reads legacy v1 without mutation and canonical v2, while `business:convert-v2` performs a pure local conversion and writes JSON only to standard output. `application/setting-editor-profiles.json` now maps every buyer-editable v2 source to current Core fields without exposing `schemaVersion`, derived `tel:`/`mailto:` values or raw asset IDs.
 
-Validate all seven manifests with the actual already-built, read-only Core runtime loaders (no database connection):
+Validate all eight manifests with the actual already-built, read-only Core runtime loaders (no database connection):
 
 ```powershell
 $env:MOVECORE_CORE_ROOT = 'C:\Users\monster\Desktop\MOVECORE\core-cms'

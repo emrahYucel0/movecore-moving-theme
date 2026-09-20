@@ -1,0 +1,111 @@
+{
+  "version": 2,
+  "collections": [
+    {
+      "id": "homepage",
+      "mode": "singleton",
+      "label": "Homepage",
+      "singularLabel": "Homepage",
+      "description": "Controls the main public homepage.",
+      "contentType": "moving.home",
+      "contentId": "moving:home",
+      "create": true
+    },
+    {
+      "id": "pages",
+      "mode": "collection",
+      "label": "Pages",
+      "singularLabel": "Page",
+      "description": "General-purpose public pages for the site.",
+      "contentType": "site.page",
+      "create": true
+    },
+    {
+      "id": "services-page",
+      "mode": "singleton",
+      "label": "Services Page",
+      "singularLabel": "Services Page",
+      "description": "Controls the main services overview page.",
+      "contentType": "moving.services",
+      "contentId": "moving:services",
+      "create": true
+    },
+    {
+      "id": "service-pages",
+      "mode": "collection",
+      "label": "Service Pages",
+      "singularLabel": "Service Page",
+      "description": "Individual pages for the moving services you offer.",
+      "contentType": "moving.service",
+      "create": true
+    },
+    {
+      "id": "areas-page",
+      "mode": "singleton",
+      "label": "Areas Page",
+      "singularLabel": "Areas Page",
+      "description": "Controls the main service areas overview page.",
+      "contentType": "moving.areas",
+      "contentId": "moving:areas",
+      "create": true
+    },
+    {
+      "id": "area-pages",
+      "mode": "collection",
+      "label": "Area Pages",
+      "singularLabel": "Area Page",
+      "description": "Individual pages for the locations you serve.",
+      "contentType": "moving.location",
+      "create": true
+    },
+    {
+      "id": "articles",
+      "mode": "collection",
+      "label": "Articles",
+      "singularLabel": "Article",
+      "description": "Helpful moving guides and editorial articles.",
+      "contentType": "moving.article",
+      "create": true
+    },
+    {
+      "id": "faq",
+      "mode": "singleton",
+      "label": "FAQ",
+      "singularLabel": "FAQ",
+      "description": "Manages the public frequently asked questions page.",
+      "contentType": "moving.faq",
+      "contentId": "moving:faq",
+      "create": true
+    },
+    {
+      "id": "testimonials",
+      "mode": "singleton",
+      "label": "Testimonials",
+      "singularLabel": "Testimonials",
+      "description": "Manages customer stories and testimonials.",
+      "contentType": "moving.testimonials",
+      "contentId": "moving:testimonials",
+      "create": true
+    },
+    {
+      "id": "quote-page",
+      "mode": "singleton",
+      "label": "Quote Page",
+      "singularLabel": "Quote Page",
+      "description": "Controls the page surrounding the quote request form.",
+      "contentType": "moving.quote",
+      "contentId": "moving:quote",
+      "create": true
+    },
+    {
+      "id": "contact-page",
+      "mode": "singleton",
+      "label": "Contact Page",
+      "singularLabel": "Contact Page",
+      "description": "Controls the public contact and enquiry page.",
+      "contentType": "moving.contact",
+      "contentId": "moving:contact",
+      "create": true
+    }
+  ]
+}
