@@ -140,7 +140,9 @@ Make `application/submission-definitions.json` and `application/submission-prese
 
 Make `application/sitemap-routes.json` available to Core and set `CORE_CMS_SITEMAP_ROUTES_FILE` to its absolute deployment path. It declares the application-owned `/articles` archive exactly once; resource-backed pages and Article details continue to enter the sitemap through Core URL/SEO records.
 
-Deploy the eight application metadata manifests together when their capabilities are used:
+Make `application/readiness-policy.json` available to Core and set `CORE_CMS_READINESS_POLICY_FILE` to its absolute deployment path. It declares what this application considers necessary before launch: five blockers (create the Homepage, publish it, give it the `/` address, replace the example company name and replace the example primary phone) and three recommendations (publish the Contact Page, publish the Quote Page and choose a logo). Core evaluates the policy against current state and owns the Admin destination for each item; the manifest contains no routes, no expressions and no copy of the shipped placeholder values, which are compared from `setting-definitions.json`. Leaving the variable unset simply removes the readiness surface. Recommendations never hold back the ready status.
+
+Deploy the nine application metadata manifests together when their capabilities are used:
 
 ```text
 CORE_CMS_EDITOR_PROFILES_FILE=<absolute path>/application/editor-profiles.json
@@ -151,6 +153,7 @@ CORE_CMS_SUBMISSION_DEFINITIONS_FILE=<absolute path>/application/submission-defi
 CORE_CMS_SUBMISSION_PRESENTATIONS_FILE=<absolute path>/application/submission-presentations.json
 CORE_CMS_ADMIN_SHELL_FILE=<absolute path>/application/admin-shell.json
 CORE_CMS_SITEMAP_ROUTES_FILE=<absolute path>/application/sitemap-routes.json
+CORE_CMS_READINESS_POLICY_FILE=<absolute path>/application/readiness-policy.json
 ```
 
 These JSON manifests contain no credentials. Keep them separate from the private Nuxt `NUXT_MOVING_SUBMISSION_CLIENT_IDENTITY_SECRET` and `NUXT_CORE_SUBMISSION_UPSTREAM_SECRET` values. Core validates both submission manifests once at startup and fails closed if a presentation type has no corresponding definition.

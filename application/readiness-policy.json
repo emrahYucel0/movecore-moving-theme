@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "id": "homepage-exists",
+      "type": "CONTENT_SINGLETON_EXISTS",
+      "severity": "blocker",
+      "label": "Create your homepage",
+      "description": "This is the first page visitors see.",
+      "collectionId": "homepage"
+    },
+    {
+      "id": "homepage-published",
+      "type": "CONTENT_SINGLETON_PUBLISHED",
+      "severity": "blocker",
+      "label": "Publish your homepage",
+      "description": "Until it is published, visitors cannot see it.",
+      "collectionId": "homepage"
+    },
+    {
+      "id": "homepage-address",
+      "type": "PATH_RESOLVES",
+      "severity": "blocker",
+      "label": "Connect your homepage to your site address",
+      "description": "Give your homepage the address visitors reach first.",
+      "path": "/"
+    },
+    {
+      "id": "business-name",
+      "type": "SETTING_FIELD_DIFFERS_FROM_INITIAL",
+      "severity": "blocker",
+      "label": "Add your business name",
+      "description": "Replace the example name shown across your site.",
+      "namespace": "moving",
+      "key": "business",
+      "fieldPath": ["companyName"]
+    },
+    {
+      "id": "business-phone",
+      "type": "SETTING_FIELD_DIFFERS_FROM_INITIAL",
+      "severity": "blocker",
+      "label": "Add your primary phone number",
+      "description": "Replace the example number customers would call.",
+      "namespace": "moving",
+      "key": "business",
+      "fieldPath": ["primaryPhone"]
+    },
+    {
+      "id": "contact-page-published",
+      "type": "CONTENT_SINGLETON_PUBLISHED",
+      "severity": "recommendation",
+      "label": "Publish your contact page",
+      "description": "Give customers a clear way to reach you.",
+      "collectionId": "contact-page"
+    },
+    {
+      "id": "quote-page-published",
+      "type": "CONTENT_SINGLETON_PUBLISHED",
+      "severity": "recommendation",
+      "label": "Publish your quote page",
+      "description": "Let customers ask you for a price.",
+      "collectionId": "quote-page"
+    },
+    {
+      "id": "business-logo",
+      "type": "SETTING_FIELD_PRESENT",
+      "severity": "recommendation",
+      "label": "Add your business logo",
+      "description": "Your logo appears in the site header.",
+      "namespace": "moving",
+      "key": "business",
+      "fieldPath": ["logoAssetId"]
+    }
+  ]
+}

@@ -13,10 +13,12 @@ export async function verifyCoreAdminShell(coreRoot) {
   const runtime = (name) => import(pathToFileURL(path.join(coreRoot, "apps/runtime/dist", `${name}.js`)).href);
   const [{ parseCoreRuntimeConfig }, { loadAdminShellProjection }, { loadContentEditorProfiles },
     { loadSettingDefinitions }, { loadSettingEditorProfiles }, { loadSubmissionDefinitions },
-    { loadSubmissionPresentations }, { loadApplicationSitemapRoutes }, { loadContentCollections }] = await Promise.all([
+    { loadSubmissionPresentations }, { loadApplicationSitemapRoutes }, { loadContentCollections },
+    { loadReadinessPolicy }] = await Promise.all([
     runtime("config"), runtime("admin-shell"), runtime("editor-profiles"),
     runtime("setting-definitions"), runtime("setting-editor-profiles"), runtime("submission-definitions"),
     runtime("submission-presentations"), runtime("sitemap-routes"), runtime("content-collections"),
+    runtime("readiness-policy"),
   ]);
   const manifest = (name) => path.join(movingRoot, "application", `${name}.json`);
   // Parse an isolated configuration rather than inheriting any local/production environment.
@@ -40,6 +42,7 @@ export async function verifyCoreAdminShell(coreRoot) {
     CORE_CMS_ADMIN_SHELL_FILE: manifest("admin-shell"),
     CORE_CMS_SITEMAP_ROUTES_FILE: manifest("sitemap-routes"),
     CORE_CMS_CONTENT_COLLECTIONS_FILE: manifest("content-collections"),
+    CORE_CMS_READINESS_POLICY_FILE: manifest("readiness-policy"),
   });
   const adminShell = await loadAdminShellProjection(config.adminShellFile);
   const editorProfiles = await loadContentEditorProfiles(config.editorProfilesFile);
@@ -49,6 +52,13 @@ export async function verifyCoreAdminShell(coreRoot) {
   const submissionPresentations = await loadSubmissionPresentations(config.submissionPresentationsFile, submissionDefinitions);
   const sitemapRoutes = await loadApplicationSitemapRoutes(config.sitemapRoutesFile);
   const contentCollections = await loadContentCollections(config.contentCollectionsFile);
+  // Core cross-validates the application-owned launch policy against the
+  // collections and Setting Definitions above, and fails closed on drift.
+  const readinessPolicy = await loadReadinessPolicy(config.readinessPolicyFile, {
+    contentCollections,
+    settingDefinitions,
+    readableSettingNamespaces: config.adminSettingNamespaces,
+  });
   assert.deepEqual(adminShell.application, { name: "MoveCore Moving", descriptor: "Operations workspace" });
   assert.deepEqual(adminShell.navigation.map(({ id, label, group, visible }) => [id, label, group, visible]), [
     ["overview", "Overview", "operations", true], ["submissions", "Leads", "operations", true],
@@ -71,9 +81,21 @@ export async function verifyCoreAdminShell(coreRoot) {
     "moving.location", "moving.article", "moving.faq", "moving.testimonials",
     "moving.quote", "moving.contact",
   ]);
+  assert.equal(readinessPolicy?.checks.length, 8);
+  assert.deepEqual(readinessPolicy.checks.map(({ id, type, severity }) => [id, type, severity]), [
+    ["homepage-exists", "CONTENT_SINGLETON_EXISTS", "blocker"],
+    ["homepage-published", "CONTENT_SINGLETON_PUBLISHED", "blocker"],
+    ["homepage-address", "PATH_RESOLVES", "blocker"],
+    ["business-name", "SETTING_FIELD_DIFFERS_FROM_INITIAL", "blocker"],
+    ["business-phone", "SETTING_FIELD_DIFFERS_FROM_INITIAL", "blocker"],
+    ["contact-page-published", "CONTENT_SINGLETON_PUBLISHED", "recommendation"],
+    ["quote-page-published", "CONTENT_SINGLETON_PUBLISHED", "recommendation"],
+    ["business-logo", "SETTING_FIELD_PRESENT", "recommendation"],
+  ]);
   return {
     adminShell, editorProfiles, settingDefinitions, settingEditorProfiles,
     submissionDefinitions, submissionPresentations, sitemapRoutes, contentCollections,
+    readinessPolicy,
   };
 }
 
@@ -81,13 +103,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.met
   const result = await verifyCoreAdminShell(process.env.MOVECORE_CORE_ROOT?.trim());
   process.stdout.write(`${JSON.stringify({
     status: "passed", application: result.adminShell.application,
-    manifests: 8, editorProfiles: result.editorProfiles.length,
+    manifests: 9, editorProfiles: result.editorProfiles.length,
     settingDefinitions: result.settingDefinitions.length,
     settingEditorProfiles: result.settingEditorProfiles.length,
     submissionDefinitions: result.submissionDefinitions.length,
     submissionPresentations: result.submissionPresentations.length,
     sitemapRoutes: result.sitemapRoutes.length,
     contentCollections: result.contentCollections.collections.length,
+    readinessChecks: result.readinessPolicy.checks.length,
     capabilities: result.adminShell.navigation.length, databaseConnections: 0,
   })}\n`);
 }
