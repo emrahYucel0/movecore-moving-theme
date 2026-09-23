@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import type { MovingLocationViewModel } from "~~/shared/content/moving-location";
+import { withoutSelfLinks } from "~~/shared/content/moving-common";
+import { publicPathname } from "~~/shared/page-route";
 import MovingFinalAction from "./moving-home/MovingFinalAction.vue";
 import PublicActionLink from "./PublicActionLink.vue";
 
-defineProps<{
+const props = defineProps<{
   readonly page: MovingLocationViewModel;
 }>();
+
+const route = useRoute();
+// An area page must not offer itself as a nearby area to explore.
+const nearbyAreas = computed(() => withoutSelfLinks(
+  props.page.nearbyAreas.items,
+  publicPathname(route),
+));
 </script>
 
 <template>
@@ -26,7 +35,7 @@ defineProps<{
             :alt="page.hero.media.alt"
             :width="page.hero.media.width"
             :height="page.hero.media.height"
-            class="moving-media-image"
+            class="moving-media-image moving-media-image--area"
             loading="eager"
             decoding="async"
             fetchpriority="high"
@@ -72,13 +81,17 @@ defineProps<{
         </ol>
       </section>
 
-      <section class="moving-inner-section moving-nearby-areas" aria-labelledby="nearby-areas-title">
+      <section
+        v-if="nearbyAreas.length > 0"
+        class="moving-inner-section moving-nearby-areas"
+        aria-labelledby="nearby-areas-title"
+      >
         <div class="moving-inner-heading">
           <p v-if="page.nearbyAreas.eyebrow" class="moving-section-label">{{ page.nearbyAreas.eyebrow }}</p>
           <h2 id="nearby-areas-title" class="moving-inner-section__title">{{ page.nearbyAreas.title }}</h2>
         </div>
         <ul class="moving-nearby-list">
-          <li v-for="item in page.nearbyAreas.items" :key="`${item.href}:${item.label}`">
+          <li v-for="item in nearbyAreas" :key="`${item.href}:${item.label}`">
             <PublicActionLink :action="item" />
           </li>
         </ul>

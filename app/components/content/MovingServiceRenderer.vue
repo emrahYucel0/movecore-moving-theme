@@ -26,7 +26,7 @@ defineProps<{
             :alt="page.hero.media.alt"
             :width="page.hero.media.width"
             :height="page.hero.media.height"
-            class="moving-media-image"
+            class="moving-media-image moving-media-image--service"
             loading="eager"
             decoding="async"
             fetchpriority="high"

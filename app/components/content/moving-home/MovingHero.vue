@@ -33,7 +33,7 @@ defineProps<{
         :alt="hero.media.alt"
         :width="hero.media.width"
         :height="hero.media.height"
-        class="moving-media-image"
+        class="moving-media-image moving-media-image--hero"
         decoding="async"
         fetchpriority="high"
       >

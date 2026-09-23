@@ -81,6 +81,8 @@ The R2.1 system uses a warm mineral canvas, deep green-charcoal ink and one cont
 
 Theme styles live in `app/assets/css/theme.css`. Components use semantic theme classes and tokens rather than scattered color values. There are no remote fonts, animation libraries, UI frameworks, carousels, gradients or glass effects.
 
+The display face is **Archivo Narrow**, self-hosted under `public/fonts/` with its SIL Open Font License 1.1 text, so the condensed art direction no longer depends on Arial Narrow being installed on the reader's device. The four public media roles, the zero-radius invariant, the CSS-only progressive motion rule and the mobile conversion rail are described in [`docs/public-visual-foundation.md`](docs/public-visual-foundation.md).
+
 ### R2 commercial photography direction
 
 The current deterministic SVG fixtures are temporary composition proofs. Final photography should feel documentary and editorial: real moving crews in real homes or workplaces, natural daylight and skin tones, and clear physical context such as planning, protective packing, lifting, loading, arrival, room placement and crew coordination. Hero photography should leave a calm edge for the structural frame while keeping people, vehicle or handled objects legible through desktop and mobile crops. Assurance photography should work at a closer human scale and show careful handling rather than a posed team.
@@ -256,4 +258,6 @@ node scripts/verify-core-admin-shell.mjs
 - There is no email/CRM notification, CAPTCHA, pricing calculator, article taxonomy or location hierarchy.
 - Editor Profiles are presentation metadata, not an application schema publish guard; malformed published Article payloads fail closed at the Moving parser boundary.
 - Demo imagery is deterministic illustration, not final commercial photography.
+- `moving.article` carries no media field, so the 2:1 article cover role is declared in the theme but has no content to render yet.
+- The area, quote and contact heroes still present as type-only compositions when content carries no image; the fallback is safe, not yet compositionally strong.
 - The theme provides presentation only. Real published content, URLs, SEO, navigation and media still require compatible Core configuration.

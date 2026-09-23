@@ -57,8 +57,11 @@ describe("R2.4 explicit presentation dispatch", () => {
 
   it("keeps distinct responsive inner-page systems under the application-owned motion layer", async () => {
     const theme = await source("../app/assets/css/theme.css");
+    // `.moving-service-process` no longer appears: its only rule was the indent
+    // R2.16A found breaking the page grid, and the section now shares the
+    // sequence system every other inner page uses.
     for (const evidence of [
-      ".moving-service-included", ".moving-service-process", ".moving-related-services",
+      ".moving-service-included", ".moving-service-overview", ".moving-related-services",
       ".moving-location-services", ".moving-local-details", ".moving-nearby-areas",
       ".moving-location-hero--without-media", "@media (max-width: 67.9375rem)",
       "@media (max-width: 47.9375rem)", "@media (max-width: 30rem)",

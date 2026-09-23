@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PublicNavigation from "~/components/PublicNavigation.vue";
 import PublicFooter from "~/components/PublicFooter.vue";
+import PublicMobileConversion from "~/components/PublicMobileConversion.vue";
 
 const site = await useCorePublicSite();
 </script>
@@ -16,5 +17,6 @@ const site = await useCorePublicSite();
       :navigation="site.footerNavigation"
       :business="site.business"
     />
+    <PublicMobileConversion :business="site.business" />
   </div>
 </template>

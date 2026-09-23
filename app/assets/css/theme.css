@@ -1,3 +1,47 @@
+/*
+ * Display face, self-hosted.
+ *
+ * The art direction is condensed, so it used to depend on Arial Narrow being
+ * installed. Arial Narrow ships with Windows and macOS but not with Linux or
+ * Android, where the display type silently fell back to a normal-width
+ * grotesque and the art direction disappeared. Archivo Narrow is carried by the
+ * product instead, so the same page renders the same way everywhere.
+ *
+ * Archivo Narrow, Omnibus-Type, SIL Open Font License 1.1.
+ * Licence text: public/fonts/OFL.txt
+ * Upstream: https://github.com/Omnibus-Type/ArchivoNarrow
+ *
+ * One variable file per subset, wght 400-700. The browser fetches only the
+ * subsets the page actually needs, so Latin-only pages never pay for Latin
+ * Extended and Turkish pages get correct Ğ İ Ş glyphs rather than fallbacks.
+ *
+ * The files sit at a stable public path rather than a fingerprinted one so the
+ * document can preload the Latin subset. Without that, the font is discovered
+ * only after this stylesheet parses, which costs a whole extra round trip on a
+ * slow connection and measurably delays first paint.
+ */
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/archivo-narrow-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/archivo-narrow-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 :root {
   color-scheme: light;
   --theme-canvas: #f0f0ea;
@@ -5,18 +49,42 @@
   --theme-ink: #19302c;
   --theme-ink-muted: #4d5d58;
   --theme-rule: #b9c1bb;
+  /* Field boundaries need 3:1 against both surrounding tones; --theme-rule
+     measures 1.6:1 and read as an undefined edge. */
+  --theme-rule-strong: #7d8a85;
   --theme-panel: #d9d8cf;
   --theme-signal: #c94f2c;
   --theme-signal-strong: #963216;
   --theme-signal-soft: #e9a46e;
+  /* The three surface tones the product already prints on, named by role so
+     band rhythm is chosen rather than improvised. */
+  --theme-surface-canvas: var(--theme-canvas);
+  --theme-surface-paper: var(--theme-surface);
+  --theme-surface-field: var(--theme-panel);
+  /* Design invariant: this product has no rounded, filled blocks. */
+  --theme-radius: 0;
+  /* Presentation contracts for the four public media roles. They reserve space
+     before an image loads, so photography cannot introduce layout shift. */
+  --theme-media-ratio-hero: 4 / 3;
+  --theme-media-ratio-service: 3 / 2;
+  --theme-media-ratio-area: 16 / 9;
+  --theme-media-ratio-article: 2 / 1;
+  --theme-media-position: 50% 50%;
   --theme-max-width: 92rem;
   --theme-gutter: clamp(1.25rem, 4vw, 4rem);
   --theme-nav-height: 4.875rem;
   --theme-section-space: clamp(4.75rem, 8vw, 7.5rem);
   --theme-body-size: clamp(1.0625rem, 0.4vw + 1rem, 1.25rem);
   --theme-font-body: "Aptos", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --theme-font-display: "Arial Narrow", "Aptos Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  /* Archivo Narrow is the production path. The rest only covers a failed font
+     load, so it lists the condensed faces a device may already have before it
+     gives up on width. */
+  --theme-font-display: "Archivo Narrow", "Arial Narrow", "Helvetica Neue Condensed",
+    "Aptos Display", "Segoe UI Variable Display", sans-serif;
   --theme-font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  /* Archivo Narrow tops out at wght 700, which is exactly the weight Arial
+     Narrow Bold rendered before. One token keeps every display rule honest. */
+  --theme-display-weight: 700;
   --motion-fast: 140ms;
   --motion-base: 240ms;
   --motion-slow: 640ms;
@@ -110,7 +178,7 @@ button:focus-visible {
   color: var(--theme-ink);
   font-family: var(--theme-font-display);
   font-size: 1.125rem;
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.02em;
   line-height: 1;
   text-decoration: none;
@@ -267,7 +335,8 @@ button:focus-visible {
 }
 
 .theme-menu-trigger,
-.theme-mobile-menu {
+.theme-mobile-menu,
+.theme-mobile-conversion {
   display: none;
 }
 
@@ -316,7 +385,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(3.75rem, 6.1vw, 5.75rem);
   font-stretch: condensed;
-  font-weight: 780;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.055em;
   line-height: 0.94;
   text-wrap: balance;
@@ -352,12 +421,43 @@ button:focus-visible {
   pointer-events: none;
 }
 
-.theme-media-image {
+/*
+ * Media presentation primitive.
+ *
+ * Every public image is content-owned and resolves from the Core media
+ * catalogue, so the theme never knows an image's real proportions. One class
+ * reserves a role's aspect ratio before the file arrives and crops whatever
+ * arrives into it, which is what keeps photography from shifting the layout.
+ * A role is selected by adding a modifier; nothing here measures anything in
+ * JavaScript, and nothing rounds a corner.
+ */
+.theme-media-image,
+.moving-media-image {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: var(--theme-media-ratio, var(--theme-media-ratio-service));
+  /* Quiet Field Record surface while the file is in flight, so a slow image
+     reads as reserved space rather than a hole. */
+  background: var(--theme-surface-field);
   object-fit: cover;
+  object-position: var(--theme-media-position);
+}
+
+.moving-media-image--hero {
+  --theme-media-ratio: var(--theme-media-ratio-hero);
+}
+
+.moving-media-image--service {
+  --theme-media-ratio: var(--theme-media-ratio-service);
+}
+
+.moving-media-image--area {
+  --theme-media-ratio: var(--theme-media-ratio-area);
+}
+
+.moving-media-image--article {
+  --theme-media-ratio: var(--theme-media-ratio-article);
 }
 
 .theme-sections {
@@ -384,7 +484,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(2.25rem, 4vw, 4.5rem);
   font-stretch: condensed;
-  font-weight: 760;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.045em;
   line-height: 0.98;
   text-wrap: balance;
@@ -451,7 +551,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(4rem, 6.1vw, 5.9rem);
   font-stretch: condensed;
-  font-weight: 790;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.065em;
   line-height: 0.9;
   text-wrap: balance;
@@ -495,14 +595,6 @@ button:focus-visible {
   background: var(--theme-signal);
   content: "";
   pointer-events: none;
-}
-
-.moving-media-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  aspect-ratio: 6 / 5;
-  object-fit: cover;
 }
 
 .moving-actions {
@@ -587,7 +679,7 @@ button:focus-visible {
 .moving-proof__list strong {
   font-family: var(--theme-font-display);
   font-size: clamp(1.75rem, 2.5vw, 2.6rem);
-  font-weight: 760;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.035em;
   line-height: 1;
 }
@@ -625,7 +717,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(2.75rem, 5vw, 5.5rem);
   font-stretch: condensed;
-  font-weight: 780;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.055em;
   line-height: 0.94;
   text-wrap: balance;
@@ -675,7 +767,7 @@ button:focus-visible {
   margin: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(1.55rem, 2.25vw, 2.5rem);
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.035em;
   line-height: 1.05;
 }
@@ -805,7 +897,7 @@ button:focus-visible {
 }
 
 .moving-assurance__media .moving-media-image {
-  aspect-ratio: 5 / 4;
+  --theme-media-ratio: 5 / 4;
 }
 
 .moving-point-list {
@@ -965,7 +1057,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(3.75rem, 5.7vw, 5.75rem);
   font-stretch: condensed;
-  font-weight: 790;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.06em;
   line-height: 0.92;
   text-wrap: balance;
@@ -1002,7 +1094,7 @@ button:focus-visible {
 }
 
 .moving-inner-hero__media .moving-media-image {
-  aspect-ratio: 5 / 4;
+  --theme-media-ratio: var(--theme-media-ratio-service);
 }
 
 .moving-location-hero {
@@ -1011,7 +1103,7 @@ button:focus-visible {
 }
 
 .moving-location-hero .moving-inner-hero__copy {
-  grid-column: 1 / span 7;
+  grid-column: 1 / span 6;
 }
 
 .moving-location-hero--without-media .moving-inner-hero__copy {
@@ -1023,12 +1115,12 @@ button:focus-visible {
 }
 
 .moving-location-hero__media {
-  grid-column: 9 / -1;
-  align-self: stretch;
+  grid-column: 7 / -1;
+  align-self: center;
 }
 
 .moving-location-hero__media .moving-media-image {
-  aspect-ratio: 4 / 5;
+  --theme-media-ratio: var(--theme-media-ratio-area);
 }
 
 @media (min-width: 68rem) {
@@ -1050,7 +1142,6 @@ button:focus-visible {
 
   .moving-location-hero--without-media .moving-inner-hero__intro {
     max-width: 44rem;
-    margin-left: clamp(0rem, 4vw, 4rem);
   }
 
   .moving-location-hero--without-media::after {
@@ -1084,7 +1175,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(2.75rem, 4.5vw, 4.75rem);
   font-stretch: condensed;
-  font-weight: 780;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.052em;
   line-height: 0.96;
   text-wrap: balance;
@@ -1180,7 +1271,7 @@ button:focus-visible {
   margin: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(1.5rem, 2vw, 2.25rem);
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.035em;
   line-height: 1.08;
 }
@@ -1193,10 +1284,6 @@ button:focus-visible {
   margin: 1rem 0 0;
   color: var(--theme-ink-muted);
   line-height: 1.65;
-}
-
-.moving-service-process .moving-inner-heading {
-  margin-left: min(14vw, 12rem);
 }
 
 .moving-inner-process {
@@ -1258,6 +1345,25 @@ button:focus-visible {
   }
 }
 
+/*
+ * Progressive motion. CSS only, by decision, not by omission.
+ *
+ * The invariant: the default state of every animated element below is its
+ * finished, readable state. Motion only ever begins from an animated state
+ * inside the capability gate, so all three of these render the complete
+ * composition rather than a broken one:
+ *
+ *   - a browser without scroll-linked timelines (today Safari and Firefox),
+ *     which never enters the @supports block;
+ *   - a reader who asked for reduced motion, who is excluded by the media
+ *     query and reset again at the end of this stylesheet;
+ *   - any first paint before an animation has begun.
+ *
+ * Every selector inside the gate animates a ::before or ::after decoration and
+ * never content, and each one carries an identity transform by default. No
+ * content is ever hidden waiting for motion, so nothing here can leave a page
+ * blank, and nothing here needs JavaScript.
+ */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .moving-hero__media::before,
@@ -1346,7 +1452,7 @@ button:focus-visible {
   border: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(1.55rem, 2.4vw, 2.6rem);
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.035em;
   text-align: left;
 }
@@ -1443,7 +1549,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(4rem, 6.4vw, 6.5rem);
   font-stretch: condensed;
-  font-weight: 790;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.065em;
   line-height: 0.9;
   text-wrap: balance;
@@ -1476,7 +1582,7 @@ button:focus-visible {
 }
 
 .moving-collection-hero__media .moving-media-image {
-  aspect-ratio: 4 / 3;
+  --theme-media-ratio: var(--theme-media-ratio-hero);
 }
 
 .moving-collection-section,
@@ -1548,7 +1654,7 @@ button:focus-visible {
   margin: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(1.75rem, 2.7vw, 3rem);
-  font-weight: 760;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.04em;
   line-height: 1;
 }
@@ -1577,8 +1683,9 @@ button:focus-visible {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: var(--theme-media-ratio-service);
   grid-column: 9 / -1;
+  background: var(--theme-surface-field);
   object-fit: cover;
 }
 
@@ -1744,7 +1851,7 @@ button:focus-visible {
   color: var(--theme-ink);
   font-family: var(--theme-font-display);
   font-size: clamp(1.45rem, 2vw, 2.15rem);
-  font-weight: 710;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.025em;
   line-height: 1.25;
 }
@@ -1811,7 +1918,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(4rem, 6.4vw, 6.5rem);
   font-stretch: condensed;
-  font-weight: 790;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.065em;
   line-height: 0.9;
   text-wrap: balance;
@@ -1849,7 +1956,7 @@ button:focus-visible {
   margin: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(2rem, 3vw, 3.2rem);
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.045em;
   line-height: 1;
   text-wrap: balance;
@@ -1930,7 +2037,7 @@ button:focus-visible {
   border-bottom: 1px solid var(--theme-ink);
   font-family: var(--theme-font-display);
   font-size: 1.5rem;
-  font-weight: 750;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.02em;
 }
 
@@ -1971,11 +2078,27 @@ button:focus-visible {
   width: 100%;
   min-height: 3.25rem;
   padding: 0.75rem 0.85rem;
-  border: 1px solid var(--theme-rule);
+  border: 1px solid var(--theme-rule-strong);
+  border-radius: var(--theme-radius);
   background: var(--theme-canvas);
   color: var(--theme-ink);
   font: inherit;
   line-height: 1.45;
+}
+
+.moving-field input:disabled,
+.moving-field select:disabled,
+.moving-field textarea:disabled {
+  border-color: var(--theme-rule);
+  background: var(--theme-surface-field);
+  color: var(--theme-ink-muted);
+  cursor: not-allowed;
+}
+
+.moving-field input[readonly],
+.moving-field textarea[readonly] {
+  border-style: dashed;
+  background: var(--theme-surface-field);
 }
 
 .moving-field textarea {
@@ -1986,7 +2109,13 @@ button:focus-visible {
 .moving-field input:hover,
 .moving-field select:hover,
 .moving-field textarea:hover {
-  border-color: var(--theme-ink-muted);
+  border-color: var(--theme-ink);
+}
+
+.moving-field input:disabled:hover,
+.moving-field select:disabled:hover,
+.moving-field textarea:disabled:hover {
+  border-color: var(--theme-rule);
 }
 
 .moving-field input:focus-visible,
@@ -2009,7 +2138,7 @@ button:focus-visible {
 .moving-checkbox-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--theme-rule);
+  border-top: 1px solid var(--theme-rule-strong);
 }
 
 .moving-checkbox-grid label {
@@ -2018,8 +2147,8 @@ button:focus-visible {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  border-right: 1px solid var(--theme-rule);
-  border-bottom: 1px solid var(--theme-rule);
+  border-right: 1px solid var(--theme-rule-strong);
+  border-bottom: 1px solid var(--theme-rule-strong);
   cursor: pointer;
   line-height: 1.35;
 }
@@ -2042,7 +2171,7 @@ button:focus-visible {
   gap: 0.85rem;
   align-items: start;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--theme-rule);
+  border-top: 1px solid var(--theme-rule-strong);
   cursor: pointer;
   font-size: 0.9rem;
   line-height: 1.55;
@@ -2210,7 +2339,7 @@ button:focus-visible {
   color: var(--theme-surface);
   font-family: var(--theme-font-display);
   font-size: clamp(1.75rem, 2.15vw, 2.6rem);
-  font-weight: 740;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.04em;
   line-height: 1;
   text-decoration-color: var(--theme-signal);
@@ -2364,7 +2493,7 @@ button:focus-visible {
   margin: 0;
   font-family: var(--theme-font-display);
   font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: 760;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.045em;
   line-height: 1;
 }
@@ -2382,7 +2511,7 @@ button:focus-visible {
   margin-top: 2rem;
   padding: 0.75rem 1.25rem;
   border: 1px solid var(--theme-ink);
-  border-radius: 2px;
+  border-radius: var(--theme-radius);
   background: var(--theme-ink);
   color: var(--theme-surface);
   cursor: pointer;
@@ -2432,7 +2561,7 @@ button:focus-visible {
   font-family: var(--theme-font-display);
   font-size: clamp(4rem, 6.4vw, 6.6rem);
   font-stretch: condensed;
-  font-weight: 780;
+  font-weight: var(--theme-display-weight);
   letter-spacing: -0.055em;
   line-height: 0.94;
   overflow-wrap: anywhere;
@@ -2713,6 +2842,92 @@ button:focus-visible {
     display: none;
   }
 
+  /*
+   * Mobile conversion chrome.
+   *
+   * Below this width the header drops its CALL block, so the phone number left
+   * the screen on the devices most likely to dial it. This rail is the single
+   * replacement: HTML and CSS only, no script, the same business phone the
+   * header and footer use, and the quote route the site already publishes.
+   */
+  .theme-mobile-conversion {
+    position: fixed;
+    z-index: 20;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--theme-ink);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--theme-surface);
+  }
+
+  .theme-mobile-conversion__action {
+    display: flex;
+    min-width: 2.75rem;
+    min-height: 3.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-radius: var(--theme-radius);
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .theme-mobile-conversion__action span {
+    font-family: var(--theme-font-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .theme-mobile-conversion__action strong {
+    font-size: 0.95rem;
+    font-weight: 750;
+    line-height: 1.2;
+  }
+
+  .theme-mobile-conversion__action--call {
+    border-left: 0.25rem solid var(--theme-signal);
+    background: var(--theme-ink);
+    color: var(--theme-surface);
+  }
+
+  .theme-mobile-conversion__action--call span {
+    color: var(--theme-signal-soft);
+  }
+
+  .theme-mobile-conversion__action--call:active {
+    background: var(--theme-signal-strong);
+  }
+
+  .theme-mobile-conversion__action--quote {
+    border-left: 1px solid var(--theme-ink);
+    background: var(--theme-surface-field);
+    color: var(--theme-ink);
+  }
+
+  .theme-mobile-conversion__action--quote span {
+    color: var(--theme-ink-muted);
+  }
+
+  /* Nothing may end up underneath the rail, including a form's submit button.
+     The footer closes every page, so it carries the reserved space. */
+  .theme-footer {
+    padding-bottom: calc(3.5rem + 1px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The drawer already offers Call and WhatsApp, so only one phone control is
+     ever on screen. */
+  body:has(#theme-mobile-menu:popover-open) .theme-mobile-conversion {
+    display: none;
+  }
+
   .theme-header__inner {
     gap: 1rem;
   }
@@ -2884,7 +3099,7 @@ button:focus-visible {
     color: var(--theme-surface);
     font-family: var(--theme-font-display);
     font-size: clamp(1.45rem, 5vw, 1.9rem);
-    font-weight: 720;
+    font-weight: var(--theme-display-weight);
     letter-spacing: -0.025em;
   }
 
@@ -2926,7 +3141,7 @@ button:focus-visible {
     color: var(--theme-surface);
     font-family: var(--theme-font-display);
     font-size: 1.125rem;
-    font-weight: 700;
+    font-weight: var(--theme-display-weight);
   }
 
   .theme-mobile-menu__contact-actions {
@@ -3028,10 +3243,6 @@ button:focus-visible {
     font-size: clamp(4.25rem, 10vw, 6.5rem);
   }
 
-  .moving-hero__media .moving-media-image {
-    aspect-ratio: 16 / 10;
-  }
-
   .moving-services__heading > *,
   .moving-process-section__heading > * {
     grid-column: 1 / span 10;
@@ -3091,10 +3302,6 @@ button:focus-visible {
     max-width: 38rem;
   }
 
-  .moving-location-hero__media .moving-media-image {
-    aspect-ratio: 5 / 4;
-  }
-
   .moving-service-overview,
   .moving-location-overview,
   .moving-related-services,
@@ -3117,9 +3324,6 @@ button:focus-visible {
     grid-column: 1;
   }
 
-  .moving-service-process .moving-inner-heading {
-    margin-left: 0;
-  }
 }
 
 @media (max-width: 67.9375rem) {
@@ -3393,10 +3597,6 @@ button:focus-visible {
 
   .moving-hero__media::after {
     width: 2.75rem;
-  }
-
-  .moving-hero__media .moving-media-image {
-    aspect-ratio: 6 / 5;
   }
 
   .moving-proof__list {
