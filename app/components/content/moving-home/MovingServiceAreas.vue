@@ -16,10 +16,10 @@ defineProps<{
       <h2 id="moving-areas-title" class="moving-section-title">
         {{ section.title }}
       </h2>
-      <p v-if="section.intro" class="moving-section-intro">
-        {{ section.intro }}
-      </p>
     </div>
+    <p v-if="section.intro" class="moving-service-areas__note">
+      {{ section.intro }}
+    </p>
     <ul class="moving-area-list">
       <li v-for="area in section.areas" :key="`${area.href}:${area.label}`">
         <PublicActionLink :action="area" />

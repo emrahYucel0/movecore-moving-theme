@@ -34,9 +34,9 @@ describe("R2.16B1 media presentation contracts", () => {
     const theme = await source(THEME);
     const declarations = (theme.match(/aspect-ratio:[^;]+;/gu) ?? [])
       .filter((line) => !line.includes("--theme-media-ratio"));
-    // The only remaining literal is the decorative signal square on the hero
-    // frame, which is not an image.
-    expect(declarations).toEqual(["aspect-ratio: 1;"]);
+    // The only remaining literals are the decorative signal squares on the hero
+    // and assurance frames, which are not images.
+    expect(new Set(declarations)).toEqual(new Set(["aspect-ratio: 1;"]));
   });
 
   it("gives each role its ratio at every width, so a contract stays a contract", async () => {

@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <header class="moving-hero">
+  <header class="moving-hero" :class="{ 'moving-hero--without-media': !hero.media }">
     <div class="moving-hero__copy">
       <p v-if="hero.eyebrow" class="moving-kicker">
         {{ hero.eyebrow }}
@@ -27,7 +27,7 @@ defineProps<{
         />
       </div>
     </div>
-    <figure class="moving-hero__media">
+    <figure v-if="hero.media" class="moving-hero__media">
       <img
         :src="hero.media.publicUrl"
         :alt="hero.media.alt"

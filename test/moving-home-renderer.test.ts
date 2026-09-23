@@ -32,8 +32,15 @@ describe("moving.home commercial renderer", () => {
     const action = await source("../app/components/content/PublicActionLink.vue");
     const combined = `${renderers.join("\n")}\n${action}`;
     for (const forbidden of [
-      "v-html", "<component", ":is=", ":class=", ":style=", "target=", "JSON.stringify", "<pre",
+      "v-html", "<component", ":is=", ":style=", "target=", "JSON.stringify", "<pre",
     ]) expect(combined).not.toContain(forbidden);
+    // A class binding is allowed only in the shape the inner renderers already
+    // use: a literal state class toggled by a boolean. Authored data must never
+    // reach a class name.
+    for (const binding of combined.match(/:class="[^"]*"/gu) ?? []) {
+      expect(binding).toMatch(/^:class="\{ '[a-z-]+': [^']*\}"$/u);
+      expect(binding).not.toMatch(/\.(?:title|label|eyebrow|intro|body|href|alt|description)\b/u);
+    }
     expect(action).toContain("<NuxtLink");
     expect(action).toContain("<a v-else");
     expect(action).toContain(":href=\"action.href\"");

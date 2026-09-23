@@ -532,6 +532,13 @@ button:focus-visible {
   grid-column: 1 / span 5;
 }
 
+/* The photograph is the trust argument, so it runs past the document margin
+   instead of sitting inset in a wide mat. The frame stays, drawn on three
+   sides, because the fourth side is what leaves the page. */
+.moving-hero--without-media .moving-hero__copy {
+  grid-column: 1 / span 8;
+}
+
 .moving-kicker {
   max-width: 36rem;
   margin: 0 0 clamp(1.25rem, 2vw, 2rem);
@@ -569,15 +576,17 @@ button:focus-visible {
 .moving-hero__media {
   position: relative;
   grid-column: 6 / -1;
-  margin: 0;
-  padding: clamp(0.75rem, 1.25vw, 1.125rem);
+  margin: 0 calc(var(--theme-gutter) * -1) 0 0;
+  padding: clamp(0.4rem, 0.6vw, 0.6rem);
+  padding-right: 0;
   border: 1px solid var(--theme-rule);
+  border-right: 0;
   background: var(--theme-surface);
 }
 
 .moving-hero__media::before {
   position: absolute;
-  inset: clamp(0.75rem, 1.25vw, 1.125rem) auto clamp(0.75rem, 1.25vw, 1.125rem) clamp(0.75rem, 1.25vw, 1.125rem);
+  inset: -1px auto -1px calc(clamp(0.9rem, 1.6vw, 1.5rem) * -1);
   z-index: 1;
   width: clamp(0.35rem, 0.55vw, 0.55rem);
   background: var(--theme-signal);
@@ -588,8 +597,8 @@ button:focus-visible {
 
 .moving-hero__media::after {
   position: absolute;
-  right: -1px;
-  bottom: -1px;
+  bottom: calc(clamp(3rem, 5vw, 5rem) * -0.42);
+  left: calc(clamp(3rem, 5vw, 5rem) * -0.5);
   width: clamp(3rem, 5vw, 5rem);
   aspect-ratio: 1;
   background: var(--theme-signal);
@@ -665,10 +674,10 @@ button:focus-visible {
 
 .moving-proof__list li {
   display: grid;
-  min-height: 8.5rem;
-  align-content: space-between;
-  gap: 1rem;
-  padding: clamp(1.35rem, 2.5vw, 2.25rem);
+  min-height: 7rem;
+  align-content: start;
+  gap: 0.6rem;
+  padding: clamp(1.5rem, 2.4vw, 2.25rem) clamp(1.35rem, 2.5vw, 2.25rem);
   border-right: 1px solid var(--theme-rule);
 }
 
@@ -678,18 +687,24 @@ button:focus-visible {
 
 .moving-proof__list strong {
   font-family: var(--theme-font-display);
-  font-size: clamp(1.75rem, 2.5vw, 2.6rem);
+  font-size: clamp(2.35rem, 3.4vw, 3.5rem);
+  font-stretch: condensed;
   font-weight: var(--theme-display-weight);
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
 }
 
 .moving-proof__list span {
-  max-width: 15rem;
+  max-width: 17rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--theme-rule);
   color: var(--theme-ink-muted);
-  font-size: 0.9rem;
-  font-weight: 650;
-  line-height: 1.35;
+  font-family: var(--theme-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.45;
+  text-transform: uppercase;
 }
 
 .moving-home__section {
@@ -867,7 +882,18 @@ button:focus-visible {
 }
 
 .moving-assurance__copy {
-  grid-column: 8 / -1;
+  grid-column: 9 / -1;
+}
+
+.moving-assurance .moving-section-title {
+  font-size: clamp(2.25rem, 3.2vw, 3.5rem);
+  letter-spacing: -0.045em;
+}
+
+.moving-assurance .moving-section-intro {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .moving-assurance:not(:has(.moving-assurance__media)) .moving-assurance__copy {
@@ -877,87 +903,139 @@ button:focus-visible {
 .moving-assurance__media {
   position: relative;
   grid-row: 1;
-  grid-column: 1 / span 6;
-  margin: 0;
-  padding: clamp(0.75rem, 1.25vw, 1.125rem);
+  grid-column: 1 / span 7;
+  margin: 0 0 0 calc(var(--theme-gutter) * -1);
+  padding: clamp(0.4rem, 0.6vw, 0.6rem);
+  padding-left: 0;
   border: 1px solid var(--theme-rule);
+  border-left: 0;
   background: var(--theme-surface);
 }
 
 .moving-assurance__media::after {
   position: absolute;
-  right: clamp(-1.25rem, -1.5vw, -0.75rem);
-  bottom: clamp(-1.25rem, -1.5vw, -0.75rem);
-  z-index: -1;
-  width: 42%;
-  height: 42%;
+  right: calc(clamp(2.5rem, 4vw, 4rem) * -0.5);
+  bottom: calc(clamp(2.5rem, 4vw, 4rem) * -0.42);
+  width: clamp(2.5rem, 4vw, 4rem);
+  aspect-ratio: 1;
   background: var(--theme-signal-soft);
   content: "";
   pointer-events: none;
 }
 
 .moving-assurance__media .moving-media-image {
-  --theme-media-ratio: 5 / 4;
+  --theme-media-ratio: var(--theme-media-ratio-service);
 }
 
 .moving-point-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 1.5rem;
-  margin-top: clamp(2rem, 4vw, 3.5rem);
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: clamp(1.75rem, 3vw, 2.75rem);
   border-top: 1px solid var(--theme-rule);
   list-style: none;
+  counter-reset: moving-point;
 }
 
 .moving-point-list li {
-  min-height: 4.25rem;
-  padding-block: 1rem;
+  display: grid;
+  min-height: 3.5rem;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-block: 0.9rem;
   border-bottom: 1px solid var(--theme-rule);
   color: var(--theme-ink);
+  counter-increment: moving-point;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.moving-point-list li::before {
+  color: var(--theme-signal-strong);
+  content: counter(moving-point, decimal-leading-zero);
+  font-family: var(--theme-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
 }
 
 .moving-service-areas {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(2.5rem, 5vw, 6rem);
+  gap: clamp(2rem, 3.5vw, 4rem) clamp(2.5rem, 5vw, 6rem);
   align-items: start;
 }
 
 .moving-service-areas__heading {
-  grid-column: 1 / span 5;
+  grid-column: 1 / span 7;
+}
+
+/* The supporting note sits in a metadata rail beside the statement rather than
+   beneath it, so the register below can start against a full-width rule. */
+.moving-service-areas__note {
+  grid-column: 9 / -1;
+  align-self: end;
+  max-width: 24rem;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--theme-rule);
+  color: var(--theme-ink-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .moving-service-areas .moving-section-title {
+  max-width: 18ch;
   font-size: clamp(2.75rem, 4.4vw, 4.75rem);
 }
 
 .moving-area-list {
   display: grid;
-  grid-column: 7 / -1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  border-top: 1px solid var(--theme-rule);
   list-style: none;
+  counter-reset: moving-area;
 }
 
 .moving-area-list li {
-  border-top: 1px solid var(--theme-rule);
+  display: grid;
+  border-bottom: 1px solid var(--theme-rule);
+  border-right: 1px solid var(--theme-rule);
+  counter-increment: moving-area;
 }
 
-.moving-area-list li:nth-child(odd) {
-  margin-right: 1.5rem;
+.moving-area-list li:last-child {
+  border-right: 0;
 }
 
 .moving-area-list .moving-action-link {
+  position: relative;
   width: 100%;
-  min-height: 5.25rem;
-  justify-content: flex-start;
-  padding: 1.25rem 0;
+  min-height: 7rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: clamp(1.5rem, 2.4vw, 2.25rem) clamp(1.25rem, 2vw, 1.75rem) clamp(1.25rem, 2vw, 1.75rem);
   border: 0;
   font-family: var(--theme-font-display);
-  font-size: clamp(1.25rem, 1.8vw, 1.85rem);
-  letter-spacing: -0.025em;
+  font-size: clamp(1.35rem, 2vw, 2.1rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   text-align: left;
+  text-wrap: balance;
+}
+
+.moving-area-list .moving-action-link::before {
+  position: absolute;
+  top: clamp(1.1rem, 1.7vw, 1.4rem);
+  left: clamp(1.25rem, 2vw, 1.75rem);
+  color: var(--theme-signal-strong);
+  content: counter(moving-area, decimal-leading-zero);
+  font-family: var(--theme-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .moving-final-action {
@@ -3234,8 +3312,26 @@ button:focus-visible {
   }
 
   .moving-hero__copy,
-  .moving-hero__media {
+  .moving-hero--without-media .moving-hero__copy {
     grid-column: 1;
+  }
+
+  /* One column has no margin to bleed into. */
+  .moving-hero__media {
+    margin-right: 0;
+    padding-right: clamp(0.4rem, 0.6vw, 0.6rem);
+    border-right: 1px solid var(--theme-rule);
+    grid-column: 1;
+  }
+
+  .moving-hero__media::before {
+    inset: -1px auto -1px -1px;
+  }
+
+  .moving-hero__media::after {
+    bottom: calc(clamp(2.5rem, 6vw, 3.5rem) * -0.42);
+    left: calc(clamp(2.5rem, 6vw, 3.5rem) * -0.32);
+    width: clamp(2.5rem, 6vw, 3.5rem);
   }
 
   .moving-hero__title {
@@ -3258,6 +3354,7 @@ button:focus-visible {
   .moving-assurance:not(:has(.moving-assurance__media)) .moving-assurance__copy,
   .moving-assurance__media,
   .moving-service-areas__heading,
+  .moving-service-areas__note,
   .moving-area-list,
   .moving-final-action__copy,
   .moving-final-action__actions {
@@ -3265,8 +3362,23 @@ button:focus-visible {
     grid-column: 1;
   }
 
+  /* One column has no margin to bleed into. */
   .moving-assurance__media {
+    margin-left: 0;
     margin-right: 1.25rem;
+    padding-left: clamp(0.4rem, 0.6vw, 0.6rem);
+    border-left: 1px solid var(--theme-rule);
+  }
+
+  .moving-service-areas__note {
+    max-width: 34rem;
+    align-self: start;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .moving-service-areas .moving-section-title {
+    max-width: none;
   }
 
   .moving-final-action__title {
@@ -3587,16 +3699,18 @@ button:focus-visible {
   }
 
   .moving-hero__media {
-    padding: 0.625rem;
+    padding: 0.4rem;
   }
 
   .moving-hero__media::before {
-    inset: 0.625rem auto 0.625rem 0.625rem;
+    inset: -1px auto -1px -1px;
     width: 0.3rem;
   }
 
   .moving-hero__media::after {
-    width: 2.75rem;
+    bottom: -1.05rem;
+    left: -0.8rem;
+    width: 2.5rem;
   }
 
   .moving-proof__list {
