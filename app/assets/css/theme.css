@@ -270,8 +270,10 @@ button:focus-visible {
 .theme-nav-link {
   position: relative;
   display: inline-flex;
+  min-width: 2.75rem;
   min-height: 2.75rem;
   padding-inline: 0.375rem;
+  justify-content: center;
   align-items: center;
   color: var(--theme-ink);
   font-size: 0.9375rem;
@@ -1175,26 +1177,89 @@ button:focus-visible {
   --theme-media-ratio: var(--theme-media-ratio-service);
 }
 
+/*
+ * Service hero: a task field.
+ *
+ * The photograph runs past the document margin, as on the homepage, but this
+ * hero reads top-down rather than centred: the service identity sits on a rule,
+ * the copy is top-aligned, and the action closes the column on another rule.
+ */
+.moving-service-hero {
+  align-items: start;
+  min-height: min(68dvh, 44rem);
+}
+
+.moving-service-hero .moving-inner-hero__copy {
+  grid-column: 1 / span 5;
+  padding-top: clamp(1rem, 2vw, 2rem);
+  border-top: 1px solid var(--theme-ink);
+}
+
+.moving-service-hero .moving-kicker {
+  margin-bottom: clamp(1.5rem, 2.5vw, 2.5rem);
+}
+
+.moving-service-hero .moving-actions {
+  margin-top: clamp(2rem, 3.5vw, 3rem);
+  padding-top: clamp(1.25rem, 2vw, 1.75rem);
+  border-top: 1px solid var(--theme-rule);
+}
+
+.moving-service-hero .moving-inner-hero__media {
+  grid-column: 6 / -1;
+  margin-right: calc(var(--theme-gutter) * -1);
+  padding: clamp(0.4rem, 0.6vw, 0.6rem);
+  padding-right: 0;
+  border-right: 0;
+}
+
+/*
+ * Area hero: a geographic field record.
+ *
+ * Stacked rather than side by side, so the environment gets the full measure of
+ * the page and the location copy is never left holding half an empty band.
+ */
 .moving-location-hero {
   min-height: min(70dvh, 47rem);
-  align-items: end;
+  align-content: center;
+  row-gap: clamp(1.5rem, 2.5vw, 2.25rem);
 }
 
+/* The location identity holds the left measure across both rows; the right
+   column carries the environment above its own access note. Nothing is left
+   holding half an empty band, which is what R2.16A found here. */
 .moving-location-hero .moving-inner-hero__copy {
+  grid-row: 1 / span 2;
   grid-column: 1 / span 6;
+  align-self: center;
 }
 
-.moving-location-hero--without-media .moving-inner-hero__copy {
-  grid-column: 1 / span 9;
-}
-
-.moving-location-hero .moving-inner-hero__title {
-  max-width: 13ch;
+.moving-location-hero__note {
+  grid-row: 2;
+  grid-column: 7 / -1;
+  max-width: 34rem;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--theme-rule);
+  color: var(--theme-ink-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-line;
 }
 
 .moving-location-hero__media {
+  grid-row: 1;
   grid-column: 7 / -1;
-  align-self: center;
+  margin: 0 calc(var(--theme-gutter) * -1) 0 0;
+  padding: clamp(0.4rem, 0.6vw, 0.6rem);
+  padding-right: 0;
+  border: 1px solid var(--theme-rule);
+  border-right: 0;
+  background: var(--theme-surface);
+}
+
+.moving-location-hero .moving-inner-hero__title {
+  max-width: 16ch;
 }
 
 .moving-location-hero__media .moving-media-image {
@@ -1205,28 +1270,35 @@ button:focus-visible {
   .moving-inner-hero.moving-location-hero--without-media {
     min-height: auto;
     grid-template-rows: auto auto;
-    align-items: start;
-    padding-block: clamp(4.5rem, 6.5vw, 6.25rem) 0;
+    align-content: start;
+    padding-block: clamp(4.5rem, 6.5vw, 6.25rem) clamp(2.5rem, 4vw, 3.5rem);
   }
 
-  .moving-inner-hero.moving-location-hero--without-media .moving-inner-hero__copy {
+  .moving-location-hero--without-media .moving-inner-hero__copy {
     grid-row: 1;
-    grid-column: 1 / span 10;
+    grid-column: 1 / span 7;
+    align-self: end;
+  }
+
+  .moving-location-hero--without-media .moving-location-hero__note {
+    grid-row: 1;
+    grid-column: 9 / -1;
+    align-self: end;
+    max-width: 26rem;
   }
 
   .moving-location-hero--without-media .moving-inner-hero__title {
-    max-width: 16ch;
+    max-width: 18ch;
+    font-size: clamp(4rem, 6.4vw, 6.5rem);
   }
 
-  .moving-location-hero--without-media .moving-inner-hero__intro {
-    max-width: 44rem;
-  }
-
+  /* With no photograph the rule itself becomes the composition, drawn across
+     the whole measure rather than stopping where an image would have started. */
   .moving-location-hero--without-media::after {
     grid-row: 2;
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
     margin-top: clamp(3.5rem, 5vw, 5rem);
-    border-top: 1px solid var(--theme-rule);
+    border-top: 1px solid var(--theme-ink);
     content: "";
   }
 
@@ -1987,7 +2059,106 @@ button:focus-visible {
 }
 
 .moving-conversion__heading {
-  grid-column: 1 / span 9;
+  grid-column: 1 / span 7;
+}
+
+/*
+ * Conversion hero record.
+ *
+ * Quote and Contact both opened on type with an empty half-band. Neither gets a
+ * photograph: these pages are a request and a dispatch desk, so the band is
+ * filled with the operational record the content already carries. That also
+ * keeps them deliberately different from the photographic service and area
+ * heroes.
+ */
+.moving-conversion__record {
+  grid-column: 9 / -1;
+  align-self: end;
+  padding-top: clamp(1.25rem, 2vw, 1.75rem);
+  border-top: 1px solid var(--theme-ink);
+}
+
+.moving-conversion__record h2 {
+  max-width: 22ch;
+  margin: 0 0 1.25rem;
+  font-family: var(--theme-font-display);
+  font-size: clamp(1.4rem, 1.9vw, 1.9rem);
+  font-weight: var(--theme-display-weight);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.moving-conversion__record ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: moving-conversion-record;
+}
+
+.moving-conversion__record li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding-block: 0.85rem;
+  border-top: 1px solid var(--theme-rule);
+  color: var(--theme-ink-muted);
+  counter-increment: moving-conversion-record;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.moving-conversion__record li::before {
+  color: var(--theme-signal-strong);
+  content: counter(moving-conversion-record, decimal-leading-zero);
+  font-family: var(--theme-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.moving-conversion__record .moving-section-label {
+  margin-bottom: 1.25rem;
+}
+
+.moving-contact__dispatch dl {
+  display: grid;
+  margin: 0;
+}
+
+.moving-contact__dispatch dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  padding-block: 0.9rem;
+  border-top: 1px solid var(--theme-rule);
+}
+
+.moving-contact__dispatch dt {
+  color: var(--theme-ink-muted);
+  font-family: var(--theme-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.moving-contact__dispatch dd {
+  margin: 0;
+}
+
+.moving-contact__dispatch dd a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--theme-ink);
+  font-family: var(--theme-font-display);
+  font-size: clamp(1.3rem, 1.8vw, 1.8rem);
+  font-weight: var(--theme-display-weight);
+  letter-spacing: -0.03em;
+  text-decoration-color: var(--theme-signal);
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.25em;
 }
 
 .moving-conversion__heading h1 {
@@ -2259,10 +2430,14 @@ button:focus-visible {
   margin-top: 0.2rem;
 }
 
+/* Links inside a run of prose are identified by an underline as well as colour,
+   because colour alone is not a distinction. They stay inline text: the fix for
+   a small inline link is legibility, not a 44px block. */
 .moving-privacy-field a,
 .moving-form-notice a,
 .moving-contact__details a {
   color: var(--theme-signal-strong);
+  text-decoration-line: underline;
   text-decoration-thickness: 0.1em;
   text-underline-offset: 0.2em;
 }
@@ -2374,8 +2549,18 @@ button:focus-visible {
 }
 
 .moving-contact__quote-link {
+  display: inline-flex;
   width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
   font-weight: 750;
+}
+
+/* Every value in the contact reference list is an action, not prose. */
+.moving-contact__details dd a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
 }
 
 .theme-footer {
@@ -2413,7 +2598,10 @@ button:focus-visible {
 }
 
 .theme-footer__primary-phone {
+  display: inline-flex;
   width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
   color: var(--theme-surface);
   font-family: var(--theme-font-display);
   font-size: clamp(1.75rem, 2.15vw, 2.6rem);
@@ -2826,8 +3014,36 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
+/*
+ * Article cover.
+ *
+ * R2.16A found an empty rule-delimited band between the standfirst and the
+ * first body section that read as a dropped photograph. With a cover that band
+ * is now the photograph; without one the body simply starts sooner, because the
+ * hero's own closing rule already separates them.
+ */
+.moving-article-cover {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(2rem, 4vw, 5rem);
+  margin: 0;
+  padding-block: clamp(2.75rem, 5vw, 4.5rem) 0;
+}
+
+.moving-article-cover .moving-media-image {
+  grid-column: 3 / -1;
+  border: 1px solid var(--theme-rule);
+}
+
 .moving-article-body {
-  padding-block: clamp(4.5rem, 9vw, 8rem);
+  padding-block: clamp(2.75rem, 5vw, 4.5rem) clamp(4.5rem, 9vw, 8rem);
+}
+
+/* The hero already closes with a rule, so the first section must not draw a
+   second one across an empty gap. */
+.moving-article-body > .moving-article-section:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .moving-article-section {
@@ -2874,7 +3090,7 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding-block: 2rem 5rem;
+  padding-block: 2rem 3rem;
   border-top: 1px solid var(--theme-ink);
 }
 
@@ -3399,10 +3615,38 @@ button:focus-visible {
   .moving-inner-hero:not(:has(.moving-inner-hero__media)) .moving-inner-hero__copy,
   .moving-location-hero .moving-inner-hero__copy,
   .moving-location-hero--without-media .moving-inner-hero__copy,
+  .moving-service-hero .moving-inner-hero__copy,
   .moving-inner-hero__media,
-  .moving-location-hero__media {
+  .moving-location-hero__media,
+  .moving-service-hero .moving-inner-hero__media,
+  .moving-location-hero__note,
+  .moving-location-hero--without-media .moving-location-hero__note {
     grid-row: auto;
     grid-column: 1;
+  }
+
+  /* One column has no margin to bleed into. */
+  .moving-service-hero .moving-inner-hero__media {
+    margin-right: 0;
+    padding-right: clamp(0.4rem, 0.6vw, 0.6rem);
+    border-right: 1px solid var(--theme-rule);
+  }
+
+  .moving-location-hero__media {
+    margin-right: 0;
+    padding-right: clamp(0.4rem, 0.6vw, 0.6rem);
+    border-right: 1px solid var(--theme-rule);
+  }
+
+  .moving-location-hero,
+  .moving-service-hero {
+    gap: clamp(2rem, 5vw, 3rem);
+  }
+
+  .moving-location-hero__note,
+  .moving-location-hero--without-media .moving-location-hero__note {
+    max-width: none;
+    align-self: start;
   }
 
   .moving-inner-hero__title {
@@ -3550,10 +3794,19 @@ button:focus-visible {
   }
 
   .moving-conversion__heading,
+  .moving-conversion__record,
   .moving-quote__guidance,
   .moving-contact__details,
   .moving-form-region {
     grid-column: 1;
+  }
+
+  .moving-conversion__hero {
+    row-gap: clamp(2.5rem, 6vw, 3.5rem);
+  }
+
+  .moving-conversion__record {
+    align-self: start;
   }
 
   .moving-conversion__layout {

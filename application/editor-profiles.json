@@ -1354,6 +1354,17 @@
           "maxLength": 600
         },
         {
+          "key": "coverMedia",
+          "label": "Cover image",
+          "kind": "group",
+          "description": "Optional. One editorial photograph shown above the article. Leave it empty and the article opens on its title instead.",
+          "required": false,
+          "fields": [
+            { "key": "assetId", "label": "Asset", "kind": "media", "required": true },
+            { "key": "alt", "label": "Alternative text", "kind": "text", "required": true, "maxLength": 200 }
+          ]
+        },
+        {
           "key": "body",
           "label": "Article body",
           "kind": "repeater",

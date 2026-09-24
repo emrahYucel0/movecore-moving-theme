@@ -119,8 +119,11 @@ describe("R2.16B1 media presentation contracts", () => {
     expect(media).toContain("readonly alt: string;");
     expect(media).not.toMatch(/ratio|role|crop|focal/iu);
     const article = await source("../shared/content/moving-article.ts");
-    // The article cover role has no field to read; B1 adds no schema for it.
-    expect(article).not.toMatch(/media|cover|image/iu);
+    // R2.16B3 activated the article cover role. It is Moving-owned, optional and
+    // built from the same shared media reference every other type uses.
+    expect(article).toContain("readonly coverMedia?: ContentMediaReference;");
+    expect(article).toContain("projectContentMediaReference");
+    expect(article).not.toMatch(/https?:\/\/|\.jpe?g|\.png|\.webp/iu);
   });
 });
 

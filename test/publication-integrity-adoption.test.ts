@@ -90,12 +90,13 @@ describe("R2.12F final Moving publication integrity adoption", () => {
     },
   );
 
-  it("keeps moving.article unchanged, enforced, and parser-equivalent", async () => {
+  it("keeps moving.article enforced and parser-equivalent, with an optional cover", async () => {
     const article = await loadProfile("moving.article");
     expect(article.enforceOnPublish).toBe(true);
     expect(article.fields).toMatchObject([
       { key: "title", maxLength: 180 },
       { key: "excerpt", maxLength: 600 },
+      { key: "coverMedia", required: false },
       {
         key: "body", minItems: 1, maxItems: 24,
         fields: [

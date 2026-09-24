@@ -140,7 +140,7 @@ export async function resolvePublicPageRoute(
         page: {
           type: "moving.article",
           seo: result.page.seo,
-          content: composeMovingArticle(result.page),
+          content: await composeMovingArticle(result.page, resolver),
         },
       };
     }

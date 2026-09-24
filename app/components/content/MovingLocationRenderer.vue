@@ -27,8 +27,8 @@ const nearbyAreas = computed(() => withoutSelfLinks(
         <div class="moving-inner-hero__copy">
           <p v-if="page.hero.eyebrow" class="moving-kicker">{{ page.hero.eyebrow }}</p>
           <h1 id="moving-location-title" class="moving-inner-hero__title">{{ page.hero.title }}</h1>
-          <p class="moving-inner-hero__intro">{{ page.hero.intro }}</p>
         </div>
+        <p class="moving-location-hero__note">{{ page.hero.intro }}</p>
         <figure v-if="page.hero.media" class="moving-inner-hero__media moving-location-hero__media">
           <img
             :src="page.hero.media.publicUrl"

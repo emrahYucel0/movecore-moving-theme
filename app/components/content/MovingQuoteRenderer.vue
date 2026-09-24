@@ -21,17 +21,17 @@ const status = typeof route.query.status === "string" ? route.query.status : und
           <h1 id="moving-quote-title">{{ page.title }}</h1>
           <p>{{ page.intro }}</p>
         </div>
+        <section class="moving-conversion__record" aria-labelledby="moving-quote-guidance-title">
+          <h2 id="moving-quote-guidance-title">{{ page.reassurance.title }}</h2>
+          <ul>
+            <li v-for="point in page.reassurance.points" :key="point">{{ point }}</li>
+          </ul>
+        </section>
       </header>
 
       <div class="moving-conversion__layout">
-        <aside class="moving-quote__guidance" aria-labelledby="moving-quote-guidance-title">
-          <section>
-            <h2 id="moving-quote-guidance-title">{{ page.reassurance.title }}</h2>
-            <ul>
-              <li v-for="point in page.reassurance.points" :key="point">{{ point }}</li>
-            </ul>
-          </section>
-          <section v-if="page.planning" class="moving-quote__planning">
+        <aside v-if="page.planning" class="moving-quote__guidance">
+          <section class="moving-quote__planning">
             <h2>{{ page.planning.title }}</h2>
             <p>{{ page.planning.body }}</p>
           </section>

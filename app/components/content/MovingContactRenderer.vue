@@ -22,14 +22,8 @@ const status = typeof route.query.status === "string" ? route.query.status : und
           <h1 id="moving-contact-title">{{ page.title }}</h1>
           <p>{{ page.intro }}</p>
         </div>
-      </header>
-
-      <div class="moving-conversion__layout moving-contact__layout">
-        <aside class="moving-contact__details" aria-labelledby="moving-contact-details-title">
-          <div>
-            <h2 id="moving-contact-details-title">{{ page.directContact.title }}</h2>
-            <p>{{ page.directContact.intro }}</p>
-          </div>
+        <div class="moving-conversion__record moving-contact__dispatch">
+          <p class="moving-section-label">Direct contact</p>
           <dl>
             <div>
               <dt>Telephone</dt>
@@ -39,6 +33,17 @@ const status = typeof route.query.status === "string" ? route.query.status : und
               <dt>WhatsApp</dt>
               <dd><a :href="site.business.whatsapp.href">{{ site.business.whatsapp.label }}</a></dd>
             </div>
+          </dl>
+        </div>
+      </header>
+
+      <div class="moving-conversion__layout moving-contact__layout">
+        <aside class="moving-contact__details" aria-labelledby="moving-contact-details-title">
+          <div>
+            <h2 id="moving-contact-details-title">{{ page.directContact.title }}</h2>
+            <p>{{ page.directContact.intro }}</p>
+          </div>
+          <dl>
             <div v-if="site.business.email">
               <dt>Email</dt>
               <dd><a :href="site.business.email.href">{{ site.business.email.display }}</a></dd>

@@ -1,3 +1,9 @@
+import {
+  projectContentMediaReference,
+  type ContentImage,
+  type ContentMediaReference,
+} from "./media";
+
 export const MOVING_ARTICLE_LIMITS = Object.freeze({
   title: 180,
   excerpt: 600,
@@ -19,11 +25,17 @@ export interface MovingArticleBodySection {
 export interface MovingArticle {
   readonly title: string;
   readonly excerpt: string;
+  /**
+   * Optional. Articles published before this field existed carry no cover and
+   * stay valid; the page simply opens on type instead of on an image.
+   */
+  readonly coverMedia?: ContentMediaReference;
   readonly body: readonly MovingArticleBodySection[];
 }
 
-export interface MovingArticleViewModel extends MovingArticle {
+export interface MovingArticleViewModel extends Omit<MovingArticle, "coverMedia"> {
   readonly publishedAt: string;
+  readonly coverMedia?: ContentImage;
 }
 
 export interface MovingArticleArchiveItem {
@@ -57,11 +69,19 @@ export function parseMovingArticlePayload(input: unknown): MovingArticle {
   const body = requiredArray(source["body"], MOVING_ARTICLE_LIMITS.bodySections)
     .map(parseBodySection);
   if (body.length === 0) throw contractError();
+  const coverMedia = optionalMedia(source["coverMedia"]);
   return Object.freeze({
     title: requiredString(source["title"], MOVING_ARTICLE_LIMITS.title),
     excerpt: requiredString(source["excerpt"], MOVING_ARTICLE_LIMITS.excerpt),
+    ...(coverMedia === undefined ? {} : { coverMedia }),
     body: Object.freeze(body),
   });
+}
+
+function optionalMedia(value: unknown): ContentMediaReference | undefined {
+  return value === undefined
+    ? undefined
+    : projectContentMediaReference(plainRecord(value), requiredString);
 }
 
 function parseBodySection(value: unknown): MovingArticleBodySection {
@@ -91,10 +111,12 @@ function requiredArray(value: unknown, maximum: number): readonly unknown[] {
   return value;
 }
 
-function requiredString(value: unknown, maximum: number): string {
+/** `maximum` is optional so the shared media projection can reuse this, exactly
+ *  as the other Moving content modules do. */
+function requiredString(value: unknown, maximum?: number): string {
   if (
     typeof value !== "string" || value.trim().length === 0 ||
-    value.length > maximum
+    (maximum !== undefined && value.length > maximum)
   ) {
     throw contractError();
   }

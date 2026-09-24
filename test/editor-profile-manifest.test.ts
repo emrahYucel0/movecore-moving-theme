@@ -290,9 +290,18 @@ describe("application Editor Profile manifest", () => {
       enforceOnPublish: true,
     });
     const fields = array(profile["fields"]).map(record);
-    expect(fields.map((entry) => entry["key"])).toEqual(["title", "excerpt", "body"]);
+    expect(fields.map((entry) => entry["key"])).toEqual(["title", "excerpt", "coverMedia", "body"]);
     expect(field(fields, "title")).toMatchObject({ kind: "text", required: true, maxLength: 180 });
     expect(field(fields, "excerpt")).toMatchObject({ kind: "textarea", required: true, maxLength: 600 });
+    // The cover follows the media-group convention every other optional image
+    // in this manifest uses, and stays optional so older articles remain valid.
+    const cover = field(fields, "coverMedia");
+    expect(cover).toMatchObject({ kind: "group", required: false, label: "Cover image" });
+    expect(String(cover["description"]).length).toBeGreaterThan(0);
+    const coverFields = array(cover["fields"]).map(record);
+    expect(coverFields.map((entry) => entry["key"])).toEqual(["assetId", "alt"]);
+    expect(field(coverFields, "assetId")).toMatchObject({ kind: "media", required: true });
+    expect(field(coverFields, "alt")).toMatchObject({ kind: "text", required: true, maxLength: 200 });
     const body = field(fields, "body");
     expect(body).toMatchObject({
       kind: "repeater",
@@ -311,7 +320,10 @@ describe("application Editor Profile manifest", () => {
     });
     const paragraphs = array(paragraphRepeater["fields"]).map(record);
     expect(field(paragraphs, "text")).toMatchObject({ kind: "textarea", required: true, maxLength: 2000 });
-    expect(JSON.stringify(profile)).not.toMatch(/media|author|categor|tags?|comments?|reading time/iu);
+    // The cover is the only media on an article, and no blog furniture crept in
+    // alongside it.
+    expect(JSON.stringify(profile)).not.toMatch(/author|categor|tags?|comments?|reading time/iu);
+    expect(JSON.stringify(profile).match(/"kind":\s*"media"/gu) ?? []).toHaveLength(1);
   });
 
   it("keeps the enforced moving.article profile equivalent to its public parser", async () => {

@@ -59,11 +59,19 @@ describe("R2.16A defect: two headings broke the page grid", () => {
     expect(theme).not.toContain("margin-left: min(14vw, 12rem)");
   });
 
-  it("aligns the area intro with its own H1", async () => {
+  it("never indents the area note off the page grid", async () => {
     const theme = await source(THEME);
-    const rule = theme.match(/\.moving-location-hero--without-media \.moving-inner-hero__intro \{[^}]*\}/u)?.[0] ?? "";
-    expect(rule).toContain("max-width: 44rem;");
-    expect(rule).not.toContain("margin-left");
+    // R2.16B3 moved the area intro out of the copy block into its own grid
+    // column, so it can no longer be pushed off the H1's edge by a margin.
+    expect(theme).not.toContain(".moving-location-hero--without-media .moving-inner-hero__intro");
+    const note = theme.match(/\n\.moving-location-hero__note \{[^}]*\}/u)?.[0] ?? "";
+    expect(note).toContain("grid-column: 7 / -1;");
+    expect(note).not.toContain("margin-left");
+    expect(note).toContain("margin: 0;");
+    // Without a photograph it moves up beside the title, still in its own column.
+    const withoutMedia = theme.match(/\.moving-location-hero--without-media \.moving-location-hero__note \{[^}]*\}/u)?.[0] ?? "";
+    expect(withoutMedia).toContain("grid-column: 9 / -1;");
+    expect(withoutMedia).not.toContain("margin-left");
   });
 });
 

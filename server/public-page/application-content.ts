@@ -69,6 +69,7 @@ import {
 import {
   MovingArticleContractError,
   parseMovingArticlePayload,
+  type MovingArticle,
   type MovingArticleViewModel,
 } from "../../shared/content/moving-article";
 
@@ -342,17 +343,31 @@ export function composeMovingContact(page: PublicPageProjection): MovingContactP
   );
 }
 
-export function composeMovingArticle(page: PublicPageProjection): MovingArticleViewModel {
+export async function composeMovingArticle(
+  page: PublicPageProjection,
+  client: PublicPageMediaClient,
+): Promise<MovingArticleViewModel> {
   if (page.content.type !== "moving.article") throw applicationContentError();
   const content = parseApplicationPayload(
     page.content.payload,
     parseMovingArticlePayload,
     MovingArticleContractError,
   );
+  const media = await resolveReferencedMedia(movingArticleAssetIds(content), client);
+  const coverMedia = content.coverMedia === undefined
+    ? undefined
+    : imageView(content.coverMedia, requiredMedia(media, content.coverMedia.assetId));
   return Object.freeze({
-    ...content,
+    title: content.title,
+    excerpt: content.excerpt,
+    body: content.body,
+    ...(coverMedia === undefined ? {} : { coverMedia }),
     publishedAt: page.content.publishedAt,
   });
+}
+
+function movingArticleAssetIds(content: MovingArticle): ReadonlySet<string> {
+  return new Set(content.coverMedia === undefined ? [] : [content.coverMedia.assetId]);
 }
 
 async function resolveReferencedMedia(

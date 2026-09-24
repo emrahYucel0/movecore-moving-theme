@@ -3,14 +3,32 @@ import {
   formatMovingArticleDate,
   type MovingArticleViewModel,
 } from "~~/shared/content/moving-article";
+import type { MovingActionSection } from "~~/shared/content/moving-common";
+import MovingFinalAction from "./moving-home/MovingFinalAction.vue";
 
 const props = defineProps<{ readonly page: MovingArticleViewModel }>();
 const publishedDate = formatMovingArticleDate(props.page.publishedAt);
+
+/**
+ * Articles were the only page type that ended by dropping the reader into the
+ * footer. This is the site's own closing slab with its own public routes; it
+ * carries no claim the content does not already make.
+ */
+const articleAction: MovingActionSection = Object.freeze({
+  eyebrow: "Planning a move",
+  title: "Talk it through before moving day.",
+  primaryAction: Object.freeze({ label: "Request a quote", href: "/quote" }),
+  secondaryAction: Object.freeze({ label: "Contact the team", href: "/contact" }),
+});
 </script>
 
 <template>
   <main class="theme-main">
-    <article class="theme-page moving-article-detail" aria-labelledby="moving-article-title">
+    <article
+      class="theme-page moving-article-detail"
+      :class="{ 'moving-article-detail--with-cover': page.coverMedia }"
+      aria-labelledby="moving-article-title"
+    >
       <header class="moving-article-hero">
         <div class="moving-article-hero__index" aria-hidden="true">Field note</div>
         <div class="moving-article-hero__copy">
@@ -20,6 +38,18 @@ const publishedDate = formatMovingArticleDate(props.page.publishedAt);
           <time :datetime="page.publishedAt">{{ publishedDate }}</time>
         </div>
       </header>
+
+      <figure v-if="page.coverMedia" class="moving-article-cover">
+        <img
+          :src="page.coverMedia.publicUrl"
+          :alt="page.coverMedia.alt"
+          :width="page.coverMedia.width"
+          :height="page.coverMedia.height"
+          class="moving-media-image moving-media-image--article"
+          loading="lazy"
+          decoding="async"
+        >
+      </figure>
 
       <div class="moving-article-body">
         <section
@@ -43,6 +73,8 @@ const publishedDate = formatMovingArticleDate(props.page.publishedAt);
         <span>More practical planning notes</span>
         <NuxtLink to="/articles">Return to all articles</NuxtLink>
       </footer>
+
+      <MovingFinalAction :section="articleAction" />
     </article>
   </main>
 </template>
